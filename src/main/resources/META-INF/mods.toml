@@ -1,0 +1,36 @@
+modLoader="javafml"
+loaderVersion="[40,)"
+issueTrackerURL="https://github.com/Muddykat/alchemia/issues"
+license="Blu's License of Common Sense"
+
+[[mods]]
+modId = "alchemia"
+version = "0.0.1"
+displayName = "Alchemia"
+description = "A tech based mod focused on realism."
+authors = "Muddykat"
+updateJSONURL = ""
+displayURL = "https://minecraft.curseforge.com/projects/alchemia/"
+logoFile = "logo.png"
+credits = "All the great other Git Contributors, and the nerds on IRC!"
+
+[[dependencies.alchemia]]
+modId="forge"
+mandatory=true
+versionRange="[40.1.86,)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.alchemia]]
+modId="minecraft"
+mandatory=true
+versionRange="[1.18.2]"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.alchemia]]
+modId="jei"
+mandatory=false
+versionRange="[9.7.1.+,)"
+ordering="NONE"
+side="BOTH"
