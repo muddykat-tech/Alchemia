@@ -2,21 +2,23 @@ package muddykat.alchemia;
 
 import com.mojang.logging.LogUtils;
 import muddykat.alchemia.client.ClientSetup;
+import muddykat.alchemia.common.items.helper.Ingredients;
 import muddykat.alchemia.registration.AlchemiaRegistry;
 import muddykat.alchemia.registration.registers.BlockRegister;
 import muddykat.alchemia.registration.registers.ItemRegister;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
-import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
+
+import javax.annotation.Nonnull;
 
 import static muddykat.alchemia.Alchemia.MODID;
 
@@ -26,7 +28,6 @@ public class Alchemia
 {
     public static final String MODID = "alchemia";
     private static final Logger LOGGER = LogUtils.getLogger();
-
     public Alchemia()
     {
         final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
@@ -68,4 +69,14 @@ public class Alchemia
 
         }
     }
+
+    public static final CreativeModeTab ITEM_GROUP = new CreativeModeTab(MODID)
+    {
+        @Override
+        @Nonnull
+        public ItemStack makeIcon()
+        {
+            return new ItemStack(ItemRegister.getSeedByIngredient(Ingredients.Waterbloom));
+        }
+    };
 }

@@ -2,14 +2,15 @@ package muddykat.alchemia.common.blocks;
 
 import muddykat.alchemia.common.items.helper.IngredientType;
 import muddykat.alchemia.common.items.helper.Ingredients;
-import net.minecraft.client.Minecraft;
+import muddykat.alchemia.registration.registers.ItemRegister;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
-import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.*;
@@ -17,24 +18,24 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
-import net.minecraft.world.level.material.Material;
 import net.minecraftforge.common.IPlantable;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Random;
 
-public class BlockIngredient extends BushBlock implements BonemealableBlock, IPlantable {
+public class BlockIngredient extends CropBlock implements BonemealableBlock, IPlantable {
 
     public static final IntegerProperty AGE = BlockStateProperties.AGE_3;
     protected final Ingredients ingredientData;
     protected final IngredientType type;
     public BlockIngredient(Ingredients ingredient, IngredientType iType) {
-        super(Properties.copy(Blocks.SWEET_BERRY_BUSH));
+        super(Properties.copy(Blocks.WHEAT));
         this.registerDefaultState(this.defaultBlockState().setValue(AGE, 0));
         this.ingredientData = ingredient;
         this.type = iType;
 
     }
-    public IntegerProperty getAgeProperty() {
+    public @NotNull IntegerProperty getAgeProperty() {
         return AGE;
     }
 
@@ -121,5 +122,14 @@ public class BlockIngredient extends BushBlock implements BonemealableBlock, IPl
                 }
             }
         return this.mayPlaceOn(pLevel.getBlockState(blockpos), pLevel, blockpos);
+    }
+
+    @Override
+    protected ItemLike getBaseSeedId() {
+        return ItemRegister.getSeedByIngredient(getIngredient());
+    }
+    @Override
+    public ItemStack getCloneItemStack(BlockGetter pLevel, BlockPos pPos, BlockState pState) {
+        return new ItemStack(this.getBaseSeedId());
     }
 }

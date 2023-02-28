@@ -2,6 +2,7 @@ package muddykat.alchemia.data;
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.data.generators.AlchemiaBlockStateProvider;
 import muddykat.alchemia.data.generators.AlchemiaItemModelProvider;
+import muddykat.alchemia.data.generators.loot.AlchemiaLootProvider;
 import net.minecraft.data.DataGenerator;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -23,6 +24,7 @@ public class DataProvider {
         if(event.includeClient()){
             gen.addProvider(new AlchemiaItemModelProvider(gen, helper));
             gen.addProvider(new AlchemiaBlockStateProvider(gen, helper));
+            gen.addProvider(new AlchemiaLootProvider(gen));
         }
     }
 }
