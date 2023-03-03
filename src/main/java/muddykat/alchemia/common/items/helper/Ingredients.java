@@ -12,27 +12,36 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.food.FoodProperties;
 
+import static muddykat.alchemia.common.items.helper.IngredientType.*;
+
 public enum Ingredients {
-    Firebell(IngredientType.Flower, IngredientAlignment.Fire, MobEffects.FIRE_RESISTANCE),
-    Waterbloom(IngredientType.Flower, IngredientAlignment.Water, MobEffects.WATER_BREATHING),
-    Windbloom(IngredientType.Flower, IngredientAlignment.Air, MobEffects.MOVEMENT_SPEED),
-    Terraria(IngredientType.Root, IngredientAlignment.Earth, MobEffects.DIG_SPEED),
-    Bloodthorn(IngredientType.Herb, IngredientAlignment.Fire, IngredientAlignment.Air, MobEffects.WEAKNESS),
-    Lifeleaf(IngredientType.Herb, IngredientAlignment.Earth, IngredientAlignment.Water, MobEffects.HEAL),
-    Goldthorn(IngredientType.Herb, IngredientAlignment.Earth, MobEffects.WITHER),
-    Icefruit(IngredientType.Herb, IngredientAlignment.Water, MobEffects.MOVEMENT_SLOWDOWN),
-    Lava_Root(IngredientType.Root, IngredientAlignment.Fire, MobEffects.HARM),
-    Tangleweed(IngredientType.Herb, IngredientAlignment.Water, MobEffects.CONFUSION),
-    Goodberry(IngredientType.Herb, IngredientAlignment.Earth, IngredientAlignment.Water, MobEffects.HEALTH_BOOST),
-    Thunder_Thistle(IngredientType.Herb, IngredientAlignment.Water, IngredientAlignment.Air, MobEffects.GLOWING),
-    Flameweed(IngredientType.Herb, IngredientAlignment.Fire, MobEffects.FIRE_RESISTANCE),
-    Mageberry(IngredientType.Herb, IngredientAlignment.Water, IngredientAlignment.Air, MobEffects.CONDUIT_POWER),
-    Terrorbud(IngredientType.Herb, IngredientAlignment.Air, IngredientAlignment.Fire, MobEffects.BLINDNESS),
-    Featherbloom(IngredientType.Flower, IngredientAlignment.Air, MobEffects.LEVITATION),
-    Fluffbloom(IngredientType.Flower, IngredientAlignment.Air, MobEffects.SLOW_FALLING),
-    Spellbloom(IngredientType.Flower, IngredientAlignment.Air, IngredientAlignment.Water, MobEffects.ABSORPTION),
-    Dreambeet(IngredientType.Root, IngredientAlignment.Air, IngredientAlignment.Water, MobEffects.LUCK),
-    Boombloom(IngredientType.Flower, IngredientAlignment.Earth, IngredientAlignment.Water, MobEffects.JUMP),
+    Firebell(Flower, IngredientAlignment.Fire, MobEffects.FIRE_RESISTANCE),
+    Waterbloom(Flower, IngredientAlignment.Water, MobEffects.WATER_BREATHING),
+    Windbloom(Flower, IngredientAlignment.Air, MobEffects.MOVEMENT_SPEED),
+    Featherbloom(Flower, IngredientAlignment.Air, MobEffects.LEVITATION),
+    Fluffbloom(Flower, IngredientAlignment.Air, MobEffects.SLOW_FALLING),
+    Spellbloom(Flower, IngredientAlignment.Air, IngredientAlignment.Water, MobEffects.ABSORPTION),
+    Boombloom(Flower, IngredientAlignment.Earth, IngredientAlignment.Water, MobEffects.JUMP),
+
+    Bloodthorn(Herb, IngredientAlignment.Fire, IngredientAlignment.Air, MobEffects.WEAKNESS),
+    Coldleaf(Herb, IngredientAlignment.Water, MobEffects.MOVEMENT_SLOWDOWN),
+    Dragon_Pepper(Herb, IngredientAlignment.Fire, MobEffects.MOVEMENT_SPEED),
+    Druids_Rosemary(Herb, IngredientAlignment.Fire, MobEffects.HEAL),
+    Evergreen_Fern(Herb, IngredientAlignment.Air, IngredientAlignment.Fire, MobEffects.CONFUSION),
+    Lifeleaf(Herb, IngredientAlignment.Earth, IngredientAlignment.Water, MobEffects.HEAL),
+    Goldthorn(Herb, IngredientAlignment.Earth, MobEffects.WITHER),
+    Icefruit(Herb, IngredientAlignment.Water, MobEffects.MOVEMENT_SLOWDOWN),
+    Tangleweed(Herb, IngredientAlignment.Water, MobEffects.CONFUSION),
+    Goodberry(Herb, IngredientAlignment.Earth, IngredientAlignment.Water, MobEffects.HEALTH_BOOST),
+    Thunder_Thistle(Herb, IngredientAlignment.Water, IngredientAlignment.Air, MobEffects.GLOWING),
+    Flameweed(Herb, IngredientAlignment.Fire, MobEffects.FIRE_RESISTANCE),
+    Mageberry(Herb, IngredientAlignment.Water, IngredientAlignment.Air, MobEffects.CONDUIT_POWER),
+    Healers_Heather(Herb, IngredientAlignment.Earth, IngredientAlignment.Water, MobEffects.REGENERATION),
+    Terrorbud(Herb, IngredientAlignment.Earth, IngredientAlignment.Water, MobEffects.BLINDNESS),
+    Thornstick(Herb, IngredientAlignment.Fire, IngredientAlignment.Earth, MobEffects.POISON),
+    Lava_Root(Root, IngredientAlignment.Fire, MobEffects.HARM),
+    Terraria(Root, IngredientAlignment.Earth, MobEffects.DIG_SPEED),
+    Dreambeet(Root, IngredientAlignment.Air, IngredientAlignment.Water, MobEffects.LUCK),
     Marshroom(IngredientType.Mushroom, IngredientAlignment.Earth, IngredientAlignment.Fire, MobEffects.HUNGER),
     Sulphur_Shelf(IngredientType.Mushroom, IngredientAlignment.Fire, MobEffects.POISON),
     Witch_Mushroom(IngredientType.Mushroom, IngredientAlignment.Earth, IngredientAlignment.Fire, MobEffects.WITHER),
@@ -67,6 +76,7 @@ public enum Ingredients {
     public String getRegistryName() {
         return type.name().toLowerCase() +"_"+ name().toLowerCase();
     }
+
     public String getSeedRegistryName() {
         return type.name().toLowerCase() +"_"+ name().toLowerCase() + "_seed";
     }
