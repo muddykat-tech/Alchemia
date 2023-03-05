@@ -72,7 +72,6 @@ public enum Ingredients {
         this(type, primaryAlignment, effect);
         this.secondaryAlignment = secondaryAlignment;
     }
-
     public String getRegistryName() {
         return type.name().toLowerCase() +"_"+ name().toLowerCase();
     }
