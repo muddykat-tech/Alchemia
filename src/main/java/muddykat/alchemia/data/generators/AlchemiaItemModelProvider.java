@@ -34,6 +34,7 @@ public class AlchemiaItemModelProvider extends ItemModelProvider {
             if(item instanceof ItemIngredient ingredient) {
                 generateGenericIngredient(ingredient);
             }
+
         }
     }
 

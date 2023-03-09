@@ -1,5 +1,6 @@
 package muddykat.alchemia.common.blocks;
 
+import muddykat.alchemia.common.items.helper.IngredientAlignment;
 import muddykat.alchemia.common.items.helper.IngredientType;
 import muddykat.alchemia.common.items.helper.Ingredients;
 import muddykat.alchemia.registration.registers.ItemRegister;
@@ -53,6 +54,11 @@ public class BlockIngredient extends CropBlock implements BonemealableBlock, IPl
     }
 
     @Override
+    public boolean isFlammable(BlockState state, BlockGetter level, BlockPos pos, Direction direction) {
+        return ingredientData.getPrimaryAlignment() != IngredientAlignment.Fire;
+    }
+
+    @Override
     public boolean isBonemealSuccess(Level pLevel, Random pRandom, BlockPos pPos, BlockState pState) {
         return true;
     }
@@ -90,14 +96,17 @@ public class BlockIngredient extends CropBlock implements BonemealableBlock, IPl
     protected boolean mayPlaceOn(BlockState pState, BlockGetter pLevel, BlockPos pPos) {
         switch(type) {
             case Flower, Herb -> {
-                return pState.is(BlockTags.DIRT) || pState.is(Blocks.FARMLAND);
+                return ingredientData.getPrimaryAlignment() == IngredientAlignment.Fire ? pState.is(BlockTags.SAND) : pState.is(BlockTags.DIRT) || pState.is(Blocks.FARMLAND);
             }
             case Mushroom -> {
                 return pState.is(BlockTags.BASE_STONE_OVERWORLD) && pState.getLightEmission(pLevel, pPos) <= 5;
             }
             case Root -> {
-
-                return pLevel.getBlockState(pPos).is(BlockTags.DIRT);
+                Block source = Blocks.WATER;
+                if(ingredientData.getPrimaryAlignment() == IngredientAlignment.Fire){
+                    source = Blocks.LAVA;
+                }
+                return pLevel.getBlockState(pPos.below()).is(Blocks.AIR) && pLevel.getBlockState(pPos.above()).is(BlockTags.DIRT) && pLevel.getBlockState(pPos.above(2)).is(source);
             }
             case Mineral -> {
                 return pState.is(BlockTags.BASE_STONE_OVERWORLD);
@@ -109,15 +118,25 @@ public class BlockIngredient extends CropBlock implements BonemealableBlock, IPl
     @Override
     public boolean canSurvive(BlockState pState, LevelReader pLevel, BlockPos pPos) {
         BlockPos blockpos = pPos.below();
+
+
+
         if (pState.getBlock() == this) //Forge: This function is called during world gen and placement, before this block is set, so if we are not 'here' then assume it's the pre-check.
             switch(type){
                 case Root -> {
-                    return pLevel.getBlockState(blockpos.below(2)).is(Blocks.AIR) || pLevel.getBlockState(blockpos.below(2)).is(Blocks.CAVE_AIR);
+                    Block source = Blocks.WATER;
+                    if(ingredientData.getPrimaryAlignment() == IngredientAlignment.Fire){
+                        source = Blocks.LAVA;
+                    }
+                    return pLevel.getBlockState(pPos.below()).is(Blocks.AIR) && pLevel.getBlockState(pPos.above()).is(BlockTags.DIRT) && pLevel.getBlockState(pPos.above(2)).is(source);
                 }
                 case Mushroom -> {
                     return pLevel.getBlockState(blockpos.below()).is(BlockTags.BASE_STONE_OVERWORLD);
                 }
                 default -> {
+                    if(ingredientData.getPrimaryAlignment() == IngredientAlignment.Fire) {
+                        return pLevel.getBlockState(blockpos).is(BlockTags.SAND);
+                    }
                     return pLevel.getBlockState(blockpos).canSustainPlant(pLevel, blockpos, Direction.UP, this);
                 }
             }

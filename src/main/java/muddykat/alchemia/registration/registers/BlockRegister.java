@@ -1,6 +1,7 @@
 package muddykat.alchemia.registration.registers;
 
 import muddykat.alchemia.Alchemia;
+import muddykat.alchemia.common.blocks.BlockGeneric;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -21,4 +22,5 @@ public class BlockRegister {
     public static DeferredRegister<Block> getRegistry() {
         return BLOCKS;
     }
+
 }

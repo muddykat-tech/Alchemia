@@ -2,6 +2,7 @@ package muddykat.alchemia.data.generators;
 
 import com.mojang.logging.LogUtils;
 import muddykat.alchemia.Alchemia;
+import muddykat.alchemia.common.blocks.BlockGeneric;
 import muddykat.alchemia.common.blocks.BlockIngredient;
 import muddykat.alchemia.registration.registers.BlockRegister;
 import net.minecraft.data.DataGenerator;
@@ -16,6 +17,8 @@ import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.registries.RegistryObject;
 import org.slf4j.Logger;
 
+import java.util.function.Supplier;
+
 
 public class AlchemiaBlockStateProvider extends BlockStateProvider {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -29,15 +32,21 @@ public class AlchemiaBlockStateProvider extends BlockStateProvider {
         LOGGER.info("Starting Block Model Registration");
         for (RegistryObject<Block> registryObject : BlockRegister.BLOCK_REGISTRY.values()){
             Block block = registryObject.get();
-            if(block instanceof BlockIngredient) {
-                BlockIngredient ingredient = (BlockIngredient) block;
+            if(block instanceof BlockIngredient ingredient) {
                 generateGenericBlockIngredient(ingredient);
+            }
+            if(block instanceof BlockGeneric) {
+                generateGenericBlock(registryObject);
             }
         }
     }
 
     private void generateGenericBlockIngredient(BlockIngredient block){
         this.stageBlock(block,  block.getAgeProperty());
+    }
+
+    private void generateGenericBlock(Supplier<Block> block){
+        cubeAll(block, resourceBlock("alchemy/" + blockName(block.get())));
     }
 
     public ModelFile existingModel(Block block) {
@@ -70,5 +79,40 @@ public class AlchemiaBlockStateProvider extends BlockStateProvider {
                     return ConfiguredModel.builder()
                             .modelFile(models().cross(stageName, resourceBlock(stageName))).build();
                 }, ignored);
+    }
+
+    public void simpleBlockAndItem(Supplier<? extends Block> b, ModelFile model)
+    {
+        simpleBlockAndItem(b, new ConfiguredModel(model));
+    }
+
+    protected void simpleBlockAndItem(Supplier<? extends Block> b, ConfiguredModel model)
+    {
+        simpleBlock(b.get(), model);
+        itemModel(b, model.model);
+    }
+
+    protected void cubeSideVertical(Supplier<? extends Block> b, ResourceLocation side, ResourceLocation vertical)
+    {
+        simpleBlockAndItem(b, models().cubeBottomTop(name(b), side, vertical, vertical));
+    }
+
+    protected void cubeAll(Supplier<? extends Block> b, ResourceLocation texture)
+    {
+        simpleBlockAndItem(b, models().cubeAll(name(b), texture));
+    }
+
+    protected void itemModel(Supplier<? extends Block> block, ModelFile model)
+    {
+        itemModels().getBuilder(name(block)).parent(model);
+    }
+    protected String name(Supplier<? extends Block> b)
+    {
+        return name(b.get());
+    }
+
+    protected String name(Block b)
+    {
+        return b.getRegistryName().getPath();
     }
 }

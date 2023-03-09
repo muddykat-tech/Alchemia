@@ -1,6 +1,9 @@
 package muddykat.alchemia.client;
 
+import muddykat.alchemia.client.gui.AlchemicalScreen;
 import muddykat.alchemia.registration.registers.BlockRegister;
+import muddykat.alchemia.registration.registers.MenuTypeRegistry;
+import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.world.level.block.Block;
@@ -16,6 +19,11 @@ public class ClientSetup {
         for (Block b : collectedBlocks) {
             ItemBlockRenderTypes.setRenderLayer(b, RenderType.cutout());
         }
+
+        event.enqueueWork(() ->
+        {
+            MenuScreens.register(MenuTypeRegistry.ALCHEMICAL_CAULDRON.get(), AlchemicalScreen::new);
+        });
     }
 
 }

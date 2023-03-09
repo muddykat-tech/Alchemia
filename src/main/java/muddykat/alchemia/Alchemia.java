@@ -1,16 +1,21 @@
 package muddykat.alchemia;
 
+import com.blamejared.crafttweaker.impl.network.PacketHandler;
 import com.mojang.logging.LogUtils;
 import muddykat.alchemia.client.ClientSetup;
-import muddykat.alchemia.common.items.helper.Ingredients;
+import muddykat.alchemia.client.ClientSetupEvents;
+import muddykat.alchemia.common.potion.PotionMap;
 import muddykat.alchemia.registration.AlchemiaRegistry;
+import muddykat.alchemia.registration.registers.BlockEntityTypeRegistry;
 import muddykat.alchemia.registration.registers.BlockRegister;
 import muddykat.alchemia.registration.registers.ItemRegister;
+import muddykat.alchemia.registration.registers.MenuTypeRegistry;
+import net.minecraft.util.profiling.jfr.event.WorldLoadFinishedEvent;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.Block;
+import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -20,6 +25,8 @@ import org.slf4j.Logger;
 
 import javax.annotation.Nonnull;
 
+import java.util.Objects;
+
 import static muddykat.alchemia.Alchemia.MODID;
 
 // The value here should match an entry in the META-INF/mods.toml file
@@ -27,7 +34,7 @@ import static muddykat.alchemia.Alchemia.MODID;
 public class Alchemia
 {
     public static final String MODID = "alchemia";
-    private static final Logger LOGGER = LogUtils.getLogger();
+    public static final Logger LOGGER = LogUtils.getLogger();
     public Alchemia()
     {
         final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
@@ -37,6 +44,10 @@ public class Alchemia
 
         BlockRegister.getRegistry().register(modEventBus);
         ItemRegister.getRegistry().register(modEventBus);
+
+        BlockEntityTypeRegistry.TILES.register(modEventBus);
+
+        MenuTypeRegistry.MENU_TYPES.register(modEventBus);
 
         LOGGER.info(MODID + ": Initializing Clientside Settings");
         modEventBus.addListener(ClientSetup::init);
@@ -53,21 +64,8 @@ public class Alchemia
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event)
     {
-        // Do something when the server starts
-        LOGGER.info("HELLO from server starting");
-    }
 
-    // You can use EventBusSubscriber to automatically subscribe events on the contained class (this is subscribing to the MOD
-    // Event bus for receiving Registry Events)
-    @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
-    public static class RegistryEvents
-    {
-        @SubscribeEvent
-        public static void onBlocksRegistry(final RegistryEvent.Register<Block> blockRegistryEvent)
-        {
-            // Register a new block here
 
-        }
     }
 
     public static final CreativeModeTab ITEM_GROUP = new CreativeModeTab(MODID)
@@ -76,7 +74,7 @@ public class Alchemia
         @Nonnull
         public ItemStack makeIcon()
         {
-            return new ItemStack(ItemRegister.getSeedByIngredient(Ingredients.Waterbloom));
+            return new ItemStack(BlockRegister.BLOCK_REGISTRY.get("alchemical_cauldron").get());
         }
     };
 }

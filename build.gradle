@@ -112,12 +112,7 @@ dependencies {
     minecraft "net.minecraftforge:forge:${version_minecraft}-${version_forge}"
     compileOnly fg.deobf("mezz.jei:jei-${version_minecraft}:${version_jei}:api")
     runtimeOnly fg.deobf("mezz.jei:jei-${version_minecraft}:${version_jei}")
-
-    compileOnly fg.deobf("vazkii.patchouli:Patchouli:1.18.2-71.1:api")
-    runtimeOnly fg.deobf("vazkii.patchouli:Patchouli:1.18.2-71.1")
-
     compileOnly fg.deobf("com.blamejared.crafttweaker:CraftTweaker-forge-1.18.2:9.1.137")
-
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
