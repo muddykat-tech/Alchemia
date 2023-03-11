@@ -4,6 +4,7 @@ import com.blamejared.crafttweaker.impl.network.PacketHandler;
 import com.mojang.logging.LogUtils;
 import muddykat.alchemia.client.ClientSetup;
 import muddykat.alchemia.client.ClientSetupEvents;
+import muddykat.alchemia.common.WorldEventHandler;
 import muddykat.alchemia.common.potion.PotionMap;
 import muddykat.alchemia.registration.AlchemiaRegistry;
 import muddykat.alchemia.registration.registers.BlockEntityTypeRegistry;
@@ -51,6 +52,7 @@ public class Alchemia
 
         LOGGER.info(MODID + ": Initializing Clientside Settings");
         modEventBus.addListener(ClientSetup::init);
+        MinecraftForge.EVENT_BUS.register(WorldEventHandler.class);
 
         LOGGER.info(MODID + ": Completed");
         // Register ourselves for server and other game events we are interested in

@@ -1,5 +1,7 @@
 package muddykat.alchemia.common.blocks.blockentity;
 
+import com.blamejared.crafttweaker.api.util.AttributeUtil;
+import com.blamejared.crafttweaker.api.util.ItemStackUtil;
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.client.helper.ScreenHelper;
 import muddykat.alchemia.common.blocks.tileentity.TileEntityAlchemyCauldron;
@@ -10,6 +12,8 @@ import muddykat.alchemia.registration.registers.BlockEntityTypeRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -105,6 +109,8 @@ public class BlockAlchemyCauldron extends EntityBlockGeneric {
                     cauldron.ensureStrength(effect, effectStrength);
 
                     PotionUtils.setCustomEffects(potion, cauldron.getEffectList());
+
+                    potion.setHoverName(new TextComponent("Crafted Potion"));
 
                     heldStack.shrink(1);
                     player.addItem(potion);
