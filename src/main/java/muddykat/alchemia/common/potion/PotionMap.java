@@ -15,11 +15,12 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.*;
 
 public class PotionMap {
-    public static PotionMap INSTANCE = new PotionMap(10);
+    public static PotionMap INSTANCE;
     private Random rand = new Random();
     private int size;
     private int middlePosition;
     public PotionMap(long seed) {
+        Alchemia.LOGGER.info("Potion Map has been Assigned");
         rand.setSeed(seed);
         size = PotionEnum.values().length * 5;
         middlePosition = Math.round((int) (size / 2));
@@ -47,6 +48,10 @@ public class PotionMap {
         }
     }
     public final HashMap<String, PotionEffectPosition> effectHashMap = new HashMap<>();
+
+    public static void scramble(long seed) {
+        INSTANCE = new PotionMap(seed);
+    }
 
     public PotionEffectPosition getEffectPotion(int[] alignment){
 

@@ -58,7 +58,7 @@ public class BlockAlchemyCauldron extends EntityBlockGeneric {
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         ItemStack heldStack = player.getItemInHand(hand);
         Item heldItem = heldStack.getItem();
-
+        
         if(heldItem instanceof BucketItem) {
             boolean isValid = heldItem.equals(Items.WATER_BUCKET) ;
             if(isValid) {
