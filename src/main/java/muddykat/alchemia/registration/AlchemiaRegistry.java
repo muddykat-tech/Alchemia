@@ -6,6 +6,7 @@ import muddykat.alchemia.common.blocks.blockentity.EntityBlockGeneric;
 import muddykat.alchemia.common.items.BlockItemGeneric;
 import muddykat.alchemia.common.items.ItemAlchemiaGuide;
 import muddykat.alchemia.common.items.helper.Ingredients;
+import muddykat.alchemia.common.items.AlchemicalPotion;
 import muddykat.alchemia.registration.registers.BlockRegister;
 import muddykat.alchemia.registration.registers.ItemRegister;
 import org.apache.logging.log4j.LogManager;
@@ -23,6 +24,7 @@ public class AlchemiaRegistry {
         createBlockEntity(BlockAlchemyCauldron.class, "alchemical_cauldron");
 
         ItemRegister.registerItem("alchemia_guide", ItemAlchemiaGuide::new);
+        ItemRegister.registerItem("alchemical_potion", AlchemicalPotion::new);
     }
     public static void createBasicBlock(String id){
         BlockRegister.registerBlock(id, BlockGeneric::new);
@@ -33,9 +35,9 @@ public class AlchemiaRegistry {
         BlockRegister.registerBlock(id, () -> {
             try {
                 return generic.getDeclaredConstructor().newInstance();
-            } catch (RuntimeException | InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException ignored) {
+            } catch (RuntimeException | InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException error) {
                 Logger log =  LogManager.getLogger();
-                log.info(ignored.getMessage());
+                log.info(error.getMessage());
             }
             return null;
         });

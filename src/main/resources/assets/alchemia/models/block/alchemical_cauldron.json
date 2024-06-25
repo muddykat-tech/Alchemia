@@ -1,5 +1,6 @@
 {
 	"credit": "Made with Blockbench",
+	"render_type": "minecraft:translucent",
 	"textures": {
 		"coal_block": "alchemia:block/alchemy/coal_block",
 		"chain": "alchemia:block/alchemy/chain",

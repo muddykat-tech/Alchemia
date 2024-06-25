@@ -6,13 +6,10 @@ import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.blocks.tileentity.TileEntityAlchemyCauldron;
 import muddykat.alchemia.common.blocks.tileentity.container.AlchemicalCauldronMenu;
 import muddykat.alchemia.common.potion.PotionMap;
-import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.ContainerData;
-import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldronMenu> {
@@ -56,7 +53,7 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
             this.blit(ms, xpos, ypos, 412, 76, 15, 15, 512, 512);
 
         for (String key : PotionMap.INSTANCE.effectHashMap.keySet()) {
-            Alchemia.LOGGER.info("Positions: " + key);
+            //Alchemia.LOGGER.info("Positions: " + key);
             int xp = Integer.parseInt(String.valueOf(key.substring(0, key.indexOf(","))));
             int yp = Integer.parseInt(key.substring(key.indexOf(",")+1));
             blit(ms, (xpos + (xp * 15)) - (x * 15), (ypos + (yp * 15)) - (y * 15), 412 + ((x == xp && y == yp) ? 16 : 0), 92, 15, 15, 512, 512);

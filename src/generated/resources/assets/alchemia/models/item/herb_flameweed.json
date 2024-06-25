@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "alchemia:item/herbs/flameweed"
+    "layer0": "alchemia:item/herbs/flameweed_crushed"
   }
 }

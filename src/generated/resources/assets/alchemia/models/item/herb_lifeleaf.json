@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "alchemia:item/herbs/lifeleaf"
+    "layer0": "alchemia:item/herbs/lifeleaf_crushed"
   }
 }

@@ -1,15 +1,14 @@
 package muddykat.alchemia.common.items.helper;
 
 import muddykat.alchemia.common.blocks.BlockIngredient;
-import muddykat.alchemia.common.items.BlockItemGeneric;
 import muddykat.alchemia.common.items.ItemIngredient;
+import muddykat.alchemia.common.items.ItemIngredientCrushed;
 import muddykat.alchemia.common.items.ItemIngredientSeed;
 import muddykat.alchemia.registration.registers.BlockRegister;
 import muddykat.alchemia.registration.registers.ItemRegister;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.Mob;
 import net.minecraft.world.food.FoodProperties;
 
 import static muddykat.alchemia.common.items.helper.IngredientType.*;
@@ -62,7 +61,7 @@ public enum Ingredients {
     IngredientAlignment secondaryAlignment;
 
     final MobEffect ingredientEffect;
-    final int ingredientStrength;
+    int ingredientStrength;
 
     Ingredients(IngredientType type, IngredientAlignment primaryAlignment, MobEffect effect, int strength){
         this.type = type;
@@ -79,6 +78,11 @@ public enum Ingredients {
         return type.name().toLowerCase() +"_"+ name().toLowerCase();
     }
 
+    public String getCrushedRegistryName()
+    {
+        return type.name().toLowerCase() + "_" + name().toLowerCase() + "_crushed";
+    }
+
     public String getSeedRegistryName() {
         return type.name().toLowerCase() +"_"+ name().toLowerCase() + "_seed";
     }
@@ -87,6 +91,7 @@ public enum Ingredients {
         BlockRegister.registerBlock(getSeedRegistryName(), () -> new BlockIngredient(this, type));
         ItemRegister.registerItem(getSeedRegistryName(), () -> new ItemIngredientSeed(BlockRegister.BLOCK_REGISTRY.get(getSeedRegistryName()).get(), this, type, primaryAlignment));
         ItemRegister.registerItem(getRegistryName(), () -> new ItemIngredient(this, type, primaryAlignment));
+        ItemRegister.registerItem(getCrushedRegistryName(), () -> new ItemIngredientCrushed(this, type, primaryAlignment));
     }
 
     public FoodProperties getFoodProperties() {
@@ -105,5 +110,9 @@ public enum Ingredients {
 
     public int getIngredientStrength() {
         return ingredientStrength;
+    }
+
+    public int getCrushedPotency(){
+        return 4;
     }
 }

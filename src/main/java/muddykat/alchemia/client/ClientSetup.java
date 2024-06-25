@@ -17,7 +17,7 @@ public class ClientSetup {
     public static void init(final FMLClientSetupEvent event) {
         List<Block> collectedBlocks = BlockRegister.BLOCK_REGISTRY.values().stream().map(RegistryObject::get).toList();
         for (Block b : collectedBlocks) {
-            ItemBlockRenderTypes.setRenderLayer(b, RenderType.cutout());
+            ItemBlockRenderTypes.setRenderLayer(b, RenderType.cutoutMipped());
         }
 
         event.enqueueWork(() ->

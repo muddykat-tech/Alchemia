@@ -1,3 +1,6 @@
 {
-  "parent": "minecraft:item/generated"
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "alchemia:item/minerals/fire_citrine_seed"
+  }
 }

@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "alchemia:item/herbs/druids_rosemary"
+    "layer0": "alchemia:item/herbs/druids_rosemary_crushed"
   }
 }

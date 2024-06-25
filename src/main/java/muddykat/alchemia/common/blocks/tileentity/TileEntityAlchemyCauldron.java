@@ -1,36 +1,35 @@
 package muddykat.alchemia.common.blocks.tileentity;
 
-import muddykat.alchemia.client.render.AlchemicalCauldronRenderer;
 import muddykat.alchemia.common.blocks.tileentity.container.AlchemicalCauldronMenu;
+import muddykat.alchemia.common.items.ItemIngredient;
+import muddykat.alchemia.common.items.ItemIngredientCrushed;
 import muddykat.alchemia.common.items.helper.Ingredients;
 import muddykat.alchemia.common.potion.PotionMap;
 import muddykat.alchemia.common.utility.TextUtils;
-import muddykat.alchemia.registration.AlchemiaRegistry;
 import muddykat.alchemia.registration.registers.BlockEntityTypeRegistry;
+import muddykat.alchemia.registration.registers.ItemRegister;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.Container;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.Nameable;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.alchemy.Potion;
-import net.minecraft.world.level.block.BaseEntityBlock;
-import net.minecraft.world.level.block.FurnaceBlock;
+import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.level.block.entity.*;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Material;
 import net.minecraftforge.items.ItemStackHandler;
-import net.minecraftforge.network.NetworkHooks;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -59,7 +58,7 @@ public class TileEntityAlchemyCauldron extends BlockEntity implements MenuProvid
     }
 
     @Override
-    public void load(CompoundTag compound) {
+    public void load(@NotNull CompoundTag compound) {
         super.load(compound);
         if (compound.contains("Inventory")) {
             inventory.deserializeNBT(compound.getCompound("Inventory"));
@@ -74,7 +73,7 @@ public class TileEntityAlchemyCauldron extends BlockEntity implements MenuProvid
     }
 
     @Override
-    public void saveAdditional(CompoundTag compound) {
+    public void saveAdditional(@NotNull CompoundTag compound) {
         writeItems(compound);
         compound.putInt("waterLevel", waterLevel);
         compound.putInt("xAlignment", xAlignment);
@@ -126,11 +125,14 @@ public class TileEntityAlchemyCauldron extends BlockEntity implements MenuProvid
 
     }
 
+    public boolean shouldRenderFace(Direction pFace) {
+        return pFace.getAxis() == Direction.Axis.Y;
+    }
 
-
-    public void addIngredient(Ingredients ingredient) {
-        this.xAlignment += ingredient.getPrimaryAlignment().getX() + ingredient.getSecondaryAlignment().getX();
-        this.yAlignment += ingredient.getPrimaryAlignment().getY() + ingredient.getSecondaryAlignment().getY();
+    public void addIngredient(ItemIngredient itemIngredient) {
+        Ingredients ingredient = itemIngredient.getIngredient();
+        this.xAlignment += (ingredient.getPrimaryAlignment().getX() + ingredient.getSecondaryAlignment().getX()) * (ingredient.getIngredientStrength() * (itemIngredient instanceof ItemIngredientCrushed ? ingredient.getCrushedPotency() : 1));
+        this.yAlignment += (ingredient.getPrimaryAlignment().getY() + ingredient.getSecondaryAlignment().getY()) * (ingredient.getIngredientStrength() * (itemIngredient instanceof ItemIngredientCrushed ? ingredient.getCrushedPotency() : 1));
 
         if(xAlignment < -maxAlignment) {
             xAlignment = -maxAlignment;
@@ -150,6 +152,24 @@ public class TileEntityAlchemyCauldron extends BlockEntity implements MenuProvid
 
         alchemicalCauldronData.set(1, xAlignment);
         alchemicalCauldronData.set(2, yAlignment);
+
+        int[] alignment = new int[2];
+        alignment[0] = getXAlignment();
+        alignment[1] = getYAlignment();
+
+        PotionMap.PotionEffectPosition potionEffectPos = PotionMap.INSTANCE.getEffectPotion(alignment);
+        MobEffect mobEffect = potionEffectPos.getEffect();
+        if(!mobEffect.equals(MobEffects.UNLUCK)){
+            int effectDuration = potionEffectPos.getDuration();
+            int effectStrength = potionEffectPos.getStrength();
+
+            if(effectList.stream().map(MobEffectInstance::getEffect).toList().contains(mobEffect))
+            {
+                effectList.removeIf((mobEffectInstance -> (mobEffectInstance.getEffect().equals(mobEffect))));
+            }
+
+            addEffect(new MobEffectInstance(mobEffect, effectDuration, effectStrength));
+        }
     }
 
 
@@ -167,6 +187,9 @@ public class TileEntityAlchemyCauldron extends BlockEntity implements MenuProvid
 
     public boolean filledPotion() {
         this.waterLevel = this.waterLevel - 1;
+        if(this.waterLevel <= 0) {
+            resetEffectList();
+        }
         return waterLevel > -1;
     }
 
@@ -220,7 +243,7 @@ public class TileEntityAlchemyCauldron extends BlockEntity implements MenuProvid
 
     @Nullable
     @Override
-    public AbstractContainerMenu createMenu(int id, Inventory player, Player entity) {
+    public AbstractContainerMenu createMenu(int id, @NotNull Inventory player, @NotNull Player entity) {
         return new AlchemicalCauldronMenu(id, player, this, alchemicalCauldronData);
     }
 
@@ -234,8 +257,10 @@ public class TileEntityAlchemyCauldron extends BlockEntity implements MenuProvid
         effectList.clear();
     }
 
+    private Potion current_potion;
     public void addEffect(MobEffectInstance mobEffectInstance) {
         effectList.add(mobEffectInstance);
+        current_potion = new Potion(effectList.toArray(new MobEffectInstance[effectList.size()]));
     }
 
     public int getWaterLevel() {
@@ -264,5 +289,12 @@ public class TileEntityAlchemyCauldron extends BlockEntity implements MenuProvid
             }));
             effectList.add(new MobEffectInstance(effect, 1200, effectStrength));
         }
+    }
+
+    public ItemStack getPotion() {
+        ItemStack customPotion = new ItemStack(ItemRegister.getItemFromRegistry("alchemical_potion"));
+        System.out.println("EFFECTS: \n" + getEffectList().toString());
+        PotionUtils.setCustomEffects(customPotion, getEffectList());
+        return customPotion;
     }
 }
