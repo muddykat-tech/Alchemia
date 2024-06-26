@@ -29,16 +29,16 @@ public class AlchemiaItemModelProvider extends ItemModelProvider {
         for (RegistryObject<Item> registryObject : ItemRegister.ITEM_REGISTRY.values()){
             Item item = registryObject.get();
 
-            if(item instanceof ItemIngredientCrushed crushed)
-            {
-                generateGenericIngredientCrushed(crushed);
-            }
-
             if(item instanceof ItemIngredientSeed seed) {
                 generateGenericIngredientSeed(seed);
             }
 
             if(item instanceof ItemIngredient ingredient) {
+                if(item instanceof ItemIngredientCrushed crushed)
+                {
+                    generateGenericIngredientCrushed(crushed);
+                    continue;
+                }
                 generateGenericIngredient(ingredient);
             }
 

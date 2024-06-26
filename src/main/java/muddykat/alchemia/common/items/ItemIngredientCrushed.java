@@ -21,6 +21,7 @@ public class ItemIngredientCrushed extends ItemIngredient {
         return new TranslatableComponent("item.alchemia.crushed", I18n.get("item.alchemia." + ingredient.getRegistryName()));
     }
 
+    @Override
     public ResourceLocation getTextureLocation() {
         return new ResourceLocation(Alchemia.MODID, "item/" + this.getIngredientType().name().toLowerCase() + "s/" + ingredient.name().toLowerCase() + "_crushed");
     }

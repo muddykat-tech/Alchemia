@@ -90,7 +90,9 @@ public enum Ingredients {
     public void register(){
         BlockRegister.registerBlock(getSeedRegistryName(), () -> new BlockIngredient(this, type));
         ItemRegister.registerItem(getSeedRegistryName(), () -> new ItemIngredientSeed(BlockRegister.BLOCK_REGISTRY.get(getSeedRegistryName()).get(), this, type, primaryAlignment));
+
         ItemRegister.registerItem(getRegistryName(), () -> new ItemIngredient(this, type, primaryAlignment));
+
         ItemRegister.registerItem(getCrushedRegistryName(), () -> new ItemIngredientCrushed(this, type, primaryAlignment));
     }
 

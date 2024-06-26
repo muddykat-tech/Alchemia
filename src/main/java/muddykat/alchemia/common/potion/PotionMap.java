@@ -1,6 +1,7 @@
 package muddykat.alchemia.common.potion;
 
 import muddykat.alchemia.Alchemia;
+import muddykat.alchemia.common.items.helper.IngredientAlignment;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffects;
 
@@ -14,25 +15,73 @@ public class PotionMap {
         Alchemia.LOGGER.info("Potion Map has been Assigned");
         Random rand = new Random();
         rand.setSeed(seed);
-        size = PotionEnum.values().length * 5;
+        size = PotionEnum.values().length * 2;
         middlePosition = Math.round(((float) size / 2));
+
+        // Set minimum distance between effects
+        int minDistance = 4;
 
         for (PotionEnum e : PotionEnum.values()) {
             MobEffect effect = e.getEffect();
             int strength = e.maxStrength;
-            int randX = rand.nextInt(size);
-            int randY = rand.nextInt(size);
+            boolean placed = false;
+            int attempts = 0;
 
-            // if the distance from the random position is far enough, allow it to be selected!
-            if(Math.abs(randX - middlePosition) > 3 && Math.abs(randY - middlePosition) > 3) {
-                String position = String.valueOf(randX) + "," + String.valueOf(randY);
+            Alchemia.LOGGER.info("Attempting to place effect: " + e.name());
 
-                if (!effectHashMap.containsKey(position)) {
-                    effectHashMap.put(position, new PotionEffectPosition(effect, 1200, strength));
+            while (!placed && attempts < 10) {
+                // Calculate bias based on primary alignment
+                IngredientAlignment primaryAlignment = e.getPrimaryAlignment();
+                IngredientAlignment secondaryAlignment = e.getSecondaryAlignment();
+                int biasX = (primaryAlignment.getX() + secondaryAlignment.getX()) == 0 ? 1 : primaryAlignment.getX() + secondaryAlignment.getX();
+                int biasY = (primaryAlignment.getY() + secondaryAlignment.getY()) == 0 ? 1 : primaryAlignment.getY() + secondaryAlignment.getY();
+
+                // Calculate initial position with bias
+                int randX = middlePosition + (rand.nextInt(size / 2) * biasX);
+                int randY = middlePosition + (rand.nextInt(size / 2) * biasY);
+
+                // Check bounds
+                randX = Math.max(0, Math.min(size - 1, randX));
+                randY = Math.max(0, Math.min(size - 1, randY));
+
+                // Check if the position meets the conditions
+                boolean positionValid = true;
+
+                // Check distance to other effects already placed
+                for (String position : effectHashMap.keySet()) {
+                    String[] parts = position.split(",");
+                    int x = Integer.parseInt(parts[0]);
+                    int y = Integer.parseInt(parts[1]);
+
+                    double distance = Math.sqrt(Math.pow(x - randX, 2) + Math.pow(y - randY, 2));
+
+                    if (distance < minDistance) {
+                        positionValid = false;
+                        break; // No need to check further
+                    }
                 }
+
+                String position = randX + "," + randY;
+                // Attempt to place the effect
+                if (positionValid) {
+                    effectHashMap.put(position, new PotionEffectPosition(effect, 1200, strength));
+                    placed = true; // Effect placed successfully
+                    Alchemia.LOGGER.info("Placed effect: " + e.name() + " at position: " + position);
+                } else {
+                    Alchemia.LOGGER.info("Position invalid for effect: " + e.name() + " at position: "+position+", attempting again.");
+                }
+
+                attempts++;
+            }
+
+            if (!placed) {
+                Alchemia.LOGGER.info("Failed to place effect: " + e.name());
+                // Handle case where the effect couldn't be placed after 10 attempts
+                // For example, you might want to log this or handle it in some other way.
             }
         }
     }
+
     public final HashMap<String, PotionEffectPosition> effectHashMap = new HashMap<>();
 
     public static void scramble(long seed) {
