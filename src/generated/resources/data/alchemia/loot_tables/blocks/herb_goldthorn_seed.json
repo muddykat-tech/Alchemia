@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "alchemia:herb_goldthorn"
+          "name": "alchemia:herb_goldthorn_seed"
         }
       ],
       "conditions": [

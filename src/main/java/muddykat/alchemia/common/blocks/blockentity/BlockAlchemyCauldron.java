@@ -47,9 +47,43 @@ public class BlockAlchemyCauldron extends EntityBlockGeneric {
 
     @Override
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+
+        level.setBlockAndUpdate(pos, state);
         ItemStack heldStack = player.getItemInHand(hand);
         Item heldItem = heldStack.getItem();
-        
+
+        if(heldStack.isEmpty() && player.isShiftKeyDown())
+        {
+            BlockEntity entity = level.getBlockEntity(pos);
+            if(entity instanceof TileEntityAlchemyCauldron cauldron) {
+                if (!cauldron.canFill()) {
+                    if (!level.isClientSide) {
+                        level.playSound((Player) null, pos, SoundEvents.BOTTLE_FILL_DRAGONBREATH, SoundSource.BLOCKS, 1.0F, 1.0F);
+                    }
+                    cauldron.empty();
+                    return SUCCESS;
+                }
+            }
+        }
+
+
+        if(heldItem.equals(Items.GUNPOWDER)) {
+            BlockEntity entity = level.getBlockEntity(pos);
+            if(entity instanceof TileEntityAlchemyCauldron cauldron) {
+                if(cauldron.getPotion().getItem().equals(Items.POTION)) {
+                    if (!level.isClientSide) {
+                        level.playSound((Player) null, pos, SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
+                        level.gameEvent((Entity) null, GameEvent.FLUID_PLACE, pos);
+                    }
+                    heldStack.shrink(1);
+                    player.setItemInHand(hand, heldStack);
+
+                    cauldron.setSplashResult();
+                }
+            }
+
+        }
+
         if(heldItem instanceof BucketItem) {
             boolean isValid = heldItem.equals(Items.WATER_BUCKET) ;
             if(isValid) {
@@ -57,10 +91,9 @@ public class BlockAlchemyCauldron extends EntityBlockGeneric {
                 if(entity instanceof TileEntityAlchemyCauldron cauldron) {
                     if (cauldron.canFill()) {
                         Item item = heldStack.getItem();
-                        player.setItemInHand(hand, ItemUtils.createFilledResult(heldStack, player, new ItemStack(Items.BUCKET)));
+                        if(!player.isCreative()) player.setItemInHand(hand, ItemUtils.createFilledResult(heldStack, player, new ItemStack(Items.BUCKET)));
                         player.awardStat(Stats.ITEM_USED.get(item));
                         cauldron.setFullWater();
-                        level.setBlockAndUpdate(pos, state);
 
                         if (!level.isClientSide) {
                             level.playSound((Player) null, pos, SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
@@ -80,6 +113,12 @@ public class BlockAlchemyCauldron extends EntityBlockGeneric {
                     cauldron.addIngredient(ingredient);
                     heldStack.shrink(1);
                     player.setItemInHand(hand, heldStack);
+
+                    if (!level.isClientSide) {
+                        level.playSound((Player) null, pos, SoundEvents.POINTED_DRIPSTONE_DRIP_WATER_INTO_CAULDRON, SoundSource.BLOCKS, 1.0F, 1.0F);
+                        level.gameEvent((Entity) null, GameEvent.SPLASH, pos);
+                    }
+
                     return InteractionResult.CONSUME;
                 }
                 return InteractionResult.FAIL;
@@ -89,16 +128,24 @@ public class BlockAlchemyCauldron extends EntityBlockGeneric {
         if(heldItem.equals(Items.GLASS_BOTTLE)){
             BlockEntity entity = level.getBlockEntity(pos);
             if(entity instanceof TileEntityAlchemyCauldron cauldron) {
-                if(cauldron.filledPotion() && cauldron.getWaterLevel() > 0) { // this check updates the water level in the cauldron.
+                if(cauldron.getWaterLevel() > 0) { // this check updates the water level in the cauldron.
+                    cauldron.takeWaterPortion();
                     ItemStack potion = cauldron.getPotion();
-
                     heldStack.shrink(1);
                     player.addItem(potion);
 
-                    if(cauldron.getWaterLevel() <= 0){
-                        cauldron.resetEffectList();
+                    if (!level.isClientSide) {
+                        level.playSound((Player) null, pos, SoundEvents.BOTTLE_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
+                        level.gameEvent((Entity) null, GameEvent.SPLASH, pos);
                     }
 
+                    if(cauldron.getWaterLevel() < 1){
+                        cauldron.resetEffectList();
+                        if (!level.isClientSide) {
+                            level.playSound((Player) null, pos, SoundEvents.SOUL_ESCAPE, SoundSource.BLOCKS, 1.0F, 1.0F);
+                            level.gameEvent((Entity) null, GameEvent.SPLASH, pos);
+                        }
+                    }
                     return InteractionResult.CONSUME;
                 }
             }

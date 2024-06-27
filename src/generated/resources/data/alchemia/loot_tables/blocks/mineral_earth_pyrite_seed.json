@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "alchemia:mineral_earth_pyrite"
+          "name": "alchemia:mineral_earth_pyrite_seed"
         }
       ],
       "conditions": [

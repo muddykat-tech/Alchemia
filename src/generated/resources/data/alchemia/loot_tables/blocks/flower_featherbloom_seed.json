@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "alchemia:flower_featherbloom"
+          "name": "alchemia:flower_featherbloom_seed"
         }
       ],
       "conditions": [

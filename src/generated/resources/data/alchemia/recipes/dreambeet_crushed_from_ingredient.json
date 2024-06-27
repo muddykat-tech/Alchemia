@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "alchemia:root_dreambeet"
+    }
+  ],
+  "result": {
+    "item": "alchemia:root_dreambeet_crushed"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "alchemia:herb_healers_heather"
+    }
+  ],
+  "result": {
+    "item": "alchemia:herb_healers_heather_crushed"
+  }
+}

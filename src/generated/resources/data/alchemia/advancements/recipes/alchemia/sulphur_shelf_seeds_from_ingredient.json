@@ -1,0 +1,34 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "alchemia:sulphur_shelf_seeds_from_ingredient"
+    ]
+  },
+  "criteria": {
+    "has_Sulphur_Shelf_ingredient": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "alchemia:mushroom_sulphur_shelf"
+            ]
+          }
+        ]
+      }
+    },
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "alchemia:sulphur_shelf_seeds_from_ingredient"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_Sulphur_Shelf_ingredient",
+      "has_the_recipe"
+    ]
+  ]
+}

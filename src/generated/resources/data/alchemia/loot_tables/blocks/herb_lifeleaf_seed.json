@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "alchemia:herb_lifeleaf"
+          "name": "alchemia:herb_lifeleaf_seed"
         }
       ],
       "conditions": [

@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "alchemia:herb_terrorbud"
+    }
+  ],
+  "result": {
+    "item": "alchemia:herb_terrorbud_crushed"
+  }
+}

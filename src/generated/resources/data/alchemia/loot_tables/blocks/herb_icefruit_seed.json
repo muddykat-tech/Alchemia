@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "alchemia:herb_icefruit"
+          "name": "alchemia:herb_icefruit_seed"
         }
       ],
       "conditions": [

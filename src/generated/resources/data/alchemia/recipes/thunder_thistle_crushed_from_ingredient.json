@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "alchemia:herb_thunder_thistle"
+    }
+  ],
+  "result": {
+    "item": "alchemia:herb_thunder_thistle_crushed"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "alchemia:featherbloom_seeds_from_ingredient"
+    ]
+  },
+  "criteria": {
+    "has_Featherbloom_ingredient": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "alchemia:flower_featherbloom"
+            ]
+          }
+        ]
+      }
+    },
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "alchemia:featherbloom_seeds_from_ingredient"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_Featherbloom_ingredient",
+      "has_the_recipe"
+    ]
+  ]
+}

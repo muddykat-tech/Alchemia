@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "alchemia:herb_tangleweed"
+          "name": "alchemia:herb_tangleweed_seed"
         }
       ],
       "conditions": [

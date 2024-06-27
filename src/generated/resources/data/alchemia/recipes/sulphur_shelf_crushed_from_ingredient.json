@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "alchemia:mushroom_sulphur_shelf"
+    }
+  ],
+  "result": {
+    "item": "alchemia:mushroom_sulphur_shelf_crushed"
+  }
+}

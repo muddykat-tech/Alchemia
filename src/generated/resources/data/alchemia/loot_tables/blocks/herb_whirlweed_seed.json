@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "alchemia:herb_whirlweed"
+          "name": "alchemia:herb_whirlweed_seed"
         }
       ],
       "conditions": [

@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "alchemia:mineral_arcane_crystal"
+          "name": "alchemia:mineral_arcane_crystal_seed"
         }
       ],
       "conditions": [

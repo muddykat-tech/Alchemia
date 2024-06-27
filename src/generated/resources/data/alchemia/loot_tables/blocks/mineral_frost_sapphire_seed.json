@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "alchemia:mineral_frost_sapphire"
+          "name": "alchemia:mineral_frost_sapphire_seed"
         }
       ],
       "conditions": [

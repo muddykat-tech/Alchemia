@@ -5,36 +5,47 @@ import muddykat.alchemia.common.items.ItemIngredient;
 import muddykat.alchemia.common.items.ItemIngredientCrushed;
 import muddykat.alchemia.common.items.helper.Ingredients;
 import muddykat.alchemia.common.potion.PotionMap;
+import muddykat.alchemia.common.utility.ParticleUtils;
 import muddykat.alchemia.common.utility.TextUtils;
 import muddykat.alchemia.registration.registers.BlockEntityTypeRegistry;
-import muddykat.alchemia.registration.registers.ItemRegister;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.Nameable;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.alchemy.Potion;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.Potions;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.*;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraftforge.client.event.RenderTooltipEvent;
 import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.lwjgl.system.CallbackI;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
-public class TileEntityAlchemyCauldron extends BlockEntity implements MenuProvider, Nameable {
+public class TileEntityAlchemyCauldron extends BlockEntity implements MenuProvider, Nameable, BlockEntityTicker {
 
     private int waterLevel;
     private final int maxWaterLevel = 4;
@@ -45,6 +56,7 @@ public class TileEntityAlchemyCauldron extends BlockEntity implements MenuProvid
 
     private final int maxAlignment;
     private final int balanceAlignment;
+    private Item potion_type = Items.POTION;
 
     public TileEntityAlchemyCauldron(BlockPos pPos, BlockState pBlockState) {
         super(BlockEntityTypeRegistry.ALCHEMICAL_CAULDRON.get(), pPos, pBlockState);
@@ -56,6 +68,8 @@ public class TileEntityAlchemyCauldron extends BlockEntity implements MenuProvid
         this.yAlignment = PotionMap.INSTANCE.getMiddlePosition();
         this.maxAlignment = PotionMap.INSTANCE.getMaxAlignment();
     }
+
+    private Random random = new Random();
 
     @Override
     public void load(@NotNull CompoundTag compound) {
@@ -70,6 +84,7 @@ public class TileEntityAlchemyCauldron extends BlockEntity implements MenuProvid
         xAlignment = compound.getInt("xAlignment");
         yAlignment = compound.getInt("yAlignment");
 
+        markUpdated();
     }
 
     @Override
@@ -90,6 +105,24 @@ public class TileEntityAlchemyCauldron extends BlockEntity implements MenuProvid
         return this.inventory;
     }
 
+    public void setSplashResult()
+    {
+        potion_type = Items.SPLASH_POTION;
+        BlockPos pos = getBlockPos();
+        Minecraft.getInstance().particleEngine.createParticle(ParticleTypes.LARGE_SMOKE, pos.getX() + 0.5d, pos.getY() + 1, pos.getZ() + 0.5d, 0, 0.1, 0);
+
+    }
+
+    public void setLingeringResult()
+    {
+        potion_type = Items.LINGERING_POTION;
+    }
+
+    public void setDefaultResult()
+    {
+        potion_type = Items.POTION;
+    }
+
     @Override
     public CompoundTag getUpdateTag() {
         return writeItems(new CompoundTag());
@@ -108,7 +141,7 @@ public class TileEntityAlchemyCauldron extends BlockEntity implements MenuProvid
     }
 
     public void setFullWater() {
-        if(waterLevel < 1){
+        if(waterLevel <= 1){
             resetEffectList();
         }
 
@@ -118,11 +151,10 @@ public class TileEntityAlchemyCauldron extends BlockEntity implements MenuProvid
         int newX = (int) (oldX + (balanceAlignment - oldX) * 0.2);
         int newY = (int) (oldY + (balanceAlignment - oldY) * 0.2);
 
-
         alchemicalCauldronData.set(1, xAlignment);
         alchemicalCauldronData.set(2, yAlignment);
 
-
+        this.requestModelDataUpdate();
     }
 
     public boolean shouldRenderFace(Direction pFace) {
@@ -159,19 +191,46 @@ public class TileEntityAlchemyCauldron extends BlockEntity implements MenuProvid
 
         PotionMap.PotionEffectPosition potionEffectPos = PotionMap.INSTANCE.getEffectPotion(alignment);
         MobEffect mobEffect = potionEffectPos.getEffect();
-        if(!mobEffect.equals(MobEffects.UNLUCK)){
+        if(mobEffect != null){
             int effectDuration = potionEffectPos.getDuration();
             int effectStrength = potionEffectPos.getStrength();
-
+            boolean perfect = potionEffectPos.isPerfect();
+            boolean useSmoke = false;
             if(effectList.stream().map(MobEffectInstance::getEffect).toList().contains(mobEffect))
             {
                 effectList.removeIf((mobEffectInstance -> (mobEffectInstance.getEffect().equals(mobEffect))));
+                if(perfect)
+                {
+                    if(!level.isClientSide())
+                    {
+                        level.playSound((Player) null, getBlockPos(), SoundEvents.TRIDENT_RETURN, SoundSource.BLOCKS, 1.0F, 1.0F);
+                    }
+                }
+            } else {
+                if(!level.isClientSide())
+                {
+                    level.playSound((Player) null, getBlockPos(), SoundEvents.EVOKER_CAST_SPELL, SoundSource.BLOCKS, 1.0F, 1.0F);
+                }
+                useSmoke = true;
             }
 
             addEffect(new MobEffectInstance(mobEffect, effectDuration, effectStrength));
+
+            if(useSmoke)
+            {
+                ParticleUtils.generateEvaporationParticles(level, getBlockPos(), getPotionColor());
+            }
+        }
+
+        if(getEffectList().size() > 3)
+        {
+            empty();
+            if(!level.isClientSide)
+            {
+                level.playSound((Player) null, getBlockPos(), SoundEvents.VEX_HURT, SoundSource.BLOCKS, 1.0F, 1.0F);
+            }
         }
     }
-
 
     public int getXAlignment() {
         return xAlignment;
@@ -182,15 +241,11 @@ public class TileEntityAlchemyCauldron extends BlockEntity implements MenuProvid
     }
 
     public boolean canFill() {
-        return waterLevel < maxWaterLevel;
+        return waterLevel == 0;
     }
 
-    public boolean filledPotion() {
+    public void takeWaterPortion() {
         this.waterLevel = this.waterLevel - 1;
-        if(this.waterLevel <= 0) {
-            resetEffectList();
-        }
-        return waterLevel > -1;
     }
 
     private Component customName;
@@ -205,7 +260,7 @@ public class TileEntityAlchemyCauldron extends BlockEntity implements MenuProvid
         return getName();
     }
 
-    protected final ContainerData alchemicalCauldronData;
+    protected ContainerData alchemicalCauldronData;
 
     private ContainerData createIntArray() {
         return new ContainerData(
@@ -255,12 +310,23 @@ public class TileEntityAlchemyCauldron extends BlockEntity implements MenuProvid
 
     public void resetEffectList(){
         effectList.clear();
+        effectList = new HashSet<>();
+        xAlignment = PotionMap.INSTANCE.getMiddlePosition();
+        yAlignment = PotionMap.INSTANCE.getMiddlePosition();
+        markUpdated();
+
+        int oldY = this.yAlignment;
+        int oldX = this.xAlignment;
+        int newX = (int) (oldX + (balanceAlignment - oldX) * 0.2);
+        int newY = (int) (oldY + (balanceAlignment - oldY) * 0.2);
+
+
+        alchemicalCauldronData.set(1, xAlignment);
+        alchemicalCauldronData.set(2, yAlignment);
     }
 
-    private Potion current_potion;
     public void addEffect(MobEffectInstance mobEffectInstance) {
         effectList.add(mobEffectInstance);
-        current_potion = new Potion(effectList.toArray(new MobEffectInstance[effectList.size()]));
     }
 
     public int getWaterLevel() {
@@ -292,9 +358,99 @@ public class TileEntityAlchemyCauldron extends BlockEntity implements MenuProvid
     }
 
     public ItemStack getPotion() {
-        ItemStack customPotion = new ItemStack(ItemRegister.getItemFromRegistry("alchemical_potion"));
-        System.out.println("EFFECTS: \n" + getEffectList().toString());
+        ItemStack customPotion = new ItemStack(potion_type);
+        if(getEffectList().isEmpty())
+        {
+            PotionUtils.setPotion(customPotion, Potions.WATER);
+            return customPotion;
+        }
         PotionUtils.setCustomEffects(customPotion, getEffectList());
+        customPotion.setHoverName(new TextComponent("Alchemical Potion"));
+
         return customPotion;
+    }
+
+    private void markUpdated() {
+        this.setChanged();
+        this.getLevel().sendBlockUpdated(this.getBlockPos(), this.getBlockState(), this.getBlockState(), 3);
+    }
+
+    @Override
+    public void tick(Level level, BlockPos pos, BlockState blockState, BlockEntity blockEntity) {
+        if (random.nextFloat() < 0.2F && waterLevel > 0 && !getEffectList().isEmpty()) {
+            double x = (double) pos.getX() + 0.5D + (random.nextDouble() * 0.6D - 0.3D);
+            double y = (double) pos.getY() + .1D;
+            double z = (double) pos.getZ() + 0.5D + (random.nextDouble() * 0.6D - 0.3D);
+
+            int color = (getEffectList().stream().findFirst().isEmpty()) ? MobEffects.WATER_BREATHING.getColor() : getEffectList().stream().findFirst().get().getEffect().getColor();
+
+            ParticleUtils.generatePotionParticles(level, pos, color, false);
+        }
+
+        boolean heating = true;
+        if(heating && random.nextFloat() < 0.2f)
+        {
+            double x = (double) pos.getX() + (random.nextDouble());
+            double y = (double) pos.getY() + .1D;
+            double z = (double) pos.getZ() + (random.nextDouble());
+            ParticleOptions options = ParticleTypes.FLAME;
+            level.addParticle(options, x, y, z, 0.0D, 0.01D, 0.0D);
+        }
+    }
+
+    public void empty() {
+        BlockPos pos = getBlockPos();
+        ParticleUtils.generateEvaporationParticles(getLevel(), pos, getPotionColor());
+        resetEffectList();
+        waterLevel = 0;
+        setDefaultResult();
+        if (!level.isClientSide) {
+            level.playSound((Player) null, pos, SoundEvents.SHROOMLIGHT_BREAK, SoundSource.BLOCKS, 1.0F, 1.0F);
+            level.gameEvent((Entity) null, GameEvent.SPLASH, pos);
+        }
+        resetEffectList();
+    }
+
+    public int getPotionColor(){
+        try {
+
+            int red = 0;
+            int green = 0;
+            int blue = 0;
+            int alpha = 190;
+            List<MobEffectInstance> effectList = getEffectList().stream().toList();
+            // Ensure we have at least one effect in the list
+            if (!effectList.isEmpty()) {
+                // Limit to the first three effects or fewer if the list is smaller
+                int count = Math.min(effectList.size(), 3);
+
+                // Accumulate RGB values from the first three effects
+                for (int i = 0; i < count; i++) {
+                    MobEffectInstance effectInstance = effectList.get(i);
+                    int color = effectInstance.getEffect().getColor();
+                    red += (color >> 16) & 255;
+                    green += (color >> 8) & 255;
+                    blue += color & 255;
+                }
+
+                // Calculate average RGB values
+                red /= count;
+                green /= count;
+                blue /= count;
+            } else {
+                // Default color if no effects are present
+                red = (MobEffects.WATER_BREATHING.getColor() >> 16) & 255;
+                green = (MobEffects.WATER_BREATHING.getColor() >> 8) & 255;
+                blue = MobEffects.WATER_BREATHING.getColor() & 255;
+            }
+
+            // Ensure RGB values are within valid range (0-255)
+            red = Math.max(0, Math.min(255, red));
+            green = Math.max(0, Math.min(255, green));
+            blue = Math.max(0, Math.min(255, blue));
+            return (red << 16) | (green << 8) | blue;
+        } catch (Exception ignored){}
+
+        return MobEffects.WATER_BREATHING.getColor();
     }
 }

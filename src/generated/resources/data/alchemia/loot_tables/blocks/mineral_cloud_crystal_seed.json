@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "alchemia:mineral_cloud_crystal"
+          "name": "alchemia:mineral_cloud_crystal_seed"
         }
       ],
       "conditions": [

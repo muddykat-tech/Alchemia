@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "alchemia:flower_waterbloom"
+          "name": "alchemia:flower_waterbloom_seed"
         }
       ],
       "conditions": [

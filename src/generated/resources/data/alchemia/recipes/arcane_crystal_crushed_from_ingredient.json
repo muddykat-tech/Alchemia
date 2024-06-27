@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "alchemia:mineral_arcane_crystal"
+    }
+  ],
+  "result": {
+    "item": "alchemia:mineral_arcane_crystal_crushed"
+  }
+}

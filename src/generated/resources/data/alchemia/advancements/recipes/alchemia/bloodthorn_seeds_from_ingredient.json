@@ -1,0 +1,34 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "alchemia:bloodthorn_seeds_from_ingredient"
+    ]
+  },
+  "criteria": {
+    "has_Bloodthorn_ingredient": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "alchemia:herb_bloodthorn"
+            ]
+          }
+        ]
+      }
+    },
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "alchemia:bloodthorn_seeds_from_ingredient"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_Bloodthorn_ingredient",
+      "has_the_recipe"
+    ]
+  ]
+}

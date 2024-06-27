@@ -1,0 +1,34 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "alchemia:fluffbloom_seeds_from_ingredient"
+    ]
+  },
+  "criteria": {
+    "has_Fluffbloom_ingredient": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "alchemia:flower_fluffbloom"
+            ]
+          }
+        ]
+      }
+    },
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "alchemia:fluffbloom_seeds_from_ingredient"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_Fluffbloom_ingredient",
+      "has_the_recipe"
+    ]
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "alchemia:fire_citrine_seeds_from_ingredient"
+    ]
+  },
+  "criteria": {
+    "has_Fire_Citrine_ingredient": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "alchemia:mineral_fire_citrine"
+            ]
+          }
+        ]
+      }
+    },
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "alchemia:fire_citrine_seeds_from_ingredient"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_Fire_Citrine_ingredient",
+      "has_the_recipe"
+    ]
+  ]
+}

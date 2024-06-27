@@ -1,0 +1,34 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "alchemia:boombloom_seeds_from_ingredient"
+    ]
+  },
+  "criteria": {
+    "has_Boombloom_ingredient": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "alchemia:flower_boombloom"
+            ]
+          }
+        ]
+      }
+    },
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "alchemia:boombloom_seeds_from_ingredient"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_Boombloom_ingredient",
+      "has_the_recipe"
+    ]
+  ]
+}

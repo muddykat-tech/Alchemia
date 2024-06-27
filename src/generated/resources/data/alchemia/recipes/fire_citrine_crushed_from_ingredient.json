@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "alchemia:mineral_fire_citrine"
+    }
+  ],
+  "result": {
+    "item": "alchemia:mineral_fire_citrine_crushed"
+  }
+}

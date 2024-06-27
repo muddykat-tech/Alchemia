@@ -1,11 +1,13 @@
 package muddykat.alchemia.data.generators.loot;
 
 import muddykat.alchemia.common.blocks.BlockIngredient;
+import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyCauldron;
 import muddykat.alchemia.registration.registers.BlockRegister;
 import muddykat.alchemia.registration.registers.ItemRegister;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.storage.loot.IntRange;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
@@ -41,8 +43,11 @@ public class BlockLoot implements Consumer<BiConsumer<ResourceLocation, LootTabl
             if(blocks.get() instanceof BlockIngredient ingredient) {
                 register(blocks, randomAmountItem(ItemRegister.getSeedByIngredient(ingredient.getIngredient()), 1, 4));
             }
+            if(blocks.get() instanceof BlockAlchemyCauldron)
+            {
+                register(blocks, singleItem(Blocks.CAULDRON), singleItem(Blocks.CAMPFIRE));
+            }
         }
-
     }
 
 

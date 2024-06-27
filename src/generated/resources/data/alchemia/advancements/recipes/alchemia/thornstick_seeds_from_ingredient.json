@@ -1,0 +1,34 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "alchemia:thornstick_seeds_from_ingredient"
+    ]
+  },
+  "criteria": {
+    "has_Thornstick_ingredient": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "alchemia:herb_thornstick"
+            ]
+          }
+        ]
+      }
+    },
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "alchemia:thornstick_seeds_from_ingredient"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_Thornstick_ingredient",
+      "has_the_recipe"
+    ]
+  ]
+}

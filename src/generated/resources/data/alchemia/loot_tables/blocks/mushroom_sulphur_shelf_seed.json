@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "alchemia:mushroom_sulphur_shelf"
+          "name": "alchemia:mushroom_sulphur_shelf_seed"
         }
       ],
       "conditions": [

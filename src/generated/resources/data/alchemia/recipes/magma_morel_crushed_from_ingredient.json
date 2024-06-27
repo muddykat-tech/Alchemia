@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "alchemia:mushroom_magma_morel"
+    }
+  ],
+  "result": {
+    "item": "alchemia:mushroom_magma_morel_crushed"
+  }
+}

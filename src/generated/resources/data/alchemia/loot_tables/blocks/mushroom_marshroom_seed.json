@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "alchemia:mushroom_marshroom"
+          "name": "alchemia:mushroom_marshroom_seed"
         }
       ],
       "conditions": [

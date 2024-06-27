@@ -1,0 +1,34 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "alchemia:frost_sapphire_seeds_from_ingredient"
+    ]
+  },
+  "criteria": {
+    "has_Frost_Sapphire_ingredient": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "alchemia:mineral_frost_sapphire"
+            ]
+          }
+        ]
+      }
+    },
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "alchemia:frost_sapphire_seeds_from_ingredient"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_Frost_Sapphire_ingredient",
+      "has_the_recipe"
+    ]
+  ]
+}

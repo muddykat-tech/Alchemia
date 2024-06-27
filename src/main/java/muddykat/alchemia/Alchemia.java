@@ -4,15 +4,14 @@ import com.blamejared.crafttweaker.impl.network.PacketHandler;
 import com.mojang.logging.LogUtils;
 import muddykat.alchemia.client.ClientSetup;
 import muddykat.alchemia.client.ClientSetupEvents;
+import muddykat.alchemia.common.CommonSetup;
 import muddykat.alchemia.common.WorldEventHandler;
+import muddykat.alchemia.common.config.Configuration;
 import muddykat.alchemia.common.network.NetworkHandler;
 import muddykat.alchemia.common.network.packets.PacketPotionRecipe;
 import muddykat.alchemia.common.potion.PotionMap;
 import muddykat.alchemia.registration.AlchemiaRegistry;
-import muddykat.alchemia.registration.registers.BlockEntityTypeRegistry;
-import muddykat.alchemia.registration.registers.BlockRegister;
-import muddykat.alchemia.registration.registers.ItemRegister;
-import muddykat.alchemia.registration.registers.MenuTypeRegistry;
+import muddykat.alchemia.registration.registers.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.profiling.jfr.event.WorldLoadFinishedEvent;
@@ -26,10 +25,13 @@ import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.event.server.ServerStartingEvent;
+import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import org.slf4j.Logger;
 
 import javax.annotation.Nonnull;
@@ -38,6 +40,7 @@ import java.util.Objects;
 import java.util.Random;
 
 import static muddykat.alchemia.Alchemia.MODID;
+import static muddykat.alchemia.common.world.WildHerbGeneration.registerWildHerbGeneration;
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod(MODID)
@@ -49,21 +52,32 @@ public class Alchemia
     {
         final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
+        modEventBus.addListener(CommonSetup::init);
+        if (FMLEnvironment.dist.isClient()) {
+            LOGGER.info(MODID + ": Initializing Clientside Settings");
+            modEventBus.addListener(ClientSetup::init);
+        }
+
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Configuration.COMMON_CONFIG);
+        //ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, Configuration.CLIENT_CONFIG);
+
         LOGGER.info(MODID + ": Setting up Item and Block Registration");
         AlchemiaRegistry.initialize();
 
         BlockRegister.getRegistry().register(modEventBus);
         ItemRegister.getRegistry().register(modEventBus);
+        AlchemiaBiomeFeatures.FEATURES.register(modEventBus);
+        AlchemiaPlacementModifiers.PLACEMENT_MODIFIERS.register(modEventBus);
 
         BlockEntityTypeRegistry.TILES.register(modEventBus);
         MenuTypeRegistry.MENU_TYPES.register(modEventBus);
 
-        LOGGER.info(MODID + ": Initializing Clientside Settings");
-        modEventBus.addListener(ClientSetup::init);
+        LOGGER.info(MODID + ": Initializing Common Settings");
 
         NetworkHandler.register();
 
         MinecraftForge.EVENT_BUS.register(WorldEventHandler.class);
+
 
         LOGGER.info(MODID + ": Completed");
         // Register ourselves for server and other game events we are interested in

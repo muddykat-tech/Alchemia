@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "alchemia:mushroom_witch_mushroom"
+    }
+  ],
+  "result": {
+    "item": "alchemia:mushroom_witch_mushroom_crushed"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "alchemia:coldleaf_seeds_from_ingredient"
+    ]
+  },
+  "criteria": {
+    "has_Coldleaf_ingredient": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "alchemia:herb_coldleaf"
+            ]
+          }
+        ]
+      }
+    },
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "alchemia:coldleaf_seeds_from_ingredient"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_Coldleaf_ingredient",
+      "has_the_recipe"
+    ]
+  ]
+}

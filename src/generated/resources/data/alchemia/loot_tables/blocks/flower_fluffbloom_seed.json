@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "alchemia:flower_fluffbloom"
+          "name": "alchemia:flower_fluffbloom_seed"
         }
       ],
       "conditions": [

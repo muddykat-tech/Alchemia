@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "alchemia:herb_dragon_pepper"
+          "name": "alchemia:herb_dragon_pepper_seed"
         }
       ],
       "conditions": [

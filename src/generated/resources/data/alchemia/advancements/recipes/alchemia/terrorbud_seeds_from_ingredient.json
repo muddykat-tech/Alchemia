@@ -1,0 +1,34 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "alchemia:terrorbud_seeds_from_ingredient"
+    ]
+  },
+  "criteria": {
+    "has_Terrorbud_ingredient": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "alchemia:herb_terrorbud"
+            ]
+          }
+        ]
+      }
+    },
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "alchemia:terrorbud_seeds_from_ingredient"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_Terrorbud_ingredient",
+      "has_the_recipe"
+    ]
+  ]
+}

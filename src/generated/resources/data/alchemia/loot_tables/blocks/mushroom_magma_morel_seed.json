@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "alchemia:mushroom_magma_morel"
+          "name": "alchemia:mushroom_magma_morel_seed"
         }
       ],
       "conditions": [

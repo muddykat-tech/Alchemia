@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "alchemia:flower_windbloom"
+    }
+  ],
+  "result": {
+    "item": "alchemia:flower_windbloom_crushed"
+  }
+}

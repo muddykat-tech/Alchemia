@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "alchemia:mineral_fire_citrine"
+          "name": "alchemia:mineral_fire_citrine_seed"
         }
       ],
       "conditions": [

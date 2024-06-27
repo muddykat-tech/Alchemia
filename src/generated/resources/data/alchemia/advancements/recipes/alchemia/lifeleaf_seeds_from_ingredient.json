@@ -1,0 +1,34 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "alchemia:lifeleaf_seeds_from_ingredient"
+    ]
+  },
+  "criteria": {
+    "has_Lifeleaf_ingredient": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "alchemia:herb_lifeleaf"
+            ]
+          }
+        ]
+      }
+    },
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "alchemia:lifeleaf_seeds_from_ingredient"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_Lifeleaf_ingredient",
+      "has_the_recipe"
+    ]
+  ]
+}

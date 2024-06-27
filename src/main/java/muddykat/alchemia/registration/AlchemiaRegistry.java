@@ -14,6 +14,8 @@ import org.apache.logging.log4j.Logger;
 
 import java.lang.reflect.InvocationTargetException;
 
+import static muddykat.alchemia.common.world.WildHerbGeneration.registerWildHerbGeneration;
+
 public class AlchemiaRegistry {
     public static void initialize() {
         for (Ingredients ingredient : Ingredients.values()) {
@@ -25,6 +27,7 @@ public class AlchemiaRegistry {
 
         ItemRegister.registerItem("alchemia_guide", ItemAlchemiaGuide::new);
         ItemRegister.registerItem("alchemical_potion", AlchemicalPotion::new);
+
     }
     public static void createBasicBlock(String id){
         BlockRegister.registerBlock(id, BlockGeneric::new);

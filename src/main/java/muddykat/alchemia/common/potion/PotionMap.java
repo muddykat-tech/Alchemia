@@ -4,6 +4,9 @@ import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.items.helper.IngredientAlignment;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.alchemy.Potion;
+import net.minecraft.world.item.alchemy.Potions;
 
 import java.util.*;
 
@@ -11,15 +14,16 @@ public class PotionMap {
     public static PotionMap INSTANCE;
     private final int size;
     private final int middlePosition;
+    public final HashMap<String, PotionEffectPosition> effectHashMap = new HashMap<>();
+
     public PotionMap(long seed) {
-        Alchemia.LOGGER.info("Potion Map has been Assigned");
-        Random rand = new Random();
-        rand.setSeed(seed);
+        System.out.println("Potion Map has been Assigned");
+        Random rand = new Random(seed);
         size = PotionEnum.values().length * 2;
-        middlePosition = Math.round(((float) size / 2));
+        middlePosition = size / 2;
 
         // Set minimum distance between effects
-        int minDistance = 4;
+        int minDistance = 6;
 
         for (PotionEnum e : PotionEnum.values()) {
             MobEffect effect = e.getEffect();
@@ -27,18 +31,45 @@ public class PotionMap {
             boolean placed = false;
             int attempts = 0;
 
-            Alchemia.LOGGER.info("Attempting to place effect: " + e.name());
+            //System.out.println("Attempting to place effect: " + e.name());
 
-            while (!placed && attempts < 10) {
-                // Calculate bias based on primary alignment
-                IngredientAlignment primaryAlignment = e.getPrimaryAlignment();
-                IngredientAlignment secondaryAlignment = e.getSecondaryAlignment();
-                int biasX = (primaryAlignment.getX() + secondaryAlignment.getX()) == 0 ? 1 : primaryAlignment.getX() + secondaryAlignment.getX();
-                int biasY = (primaryAlignment.getY() + secondaryAlignment.getY()) == 0 ? 1 : primaryAlignment.getY() + secondaryAlignment.getY();
+            while (!placed && attempts < 250) {
+                // Calculate combined bias vectors
+                int biasX = 0;
+                int biasY = 0;
+                for (IngredientAlignment alignment : e.getAlignments()) {
+                    biasX += alignment.getX();
+                    biasY += alignment.getY();
+                }
 
-                // Calculate initial position with bias
-                int randX = middlePosition + (rand.nextInt(size / 2) * biasX);
-                int randY = middlePosition + (rand.nextInt(size / 2) * biasY);
+                // Adjust bias to allow for free placement if bias is 0
+                if (biasX == 0 && biasY == 0) {
+                    biasX = rand.nextInt(3) - 1; // -1, 0, 1
+                    biasY = rand.nextInt(3) - 1; // -1, 0, 1
+                }
+
+                // Calculate position based on rarity
+                int rarityOrdinal = e.getRarity().ordinal();
+                double baseRadius = 15.0; // Adjust as needed
+
+                // Calculate random radius within the appropriate baseRadius range
+                double randomRadius;
+                if (rarityOrdinal == 0) {
+                    randomRadius = baseRadius * 0.75 + rand.nextInt(-2,2); // Common
+                } else if (rarityOrdinal == 1) {
+                    randomRadius = baseRadius * 1.25 + rand.nextInt(-2,2); // Uncommon
+                } else if (rarityOrdinal == 2) {
+                    randomRadius = baseRadius * 2  + rand.nextInt(-2,2); // Rare
+                } else {
+                    randomRadius = baseRadius * 3.25  + rand.nextInt(-2,2); // Epic or higher
+                }
+
+                // Calculate random angle with a bias!
+                double angle = Math.atan2(biasY, biasX) + (rand.nextDouble(-1,1)) * Math.PI / 4.0;
+
+                // Calculate position relative to middlePosition with radius and angle
+                int randX = middlePosition + (int) (randomRadius * Math.cos(angle));
+                int randY = middlePosition + (int) (randomRadius * Math.sin(angle));
 
                 // Check bounds
                 randX = Math.max(0, Math.min(size - 1, randX));
@@ -48,7 +79,8 @@ public class PotionMap {
                 boolean positionValid = true;
 
                 // Check distance to other effects already placed
-                for (String position : effectHashMap.keySet()) {
+                for (Map.Entry<String, PotionEffectPosition> entry : effectHashMap.entrySet()) {
+                    String position = entry.getKey();
                     String[] parts = position.split(",");
                     int x = Integer.parseInt(parts[0]);
                     int y = Integer.parseInt(parts[1]);
@@ -61,28 +93,24 @@ public class PotionMap {
                     }
                 }
 
-                String position = randX + "," + randY;
                 // Attempt to place the effect
                 if (positionValid) {
-                    effectHashMap.put(position, new PotionEffectPosition(effect, 1200, strength));
+                    String position = randX + "," + randY;
+                    effectHashMap.put(position, new PotionEffectPosition(effect, 1200, strength, e.getPotion(), true));
                     placed = true; // Effect placed successfully
-                    Alchemia.LOGGER.info("Placed effect: " + e.name() + " at position: " + position);
-                } else {
-                    Alchemia.LOGGER.info("Position invalid for effect: " + e.name() + " at position: "+position+", attempting again.");
+                    //System.out.println("Placed effect: " + e.name() + " at position: " + position);
                 }
 
                 attempts++;
             }
 
             if (!placed) {
-                Alchemia.LOGGER.info("Failed to place effect: " + e.name());
+                System.out.println("Failed to place effect: " + e.name());
                 // Handle case where the effect couldn't be placed after 10 attempts
                 // For example, you might want to log this or handle it in some other way.
             }
         }
     }
-
-    public final HashMap<String, PotionEffectPosition> effectHashMap = new HashMap<>();
 
     public static void scramble(long seed) {
         INSTANCE = new PotionMap(seed);
@@ -90,12 +118,12 @@ public class PotionMap {
 
     public PotionEffectPosition getEffectPotion(int[] alignment){
         String key = alignment[0] + "," + alignment[1];
-        PotionEffectPosition defaultEffect = new PotionEffectPosition(MobEffects.UNLUCK, 10, 0);
+        PotionEffectPosition defaultEffect = new PotionEffectPosition(null, 10, 0, Potions.AWKWARD, false);
 
         PotionEffectPosition closestEffect = null;
         double closestDistance = Double.MAX_VALUE;
 
-        int maxDistance = 4;
+        int maxDistance = 2;
 
         for (Map.Entry<String, PotionEffectPosition> entry : effectHashMap.entrySet()) {
             String positionKey = entry.getKey();
@@ -123,7 +151,7 @@ public class PotionMap {
                 // Otherwise, weaken the effect's strength
                 int originalStrength = closestEffect.getStrength();
                 int adjustedStrength = (int) Math.floor(originalStrength / closestDistance);
-                return new PotionEffectPosition(closestEffect.getEffect(), closestEffect.getDuration(), adjustedStrength);
+                return new PotionEffectPosition(closestEffect.getEffect(), closestEffect.getDuration(), Math.max(1, adjustedStrength-1), closestEffect.getPotion(), false);
             }
         }
 
@@ -142,10 +170,14 @@ public class PotionMap {
         final MobEffect effect;
         final int duration;
         final int strength;
-        PotionEffectPosition(MobEffect effect, int duration, int maxStrength) {
+        final Potion potion;
+        final boolean perfect;
+        PotionEffectPosition(MobEffect effect, int duration, int maxStrength, Potion potion, boolean isPerfect) {
             this.effect = effect;
             this.duration = duration;
             this.strength = maxStrength;
+            this.potion = potion;
+            this.perfect = isPerfect;
         }
 
         public MobEffect getEffect() {
@@ -158,6 +190,15 @@ public class PotionMap {
 
         public int getStrength() {
             return strength;
+        }
+
+        public Potion getPotion() {
+            // Returns a Potion (Used to get the proper Colored Potion Icons...
+            return potion;
+        }
+
+        public boolean isPerfect() {
+            return perfect;
         }
     }
 }

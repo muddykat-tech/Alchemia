@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "alchemia:root_lava_root"
+          "name": "alchemia:root_lava_root_seed"
         }
       ],
       "conditions": [

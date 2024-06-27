@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "alchemia:mineral_cloud_crystal"
+    }
+  ],
+  "result": {
+    "item": "alchemia:mineral_cloud_crystal_crushed"
+  }
+}

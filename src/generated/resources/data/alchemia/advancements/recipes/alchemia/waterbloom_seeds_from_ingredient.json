@@ -1,0 +1,34 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "alchemia:waterbloom_seeds_from_ingredient"
+    ]
+  },
+  "criteria": {
+    "has_Waterbloom_ingredient": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "alchemia:flower_waterbloom"
+            ]
+          }
+        ]
+      }
+    },
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "alchemia:waterbloom_seeds_from_ingredient"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_Waterbloom_ingredient",
+      "has_the_recipe"
+    ]
+  ]
+}

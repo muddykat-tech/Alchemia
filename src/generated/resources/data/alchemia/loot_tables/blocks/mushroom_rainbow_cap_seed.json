@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "alchemia:mushroom_rainbow_cap"
+          "name": "alchemia:mushroom_rainbow_cap_seed"
         }
       ],
       "conditions": [

@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "alchemia:herb_flameweed"
+          "name": "alchemia:herb_flameweed_seed"
         }
       ],
       "conditions": [

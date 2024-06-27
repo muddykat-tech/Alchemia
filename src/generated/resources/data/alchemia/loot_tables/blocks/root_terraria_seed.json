@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "alchemia:root_terraria"
+          "name": "alchemia:root_terraria_seed"
         }
       ],
       "conditions": [

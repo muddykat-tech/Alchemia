@@ -1,0 +1,34 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "alchemia:tangleweed_seeds_from_ingredient"
+    ]
+  },
+  "criteria": {
+    "has_Tangleweed_ingredient": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "alchemia:herb_tangleweed"
+            ]
+          }
+        ]
+      }
+    },
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "alchemia:tangleweed_seeds_from_ingredient"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_Tangleweed_ingredient",
+      "has_the_recipe"
+    ]
+  ]
+}

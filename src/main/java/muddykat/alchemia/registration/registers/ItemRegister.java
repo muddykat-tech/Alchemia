@@ -25,7 +25,7 @@ public class ItemRegister {
     }
 
     public static ItemLike getSeedByIngredient(Ingredients ingredient) {
-        return ITEM_REGISTRY.get(ingredient.getRegistryName()).get();
+        return ITEM_REGISTRY.get(ingredient.getSeedRegistryName()).get();
     }
 
     public static ItemLike getItemFromRegistry(String reg_name){

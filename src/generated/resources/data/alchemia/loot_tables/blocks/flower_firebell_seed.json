@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "alchemia:flower_firebell"
+          "name": "alchemia:flower_firebell_seed"
         }
       ],
       "conditions": [

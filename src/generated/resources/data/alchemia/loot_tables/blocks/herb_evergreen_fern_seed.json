@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "alchemia:herb_evergreen_fern"
+          "name": "alchemia:herb_evergreen_fern_seed"
         }
       ],
       "conditions": [

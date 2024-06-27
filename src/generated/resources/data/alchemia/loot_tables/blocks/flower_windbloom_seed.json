@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "alchemia:flower_windbloom"
+          "name": "alchemia:flower_windbloom_seed"
         }
       ],
       "conditions": [

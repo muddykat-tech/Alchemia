@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "alchemia:herb_mageberry"
+    }
+  ],
+  "result": {
+    "item": "alchemia:herb_mageberry_crushed"
+  }
+}

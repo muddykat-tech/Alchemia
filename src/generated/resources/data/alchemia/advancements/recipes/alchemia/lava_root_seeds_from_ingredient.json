@@ -1,0 +1,34 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "alchemia:lava_root_seeds_from_ingredient"
+    ]
+  },
+  "criteria": {
+    "has_Lava_Root_ingredient": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "alchemia:root_lava_root"
+            ]
+          }
+        ]
+      }
+    },
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "alchemia:lava_root_seeds_from_ingredient"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_Lava_Root_ingredient",
+      "has_the_recipe"
+    ]
+  ]
+}

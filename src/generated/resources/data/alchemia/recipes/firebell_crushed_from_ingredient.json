@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "alchemia:flower_firebell"
+    }
+  ],
+  "result": {
+    "item": "alchemia:flower_firebell_crushed"
+  }
+}

@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "alchemia:herb_goodberry"
+          "name": "alchemia:herb_goodberry_seed"
         }
       ],
       "conditions": [

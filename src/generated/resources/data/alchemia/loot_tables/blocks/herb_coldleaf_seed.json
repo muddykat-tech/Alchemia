@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "alchemia:herb_coldleaf"
+          "name": "alchemia:herb_coldleaf_seed"
         }
       ],
       "conditions": [

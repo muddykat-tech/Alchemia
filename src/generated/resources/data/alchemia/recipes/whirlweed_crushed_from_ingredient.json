@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "alchemia:herb_whirlweed"
+    }
+  ],
+  "result": {
+    "item": "alchemia:herb_whirlweed_crushed"
+  }
+}

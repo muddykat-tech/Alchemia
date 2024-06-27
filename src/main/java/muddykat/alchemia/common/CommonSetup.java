@@ -5,7 +5,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 
 import static muddykat.alchemia.common.world.WildHerbGeneration.registerWildHerbGeneration;
 
-public class CommonProxy extends ClientSetup {
+public class CommonSetup extends ClientSetup {
 
     public static void init(final FMLClientSetupEvent event) {
         registerWildHerbGeneration();

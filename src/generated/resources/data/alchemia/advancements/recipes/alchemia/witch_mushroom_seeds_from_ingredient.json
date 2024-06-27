@@ -1,0 +1,34 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "alchemia:witch_mushroom_seeds_from_ingredient"
+    ]
+  },
+  "criteria": {
+    "has_Witch_Mushroom_ingredient": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "alchemia:mushroom_witch_mushroom"
+            ]
+          }
+        ]
+      }
+    },
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "alchemia:witch_mushroom_seeds_from_ingredient"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_Witch_Mushroom_ingredient",
+      "has_the_recipe"
+    ]
+  ]
+}

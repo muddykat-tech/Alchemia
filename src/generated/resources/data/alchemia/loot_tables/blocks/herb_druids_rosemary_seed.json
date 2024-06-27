@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "alchemia:herb_druids_rosemary"
+          "name": "alchemia:herb_druids_rosemary_seed"
         }
       ],
       "conditions": [

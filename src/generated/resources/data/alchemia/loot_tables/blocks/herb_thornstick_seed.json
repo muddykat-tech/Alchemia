@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "alchemia:herb_thornstick"
+          "name": "alchemia:herb_thornstick_seed"
         }
       ],
       "conditions": [
