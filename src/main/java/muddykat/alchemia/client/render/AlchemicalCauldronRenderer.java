@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Matrix4f;
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.blocks.tileentity.TileEntityAlchemyCauldron;
+import net.minecraft.client.renderer.BiomeColors;
 import net.minecraft.client.renderer.EffectInstance;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -24,8 +25,6 @@ import java.util.List;
 import java.util.Objects;
 
 public class AlchemicalCauldronRenderer implements BlockEntityRenderer<TileEntityAlchemyCauldron> {
-
-
     public AlchemicalCauldronRenderer(BlockEntityRendererProvider.Context context){
 
     }
@@ -37,40 +36,36 @@ public class AlchemicalCauldronRenderer implements BlockEntityRenderer<TileEntit
     public void render(TileEntityAlchemyCauldron pBlockEntity, float pPartialTick, PoseStack poseStack, MultiBufferSource buffer, int packedLight, int packedOverlay)
     {
         if(pBlockEntity.getPotion() == null) return;
-        pBlockEntity.tick(Objects.requireNonNull(pBlockEntity.getLevel()), pBlockEntity.getBlockPos(), pBlockEntity.getBlockState(), pBlockEntity);
-        try
-        {
-            int color = pBlockEntity.getPotionColor();
-            int red = (color >> 16) & 255;
-            int green = (color >> 8) & 255;
-            int blue = color & 255;
-            int alpha = 190;
 
-            int liquidLevel = pBlockEntity.getWaterLevel() - 1;
+        int color = pBlockEntity.getPotionColor();
+        if(color == 0) color = BiomeColors.getAverageWaterColor(Objects.requireNonNull(pBlockEntity.getLevel()), pBlockEntity.getBlockPos());
 
-            if(pBlockEntity.getWaterLevel() <= 0) return;
+        int red = (color >> 16) & 255;
+        int green = (color >> 8) & 255;
+        int blue = color & 255;
+        int alpha = 190;
 
-            TextureAtlasSprite water = WATER_MATERIAL.sprite();
+        int liquidLevel = pBlockEntity.getWaterLevel() - 1;
 
-            poseStack.pushPose();
-            poseStack.translate(0, FLUID_HEIGHT[liquidLevel], 0);
+        if(pBlockEntity.getWaterLevel() <= 0) return;
 
-            VertexConsumer consumer = buffer.getBuffer(RenderType.translucentMovingBlock());
-            Matrix4f matrix = poseStack.last().pose();
+        TextureAtlasSprite water = WATER_MATERIAL.sprite();
 
-            float sizeFactor = 0.05f;
-            float maxV = (water.getV1() - water.getV0()) * sizeFactor;
-            float minV = (water.getV1() - water.getV0()) * (1 - sizeFactor);
+        poseStack.pushPose();
+        poseStack.translate(0, FLUID_HEIGHT[liquidLevel], 0);
 
-            consumer.vertex(matrix, sizeFactor, 0, 1 - sizeFactor).color(red, green, blue, alpha).uv(water.getU0(), water.getV0() + maxV).uv2(packedLight).overlayCoords(packedOverlay).normal(1, 1, 1).endVertex();
-            consumer.vertex(matrix, 1 - sizeFactor, 0, 1 - sizeFactor).color(red, green, blue, alpha).uv(water.getU1(), water.getV0() + maxV).uv2(packedLight).overlayCoords(packedOverlay).normal(1, 1, 1).endVertex();
-            consumer.vertex(matrix, 1 - sizeFactor, 0, sizeFactor).color(red, green, blue, alpha).uv(water.getU1(), water.getV0() + minV).uv2(packedLight).overlayCoords(packedOverlay).normal(1, 1, 1).endVertex();
-            consumer.vertex(matrix, sizeFactor, 0, sizeFactor).color(red, green, blue, alpha).uv(water.getU0(), water.getV0() + minV).uv2(packedLight).overlayCoords(packedOverlay).normal(1, 1, 1).endVertex();
+        VertexConsumer consumer = buffer.getBuffer(RenderType.translucentNoCrumbling());
+        Matrix4f matrix = poseStack.last().pose();
 
-            poseStack.popPose();
+        float sizeFactor = 0.05f;
+        float maxV = (water.getV1() - water.getV0()) * sizeFactor;
+        float minV = (water.getV1() - water.getV0()) * (1 - sizeFactor);
 
-        } catch (Exception ignored){
-            Alchemia.LOGGER.info("Error");
-        }
+        consumer.vertex(matrix, sizeFactor, 0, 1 - sizeFactor).color(red, green, blue, alpha).uv(water.getU0(), water.getV0() + maxV).uv2(packedLight).overlayCoords(packedOverlay).normal(1, 1, 1).endVertex();
+        consumer.vertex(matrix, 1 - sizeFactor, 0, 1 - sizeFactor).color(red, green, blue, alpha).uv(water.getU1(), water.getV0() + maxV).uv2(packedLight).overlayCoords(packedOverlay).normal(1, 1, 1).endVertex();
+        consumer.vertex(matrix, 1 - sizeFactor, 0, sizeFactor).color(red, green, blue, alpha).uv(water.getU1(), water.getV0() + minV).uv2(packedLight).overlayCoords(packedOverlay).normal(1, 1, 1).endVertex();
+        consumer.vertex(matrix, sizeFactor, 0, sizeFactor).color(red, green, blue, alpha).uv(water.getU0(), water.getV0() + minV).uv2(packedLight).overlayCoords(packedOverlay).normal(1, 1, 1).endVertex();
+
+        poseStack.popPose();
     }
 }

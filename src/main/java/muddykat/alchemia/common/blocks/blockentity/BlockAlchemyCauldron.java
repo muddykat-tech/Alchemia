@@ -20,18 +20,22 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.network.NetworkHooks;
+import org.jetbrains.annotations.Nullable;
 
-import static net.minecraft.world.InteractionResult.PASS;
-import static net.minecraft.world.InteractionResult.SUCCESS;
+import static net.minecraft.world.InteractionResult.*;
 
 public class BlockAlchemyCauldron extends EntityBlockGeneric {
 
@@ -44,10 +48,8 @@ public class BlockAlchemyCauldron extends EntityBlockGeneric {
         return BlockEntityTypeRegistry.ALCHEMICAL_CAULDRON.get().create(pPos, pState);
     }
 
-
     @Override
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-
         level.setBlockAndUpdate(pos, state);
         ItemStack heldStack = player.getItemInHand(hand);
         Item heldItem = heldStack.getItem();
@@ -72,16 +74,15 @@ public class BlockAlchemyCauldron extends EntityBlockGeneric {
             if(entity instanceof TileEntityAlchemyCauldron cauldron) {
                 if(cauldron.getPotion().getItem().equals(Items.POTION)) {
                     if (!level.isClientSide) {
-                        level.playSound((Player) null, pos, SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
+                        level.playSound((Player) null, pos, SoundEvents.BREWING_STAND_BREW, SoundSource.BLOCKS, 1.0F, 1.0F);
                         level.gameEvent((Entity) null, GameEvent.FLUID_PLACE, pos);
                     }
                     heldStack.shrink(1);
                     player.setItemInHand(hand, heldStack);
-
                     cauldron.setSplashResult();
+                    if(!level.isClientSide) cauldron.sync();
                 }
             }
-
         }
 
         if(heldItem instanceof BucketItem) {
@@ -94,13 +95,12 @@ public class BlockAlchemyCauldron extends EntityBlockGeneric {
                         if(!player.isCreative()) player.setItemInHand(hand, ItemUtils.createFilledResult(heldStack, player, new ItemStack(Items.BUCKET)));
                         player.awardStat(Stats.ITEM_USED.get(item));
                         cauldron.setFullWater();
-
                         if (!level.isClientSide) {
                             level.playSound((Player) null, pos, SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
                             level.gameEvent((Entity) null, GameEvent.FLUID_PLACE, pos);
                         }
 
-                        return InteractionResult.sidedSuccess(level.isClientSide);
+                        return CONSUME_PARTIAL;
                     }
                 }
             }
@@ -113,11 +113,6 @@ public class BlockAlchemyCauldron extends EntityBlockGeneric {
                     cauldron.addIngredient(ingredient);
                     heldStack.shrink(1);
                     player.setItemInHand(hand, heldStack);
-
-                    if (!level.isClientSide) {
-                        level.playSound((Player) null, pos, SoundEvents.POINTED_DRIPSTONE_DRIP_WATER_INTO_CAULDRON, SoundSource.BLOCKS, 1.0F, 1.0F);
-                        level.gameEvent((Entity) null, GameEvent.SPLASH, pos);
-                    }
 
                     return InteractionResult.CONSUME;
                 }
@@ -134,18 +129,22 @@ public class BlockAlchemyCauldron extends EntityBlockGeneric {
                     heldStack.shrink(1);
                     player.addItem(potion);
 
-                    if (!level.isClientSide) {
-                        level.playSound((Player) null, pos, SoundEvents.BOTTLE_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
-                        level.gameEvent((Entity) null, GameEvent.SPLASH, pos);
-                    }
 
                     if(cauldron.getWaterLevel() < 1){
                         cauldron.resetEffectList();
                         if (!level.isClientSide) {
                             level.playSound((Player) null, pos, SoundEvents.SOUL_ESCAPE, SoundSource.BLOCKS, 1.0F, 1.0F);
                             level.gameEvent((Entity) null, GameEvent.SPLASH, pos);
+                            cauldron.sync();
                         }
                     }
+
+                    if (!level.isClientSide) {
+                        level.playSound((Player) null, pos, SoundEvents.BOTTLE_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
+                        level.gameEvent((Entity) null, GameEvent.SPLASH, pos);
+                        cauldron.sync();
+                    }
+
                     return InteractionResult.CONSUME;
                 }
             }
@@ -166,10 +165,41 @@ public class BlockAlchemyCauldron extends EntityBlockGeneric {
 
         return SUCCESS;
     }
-    protected static VoxelShape SHAPE = Block.box(2.0, 0.0, 2.0, 14.0, 12.0, 14.0);
 
+    // Not the nicest way to store the voxel data (collision and outline)
     public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
-        return SHAPE;
+        VoxelShape CUT_SHAPE = Shapes.join(box(-1.0, 4.0, -1.0, 17, 16, 17),
+                Shapes.or(
+                        // Cut section from main cube, these four are the Main sides, under the lip of the cauldron
+                        box(-1.0, 0.0, -1.0, 0, 14.0, 17), new VoxelShape[]{
+                                box(16.0, 0.0, -1.0, 17, 14.0, 17),
+                                box(-1.0, 0.0, -1.0, 17, 14.0, 0),
+                                box(-1.0, 0.0, 16.0, 17, 14.0, 17),
+
+                                // This section is for the lip corners removes a corner strip down the side
+                                box(-1, 4, -1, 1, 16, 1),
+                                box(15, 4, 15, 17, 16, 17),
+                                box(15, 4, -1, 17, 16, 1),
+                                box(-1, 4, 15, 1, 16, 17),
+
+                                box(0, 4, 0, 16, 5, 1),
+                                box(0, 4, 0, 1, 5, 16),
+                                box(15, 4, 0, 16, 5, 16),
+                                box(0, 4, 15, 16, 5, 16),
+
+                                box(1.0, 5.0, 1.0, 15.0, 16.0, 15.0)}), BooleanOp.ONLY_FIRST);
+
+        // Adds a pixel in the top lip corners and posts
+        VoxelShape ADDITIONS = Shapes.join( box(0, 15, 0, 1, 16, 1),
+                               Shapes.or(   box(15, 15, 15, 16, 16, 16), new VoxelShape[]{
+                                            box(0, 15, 15, 1, 16, 16),
+                                            box(15, 15, 0, 16, 16, 1),
+                                            // Posts
+                                       box(7, 0, -5, 10, 25, -2),
+                                       box(7, 0, 18, 10, 25, 21)
+                                           }), BooleanOp.OR);
+
+        return Shapes.join(CUT_SHAPE, ADDITIONS, BooleanOp.OR);
     }
 
     @Override
@@ -185,5 +215,16 @@ public class BlockAlchemyCauldron extends EntityBlockGeneric {
     @Override
     public BlockState rotate(BlockState pState, Rotation pRot) {
         return pState.setValue(FACING, pRot.rotate(pState.getValue(FACING)));
+    }
+
+    @Nullable
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        return new BlockEntityTicker<T>() {
+            @Override
+            public void tick(Level level, BlockPos pos, BlockState state, T tile) {
+                ((TileEntityAlchemyCauldron)tile).tick();
+            }
+        };
     }
 }

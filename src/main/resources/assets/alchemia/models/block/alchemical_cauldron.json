@@ -6,7 +6,8 @@
 		"chain": "alchemia:block/alchemy/chain",
 		"cauldron_side": "alchemia:block/alchemy/cauldron_side",
 		"cauldron_bottom": "alchemia:block/alchemy/cauldron_inner",
-		"fire_log": "alchemia:block/alchemy/holder_logs"
+		"fire_log": "alchemia:block/alchemy/holder_logs",
+		"particle": "alchemia:block/alchemy/cauldron_side"
 	},
 	"elements": [
 		{
