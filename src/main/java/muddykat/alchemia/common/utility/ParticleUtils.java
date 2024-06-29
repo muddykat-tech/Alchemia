@@ -14,6 +14,7 @@ import java.util.Random;
 public class ParticleUtils {
     public static void generatePotionParticles(Level level, BlockPos pos, int color, boolean generateMultiple)
     {
+        if(!level.isClientSide) return;
         ParticleStatus particleStatus = Minecraft.getInstance().options.particles;
         if (particleStatus == ParticleStatus.MINIMAL)
             return;
@@ -61,6 +62,7 @@ public class ParticleUtils {
 
     public static void generateEvaporationParticles(Level level, BlockPos pos, int color)
     {
+        if(!level.isClientSide) return;
         Random random = new Random();
         ParticleStatus particleStatus = Minecraft.getInstance().options.particles;
         if (particleStatus == ParticleStatus.MINIMAL)

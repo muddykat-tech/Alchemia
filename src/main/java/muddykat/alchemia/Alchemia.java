@@ -47,11 +47,11 @@ public class Alchemia
         final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
         modEventBus.addListener(CommonSetup::init);
+        modEventBus.addListener(ClientSetup::init);
 
         proxy.init();
 
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Configuration.COMMON_CONFIG);
-        //ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, Configuration.CLIENT_CONFIG);
 
         LOGGER.info(MODID + ": Setting up Item and Block Registration");
         AlchemiaRegistry.initialize();

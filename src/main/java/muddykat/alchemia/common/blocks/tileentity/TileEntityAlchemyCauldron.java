@@ -163,7 +163,8 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         alchemicalCauldronData.set(1, xAlignment);
         alchemicalCauldronData.set(2, yAlignment);
 
-        potion_color = BiomeColors.getAverageWaterColor(getLevel(), getBlockPos());
+        if(level.isClientSide) potion_color = BiomeColors.getAverageWaterColor(getLevel(), getBlockPos());
+
         needsUpdate = true;
         markUpdated();
         if(!level.isClientSide) sync();
@@ -278,7 +279,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
 
     public void takeWaterPortion() {
         this.waterLevel = this.waterLevel - 1;
-        potion_color = BiomeColors.getAverageWaterColor(getLevel(), getBlockPos());
+        if(level.isClientSide) potion_color = BiomeColors.getAverageWaterColor(getLevel(), getBlockPos());
         if(!level.isClientSide) sync();
     }
 
@@ -527,7 +528,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         waterLevel = 0;
         setDefaultResult();
         resetEffectList();
-        potion_color = BiomeColors.getAverageWaterColor(getLevel(), getBlockPos());
+        if(level.isClientSide) potion_color = BiomeColors.getAverageWaterColor(getLevel(), getBlockPos());
         needsUpdate = true;
 
         if (!level.isClientSide) {

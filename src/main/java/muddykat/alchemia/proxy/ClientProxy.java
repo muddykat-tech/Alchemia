@@ -20,8 +20,6 @@ public class ClientProxy implements ISidedProxy {
 
     @Override
     public void init() {
-        Alchemia.LOGGER.info(Alchemia.MODID + ": Initializing Clientside Settings");
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(ClientSetup::init);
     }
 
     @Override
