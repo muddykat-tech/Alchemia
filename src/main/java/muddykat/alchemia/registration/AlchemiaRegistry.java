@@ -1,49 +1,28 @@
 package muddykat.alchemia.registration;
 
-import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyCauldron;
-import muddykat.alchemia.common.blocks.BlockGeneric;
-import muddykat.alchemia.common.blocks.blockentity.EntityBlockGeneric;
-import muddykat.alchemia.common.items.BlockItemGeneric;
-import muddykat.alchemia.common.items.ItemAlchemiaGuide;
-import muddykat.alchemia.common.items.helper.Ingredients;
-import muddykat.alchemia.common.items.AlchemicalPotion;
-import muddykat.alchemia.registration.registers.BlockRegister;
-import muddykat.alchemia.registration.registers.ItemRegister;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import muddykat.alchemia.Alchemia;
+import muddykat.alchemia.registration.registers.*;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
-import java.lang.reflect.InvocationTargetException;
-
-import static muddykat.alchemia.common.world.WildHerbGeneration.registerWildHerbGeneration;
+import static muddykat.alchemia.Alchemia.MOD_NAME;
 
 public class AlchemiaRegistry {
     public static void initialize() {
-        for (Ingredients ingredient : Ingredients.values()) {
-            ingredient.register();
-        }
-
-        createBasicBlock("deepmetal_tile");
-        createBlockEntity(BlockAlchemyCauldron.class, "alchemical_cauldron");
-
-        ItemRegister.registerItem("alchemia_guide", ItemAlchemiaGuide::new);
-        ItemRegister.registerItem("alchemical_potion", AlchemicalPotion::new);
-
-    }
-    public static void createBasicBlock(String id){
-        BlockRegister.registerBlock(id, BlockGeneric::new);
-        ItemRegister.registerItem(id, () -> new BlockItemGeneric(BlockRegister.BLOCK_REGISTRY.get(id).get()));
+        Alchemia.LOGGER.info(MOD_NAME + "Initializing Registration Entries");
+        ItemRegistry.initialize();
+        BlockRegistry.initialize();
     }
 
-    public static void createBlockEntity(Class<? extends EntityBlockGeneric> generic, String id) {
-        BlockRegister.registerBlock(id, () -> {
-            try {
-                return generic.getDeclaredConstructor().newInstance();
-            } catch (RuntimeException | InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException error) {
-                Logger log =  LogManager.getLogger();
-                log.info(error.getMessage());
-            }
-            return null;
-        });
-        ItemRegister.registerItem(id, () -> new BlockItemGeneric(BlockRegister.BLOCK_REGISTRY.get(id).get()));
+    public static void register() {
+        Alchemia.LOGGER.info(MOD_NAME + "Registration Phase");
+        final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+        BlockRegistry.BLOCKS.register(modEventBus);
+        ItemRegistry.ITEMS.register(modEventBus);
+        BiomeFeatureRegistry.FEATURES.register(modEventBus);
+        PlacementModifierRegistry.PLACEMENT_MODIFIERS.register(modEventBus);
+        BlockEntityTypeRegistry.TILES.register(modEventBus);
+        MenuTypeRegistry.MENU_TYPES.register(modEventBus);
+        Alchemia.LOGGER.info(MOD_NAME + "Registration Complete");
     }
 }

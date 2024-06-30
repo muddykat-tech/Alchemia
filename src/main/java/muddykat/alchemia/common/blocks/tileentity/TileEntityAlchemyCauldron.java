@@ -2,6 +2,7 @@ package muddykat.alchemia.common.blocks.tileentity;
 
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.blocks.tileentity.container.AlchemicalCauldronMenu;
+import muddykat.alchemia.common.items.ItemAlchemiaGuide;
 import muddykat.alchemia.common.items.ItemIngredient;
 import muddykat.alchemia.common.items.ItemIngredientCrushed;
 import muddykat.alchemia.common.items.helper.Ingredients;
@@ -18,8 +19,13 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.stats.Stats;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.Nameable;
 import net.minecraft.world.effect.MobEffect;
@@ -31,9 +37,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
+import net.minecraft.world.item.*;
 import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.level.Level;
@@ -43,6 +47,7 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.AABB;
 import net.minecraftforge.client.event.RenderTooltipEvent;
 import net.minecraftforge.items.ItemStackHandler;
+import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.system.CallbackI;
@@ -50,6 +55,7 @@ import org.lwjgl.system.CallbackI;
 import java.util.*;
 
 import static muddykat.alchemia.Alchemia.proxy;
+import static net.minecraft.world.InteractionResult.*;
 
 public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements MenuProvider, Nameable {
 
@@ -65,7 +71,12 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
     private Item potion_type = Items.POTION;
 
     public TileEntityAlchemyCauldron(BlockPos pPos, BlockState pBlockState) {
-        super(BlockEntityTypeRegistry.ALCHEMICAL_CAULDRON.get(), pPos, pBlockState);
+        this(BlockEntityTypeRegistry.ALCHEMICAL_CAULDRON.get(), pPos, pBlockState);
+
+    }
+
+    public TileEntityAlchemyCauldron(BlockEntityType<?> tileEntityTypeIn, BlockPos pPos, BlockState pBlockState) {
+        super(tileEntityTypeIn, pPos, pBlockState);
         alchemicalCauldronData = createIntArray();
         inventory = createHandler();
         waterLevel = 0;
@@ -90,9 +101,9 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         xAlignment = compound.getInt("xAlignment");
         yAlignment = compound.getInt("yAlignment");
         needsUpdate = compound.getBoolean("needsUpdate");
-        updateEffectList();
-        // TODO: Update Effect List!!!!
-        //updateWaterColor();
+
+        //effectList.clear();
+        if(needsUpdate) updateEffectList();
     }
 
     @Override
@@ -110,8 +121,124 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         return compound;
     }
 
-    public ItemStackHandler getInventory() {
-        return this.inventory;
+    @Override
+    public InteractionResult onActivated(BlockState state, BlockPos pos, Player player, InteractionHand hand) {
+        Level level = getLevel();
+        if(level == null) return FAIL;
+
+        ItemStack heldStack = player.getItemInHand(hand);
+        Item heldItem = heldStack.getItem();
+
+        if(heldStack.isEmpty() && player.isShiftKeyDown())
+        {
+            BlockEntity entity = level.getBlockEntity(pos);
+            if(entity instanceof TileEntityAlchemyCauldron cauldron) {
+                if (!cauldron.canFill()) {
+                    if (!level.isClientSide) {
+                        level.playSound((Player) null, pos, SoundEvents.BOTTLE_FILL_DRAGONBREATH, SoundSource.BLOCKS, 1.0F, 1.0F);
+                    }
+                    cauldron.empty();
+                    return SUCCESS;
+                }
+            }
+        }
+
+
+        if(heldItem.equals(Items.GUNPOWDER)) {
+            BlockEntity entity = level.getBlockEntity(pos);
+            if(entity instanceof TileEntityAlchemyCauldron cauldron) {
+                if(cauldron.getPotion().getItem().equals(Items.POTION)) {
+                    if (!level.isClientSide) {
+                        level.playSound((Player) null, pos, SoundEvents.BREWING_STAND_BREW, SoundSource.BLOCKS, 1.0F, 1.0F);
+                        level.gameEvent((Entity) null, GameEvent.FLUID_PLACE, pos);
+                    }
+                    heldStack.shrink(1);
+                    player.setItemInHand(hand, heldStack);
+                    cauldron.setSplashResult();
+                    if(!level.isClientSide) cauldron.sync();
+                }
+            }
+        }
+
+        if(heldItem instanceof BucketItem) {
+            boolean isValid = heldItem.equals(Items.WATER_BUCKET) ;
+            if(isValid) {
+                BlockEntity entity = level.getBlockEntity(pos);
+                if(entity instanceof TileEntityAlchemyCauldron cauldron) {
+                    if (cauldron.canFill()) {
+                        Item item = heldStack.getItem();
+                        if(!player.isCreative()) player.setItemInHand(hand, ItemUtils.createFilledResult(heldStack, player, new ItemStack(Items.BUCKET)));
+                        player.awardStat(Stats.ITEM_USED.get(item));
+                        cauldron.setFullWater();
+                        if (!level.isClientSide) {
+                            level.playSound((Player) null, pos, SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
+                            level.gameEvent((Entity) null, GameEvent.FLUID_PLACE, pos);
+                        }
+
+                        return CONSUME_PARTIAL;
+                    }
+                }
+            }
+        }
+
+        if(heldItem instanceof ItemIngredient ingredient) {
+            BlockEntity entity = level.getBlockEntity(pos);
+            if(entity instanceof TileEntityAlchemyCauldron cauldron) {
+                if(cauldron.getWaterLevel() > 0) {
+                    cauldron.addIngredient(ingredient);
+                    heldStack.shrink(1);
+                    player.setItemInHand(hand, heldStack);
+
+                    return InteractionResult.CONSUME;
+                }
+                return InteractionResult.FAIL;
+            }
+        }
+
+        if(heldItem.equals(Items.GLASS_BOTTLE)){
+            BlockEntity entity = level.getBlockEntity(pos);
+            if(entity instanceof TileEntityAlchemyCauldron cauldron) {
+                if(cauldron.getWaterLevel() > 0) { // this check updates the water level in the cauldron.
+                    cauldron.takeWaterPortion();
+                    ItemStack potion = cauldron.getPotion();
+                    heldStack.shrink(1);
+                    player.addItem(potion);
+
+
+                    if(cauldron.getWaterLevel() < 1){
+                        cauldron.resetEffectList();
+                        if (!level.isClientSide) {
+                            level.playSound((Player) null, pos, SoundEvents.SOUL_ESCAPE, SoundSource.BLOCKS, 1.0F, 1.0F);
+                            level.gameEvent((Entity) null, GameEvent.SPLASH, pos);
+                            cauldron.sync();
+                        }
+                    }
+
+                    if (!level.isClientSide) {
+                        level.playSound((Player) null, pos, SoundEvents.BOTTLE_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
+                        level.gameEvent((Entity) null, GameEvent.SPLASH, pos);
+                        cauldron.sync();
+                    }
+
+                    return InteractionResult.CONSUME;
+                }
+            }
+        }
+
+        ItemStack itemstack = player.getItemInHand(hand);
+        if(!level.isClientSide()){
+            if(itemstack.hasTag() && itemstack.getItem() instanceof ItemAlchemiaGuide) {
+                BlockEntity entity = level.getBlockEntity(pos);
+                if(entity instanceof TileEntityAlchemyCauldron cauldron) {
+                    NetworkHooks.openGui((ServerPlayer) player, cauldron, pos);
+                }
+            } else {
+                player.displayClientMessage(new TranslatableComponent("alchemia.guide.unbound.message"), true);
+            }
+            return InteractionResult.SUCCESS;
+        }
+
+        return SUCCESS;
     }
 
     public void setSplashResult()
@@ -150,10 +277,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
     }
 
     public void setFullWater() {
-        if(waterLevel <= 1){
-            resetEffectList();
-        }
-
+        resetEffectList();
         this.waterLevel = this.maxWaterLevel;
         int oldY = this.yAlignment;
         int oldX = this.xAlignment;
@@ -163,10 +287,11 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         alchemicalCauldronData.set(1, xAlignment);
         alchemicalCauldronData.set(2, yAlignment);
 
-        if(level.isClientSide) potion_color = BiomeColors.getAverageWaterColor(getLevel(), getBlockPos());
+        if(level.isClientSide) potion_color = BiomeColors.getAverageWaterColor(level, getBlockPos());
 
         needsUpdate = true;
         markUpdated();
+
         if(!level.isClientSide) sync();
     }
 
@@ -211,14 +336,13 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         if (!level.isClientSide) {
             level.playSound((Player) null, pos, SoundEvents.POINTED_DRIPSTONE_DRIP_WATER_INTO_CAULDRON, SoundSource.BLOCKS, 1.0F, 1.0F);
             level.gameEvent((Entity) null, GameEvent.SPLASH, pos);
+
             sync();
         }
     }
 
     private void updateEffectList()
     {
-        if(level == null) level = proxy.getWorld();
-
         alchemicalCauldronData.set(1, xAlignment);
         alchemicalCauldronData.set(2, yAlignment);
 
@@ -260,6 +384,19 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
             if(useSmoke)
             {
                 ParticleUtils.generateEvaporationParticles(level, pos, getPotionColor());
+            }
+            if (potionEffectPos.isPerfect()) {
+                for (int i = 0; i < 10; i++) Minecraft.getInstance().particleEngine.createParticle(ParticleTypes.HAPPY_VILLAGER, pos.getX() + random.nextFloat(), pos.getY() + 1D, pos.getZ() + random.nextFloat(), 0, 0.1, 0);
+            }
+        }
+
+        if(level.isClientSide)
+        {
+            if(additionTimer < 1) {
+                for (int i = 0; i < 10; i++) {
+                    Minecraft.getInstance().particleEngine.createParticle(ParticleTypes.SPLASH, pos.getX() + .5d, pos.getY() + 1D, pos.getZ() + .5d, 0, 0.1, 0);
+                }
+                additionTimer = 20;
             }
         }
         updateWaterColor();
@@ -340,6 +477,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
     private Set<MobEffectInstance> effectList = new HashSet<>();
 
     public Collection<MobEffectInstance> getEffectList() {
+        if(!level.isClientSide) sync();
         return effectList;
     }
 
@@ -349,14 +487,11 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         xAlignment = PotionMap.INSTANCE.getMiddlePosition();
         yAlignment = PotionMap.INSTANCE.getMiddlePosition();
 
-        int oldY = this.yAlignment;
-        int oldX = this.xAlignment;
-        int newX = (int) (oldX + (balanceAlignment - oldX) * 0.2);
-        int newY = (int) (oldY + (balanceAlignment - oldY) * 0.2);
-
         alchemicalCauldronData.set(1, xAlignment);
         alchemicalCauldronData.set(2, yAlignment);
         markUpdated();
+        updateWaterColor();
+        level.setBlockAndUpdate(getBlockPos(), getBlockState());
         if(!level.isClientSide) sync();
     }
 
@@ -401,7 +536,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         }
         PotionUtils.setCustomEffects(customPotion, getEffectList());
         customPotion.setHoverName(new TextComponent("Alchemical Potion"));
-
+        if(!level.isClientSide) sync();
         return customPotion;
     }
 
@@ -414,6 +549,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
     boolean needsUpdate = false;
     public void tick() {
         BlockPos pos = getBlockPos();
+
         if(level.isClientSide)
         {
             if (random.nextFloat() < 0.2F && waterLevel > 0 && !getEffectList().isEmpty()) {
@@ -437,6 +573,8 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
             }
         }
 
+        if(additionTimer > 0) additionTimer--;
+
         List<ItemEntity> items = level.getEntitiesOfClass(ItemEntity.class, new AABB(worldPosition).inflate(1.125));
         List<ItemIngredient> contents = new ArrayList<>();
 
@@ -448,24 +586,12 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
                 for(int i = 0; i < stack.getCount(); i++)
                 {
                     stack.setCount(1);
-                    if(additionTimer < 1)
-                    {
-                        contents.add(ingredient);
-                    }
+                    contents.add(ingredient);
                 }
 
-                if(additionTimer < 1)
-                {
-                    entity.remove(Entity.RemovalReason.DISCARDED);
-                    additionTimer = 20;
-                }
+                entity.remove(Entity.RemovalReason.DISCARDED);
+                needsUpdate = true;
             }
-        }
-        if(!items.isEmpty())
-        {
-            if(additionTimer > 0) additionTimer--;
-
-            if(!level.isClientSide) sync();
         }
 
         Iterator<ItemIngredient> iterator = contents.iterator();
@@ -473,12 +599,12 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
             ItemIngredient ingredient = iterator.next();
             addIngredient(ingredient);
             iterator.remove(); // Remove the current element safely
+            if(!level.isClientSide) sync();
         }
 
         updateWaterColor();
 
         //Very hacky system to avoid needing to send constant update packets...
-
         // For some reason a single sync doesn't work when filling the cauldron with water...
         // And it's in a limbo until a second bucket of water is used on it.
         if(!level.isClientSide && needsUpdate)
@@ -518,17 +644,24 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
             green = Math.max(0, Math.min(255, green));
             blue = Math.max(0, Math.min(255, blue));
             potion_color = (red << 16) | (green << 8) | blue;
+        } else {
+            if(level.isClientSide)
+            {
+                potion_color = BiomeColors.getAverageWaterColor(level, getBlockPos());
+            }
         }
     }
 
     public void empty() {
         BlockPos pos = getBlockPos();
         ParticleUtils.generateEvaporationParticles(getLevel(), pos, getPotionColor());
-        resetEffectList();
         waterLevel = 0;
         setDefaultResult();
         resetEffectList();
+        if(level == null) return;
+
         if(level.isClientSide) potion_color = BiomeColors.getAverageWaterColor(getLevel(), getBlockPos());
+
         needsUpdate = true;
 
         if (!level.isClientSide) {
@@ -537,9 +670,10 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
             sync();
         }
     }
-    private int potion_color = 0;
+    private int potion_color = 0xffffff;
 
-    public int getPotionColor(){
+    public int getPotionColor()
+    {
         return potion_color;
     }
 }

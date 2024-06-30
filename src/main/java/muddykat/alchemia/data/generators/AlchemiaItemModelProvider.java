@@ -2,11 +2,11 @@ package muddykat.alchemia.data.generators;
 
 import com.mojang.logging.LogUtils;
 import muddykat.alchemia.Alchemia;
-import muddykat.alchemia.common.items.ItemIngredient;
-import muddykat.alchemia.common.items.ItemIngredientCrushed;
-import muddykat.alchemia.common.items.ItemIngredientSeed;
-import muddykat.alchemia.common.items.AlchemicalPotion;
-import muddykat.alchemia.registration.registers.ItemRegister;
+import muddykat.alchemia.common.blocks.BlockMineralClusterGeneric;
+import muddykat.alchemia.common.items.*;
+import muddykat.alchemia.common.items.helper.Ingredients;
+import muddykat.alchemia.registration.registers.BlockRegistry;
+import muddykat.alchemia.registration.registers.ItemRegistry;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
@@ -26,7 +26,7 @@ public class AlchemiaItemModelProvider extends ItemModelProvider {
     @Override
     protected void registerModels() {
         LOGGER.info("Starting Item Model Registration");
-        for (RegistryObject<Item> registryObject : ItemRegister.ITEM_REGISTRY.values()){
+        for (RegistryObject<Item> registryObject : ItemRegistry.ITEM_REGISTRY.values()){
             Item item = registryObject.get();
 
             if(item instanceof ItemIngredientSeed seed) {
@@ -42,12 +42,16 @@ public class AlchemiaItemModelProvider extends ItemModelProvider {
                 generateGenericIngredient(ingredient);
             }
 
-            if(item instanceof AlchemicalPotion potion) {
+            if(item instanceof BlockItemGeneric blockItem)
+            {
+                if(blockItem.getBlock() instanceof BlockMineralClusterGeneric cluster){
+                    Ingredients ingredient = cluster.getIngredient();
+                    String stageName = Alchemia.MODID + ":block/" + ingredient.getType().name().toLowerCase() + "s/" + ingredient.name().toLowerCase() + "/growth_stage_" + cluster.getSize().ordinal();
 
-                String item_loc = new ResourceLocation(Alchemia.MODID, "item/alchemical_potion").getPath();
-                withExistingParent(item_loc,
-                        new ResourceLocation("item/generated"))
-                        .texture("layer0", "minecraft:item/glass_bottle");
+                    withExistingParent(new ResourceLocation(Alchemia.MODID, ingredient.name().toLowerCase() + "_" + ((cluster.getSize() != BlockRegistry.BudSize.CLUSTER) ? "bud_" : "") + cluster.getSize().name().toLowerCase()).getPath(),
+                            new ResourceLocation("item/generated"))
+                            .texture("layer0", stageName);
+                }
             }
         }
     }

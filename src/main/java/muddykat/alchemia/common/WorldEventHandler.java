@@ -1,35 +1,31 @@
 package muddykat.alchemia.common;
 
-import muddykat.alchemia.Alchemia;
-import muddykat.alchemia.common.potion.PotionMap;
+import muddykat.alchemia.common.items.helper.IngredientAlignment;
+import muddykat.alchemia.common.items.helper.IngredientType;
+import muddykat.alchemia.common.items.helper.Ingredients;
 import muddykat.alchemia.common.world.WildHerbGeneration;
-import muddykat.alchemia.registration.registers.BlockRegister;
-import net.minecraft.client.gui.components.events.GuiEventListener;
+import muddykat.alchemia.registration.registers.BlockRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CauldronBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.GenerationStep;
-import net.minecraftforge.client.event.RecipesUpdatedEvent;
 import net.minecraftforge.common.world.BiomeGenerationSettingsBuilder;
-import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.world.BiomeLoadingEvent;
 import net.minecraftforge.event.world.BlockEvent;
-import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import org.checkerframework.checker.units.qual.A;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Objects;
+import java.util.List;
 
 public class WorldEventHandler {
 
@@ -42,7 +38,7 @@ public class WorldEventHandler {
                 if(blockBelow.is(Blocks.CAMPFIRE)) {
                     BlockPos pos = event.getPos();
                     event.getWorld().setBlock(pos, Blocks.AIR.defaultBlockState(), 1 | 8);
-                    event.getWorld().setBlock(pos.below(), BlockRegister.BLOCK_REGISTRY.get("alchemical_cauldron").get().defaultBlockState(), 1);
+                    event.getWorld().setBlock(pos.below(), BlockRegistry.BLOCK_REGISTRY.get("alchemical_cauldron").get().defaultBlockState(), 1);
                 }
             }
         }
@@ -70,7 +66,6 @@ public class WorldEventHandler {
         }
     }
 
-
     @SubscribeEvent
     public static void onBiomeLoad(BiomeLoadingEvent event) {
         ResourceLocation biomeName = event.getName();
@@ -78,47 +73,76 @@ public class WorldEventHandler {
         if (biomeName == null) {
             return;
         }
+        ArrayList<Ingredients> setupIngredients = new ArrayList<>();
 
         Biome.BiomeCategory category = event.getCategory();
-        if (category.equals(Biome.BiomeCategory.NETHER) || category.equals(Biome.BiomeCategory.THEEND) || category.equals(Biome.BiomeCategory.NONE)) {
+        BiomeGenerationSettingsBuilder builder = event.getGeneration();
+
+        if(category.equals(Biome.BiomeCategory.NETHER))
+        {
+            builder.addFeature(GenerationStep.Decoration.UNDERGROUND_DECORATION, WildHerbGeneration.INGREDIENT_FEATURES.get(Ingredients.Fire_Citrine));
+        }
+
+        if (category.equals(Biome.BiomeCategory.THEEND) || category.equals(Biome.BiomeCategory.NONE)) {
             return;
         }
 
-        BiomeGenerationSettingsBuilder builder = event.getGeneration();
 
         // Category-based filter
         if (category.equals(Biome.BiomeCategory.MUSHROOM)) {
-            builder.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, WildHerbGeneration.PATCH_WILD_MARSHROOM);
+            // Very rare Crystal Type, Fable Bismuth only spawns on Mooshroom Islands
+            builder.addFeature(GenerationStep.Decoration.UNDERGROUND_DECORATION, WildHerbGeneration.INGREDIENT_FEATURES.get(Ingredients.Fable_Bismuth));
             return; // No other wild crops should exist here!
         }
 
-        if (biomeName.getPath().equals("beach")) {
-
+        if (category.equals(Biome.BiomeCategory.MOUNTAIN)) {
+            // Somewhat Common Crystal, Only found in mountains
+            builder.addFeature(GenerationStep.Decoration.UNDERGROUND_DECORATION, WildHerbGeneration.INGREDIENT_FEATURES.get(Ingredients.Cloud_Crystal));
+            return; // No other wild crops should exist here!
         }
 
-        if (biomeName.getPath().equals("plains")) {
-            builder.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, WildHerbGeneration.PATCH_WILD_WINDBLOOM);
+        if(biomeName.getPath().equals(Biomes.DARK_FOREST.getRegistryName().getPath()))
+        {
+            builder.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, WildHerbGeneration.INGREDIENT_FEATURES.get(Ingredients.Boombloom));
+            builder.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, WildHerbGeneration.INGREDIENT_FEATURES.get(Ingredients.Spellbloom));
+
+            builder.addFeature(GenerationStep.Decoration.UNDERGROUND_DECORATION, WildHerbGeneration.INGREDIENT_FEATURES.get(Ingredients.Arcane_Crystal));
+            setupIngredients.add(Ingredients.Spellbloom);
+            setupIngredients.add(Ingredients.Boombloom);
         }
 
-
-        if (category.equals(Biome.BiomeCategory.SWAMP) || category.equals(Biome.BiomeCategory.JUNGLE)) {
-
-        }
 
         Biome.ClimateSettings climate = event.getClimate();
-        if (climate.temperature >= 1.0F) {
 
+        if(climate.temperature < 0.2f )
+        {
+            builder.addFeature(GenerationStep.Decoration.UNDERGROUND_DECORATION, WildHerbGeneration.INGREDIENT_FEATURES.get(Ingredients.Frost_Sapphire));
         }
 
+        for (Ingredients ingredient : Ingredients.values())
+        {
+            if(setupIngredients.contains(ingredient)) continue;;
 
-        if (climate.temperature > 0.3F && climate.temperature < 1.0F) {
-            builder.addFeature(GenerationStep.Decoration.UNDERGROUND_DECORATION, WildHerbGeneration.PATCH_WILD_ARCANE_CRYSTALS);
-        }
+            if(WildHerbGeneration.INGREDIENT_FEATURES.get(ingredient) == null) continue;
+            if(ingredient.getType() == IngredientType.Flower) {
+                if (ingredient.getPrimaryAlignment() == IngredientAlignment.Fire) {
+                    if (climate.temperature > 1f) {
+                        builder.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, WildHerbGeneration.INGREDIENT_FEATURES.get(ingredient));
+                    }
+                }
 
+                if (ingredient.getPrimaryAlignment() == IngredientAlignment.Water) {
+                    if (climate.temperature < 0.2f || climate.downfall > 0.7f) {
+                        builder.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, WildHerbGeneration.INGREDIENT_FEATURES.get(ingredient));
+                    }
+                }
 
-        if (climate.temperature > 0.0F && climate.temperature <= 0.3F) {
-
+                if (ingredient.getPrimaryAlignment() == IngredientAlignment.Air) {
+                    if ((climate.temperature > 0.3f && climate.temperature < 0.8f)) {
+                        builder.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, WildHerbGeneration.INGREDIENT_FEATURES.get(ingredient));
+                    }
+                }
+            }
         }
     }
-
 }

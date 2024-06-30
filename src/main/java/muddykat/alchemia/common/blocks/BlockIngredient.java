@@ -3,7 +3,7 @@ package muddykat.alchemia.common.blocks;
 import muddykat.alchemia.common.items.helper.IngredientAlignment;
 import muddykat.alchemia.common.items.helper.IngredientType;
 import muddykat.alchemia.common.items.helper.Ingredients;
-import muddykat.alchemia.registration.registers.ItemRegister;
+import muddykat.alchemia.registration.registers.ItemRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -145,7 +145,7 @@ public class BlockIngredient extends CropBlock implements BonemealableBlock, IPl
 
     @Override
     protected ItemLike getBaseSeedId() {
-        return ItemRegister.getSeedByIngredient(getIngredient());
+        return ItemRegistry.getSeedByIngredient(getIngredient());
     }
     @Override
     public ItemStack getCloneItemStack(BlockGetter pLevel, BlockPos pPos, BlockState pState) {

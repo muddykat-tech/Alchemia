@@ -1,6 +1,0 @@
-{
-  "parent": "minecraft:block/cross",
-  "textures": {
-    "cross": "alchemia:block/minerals/cloud_crystal"
-  }
-}

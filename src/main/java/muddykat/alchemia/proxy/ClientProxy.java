@@ -24,6 +24,5 @@ public class ClientProxy implements ISidedProxy {
 
     @Override
     public void openCodexGui() {
-        //Minecraft.getInstance().setScreen(CodexGui.getInstance());
     }
 }

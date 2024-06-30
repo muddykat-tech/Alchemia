@@ -2,7 +2,7 @@ package muddykat.alchemia.common.world.filter;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import muddykat.alchemia.registration.registers.AlchemiaPlacementModifiers;
+import muddykat.alchemia.registration.registers.PlacementModifierRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.tags.TagKey;
@@ -38,6 +38,6 @@ public class BiomeTagFilter extends PlacementFilter
 
     @Override
     public PlacementModifierType<?> type() {
-        return AlchemiaPlacementModifiers.BIOME_TAG.get();
+        return PlacementModifierRegistry.BIOME_TAG.get();
     }
 }

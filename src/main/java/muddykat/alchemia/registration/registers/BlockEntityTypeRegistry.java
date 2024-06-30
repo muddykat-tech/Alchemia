@@ -11,5 +11,5 @@ public class BlockEntityTypeRegistry {
     public static final DeferredRegister<BlockEntityType<?>> TILES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITIES, Alchemia.MODID);
 
     public static final RegistryObject<BlockEntityType<TileEntityAlchemyCauldron>> ALCHEMICAL_CAULDRON = TILES.register("alchemical_cauldron",
-            () -> BlockEntityType.Builder.of(TileEntityAlchemyCauldron::new, BlockRegister.BLOCK_REGISTRY.get("alchemical_cauldron").get()).build(null));
+            () -> BlockEntityType.Builder.of(TileEntityAlchemyCauldron::new, BlockRegistry.BLOCK_REGISTRY.get("alchemical_cauldron").get()).build(null));
 }

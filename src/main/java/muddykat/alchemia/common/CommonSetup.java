@@ -1,5 +1,6 @@
 package muddykat.alchemia.common;
 
+import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.client.ClientSetup;
 import muddykat.alchemia.common.world.WildHerbGeneration;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;

@@ -2,16 +2,20 @@ package muddykat.alchemia.data.generators;
 
 import com.mojang.logging.LogUtils;
 import muddykat.alchemia.Alchemia;
-import muddykat.alchemia.common.blocks.BlockGeneric;
-import muddykat.alchemia.common.blocks.BlockIngredient;
-import muddykat.alchemia.registration.registers.BlockRegister;
+import muddykat.alchemia.common.blocks.*;
+import muddykat.alchemia.common.items.helper.IngredientType;
+import muddykat.alchemia.common.items.helper.Ingredients;
+import muddykat.alchemia.registration.registers.BlockRegistry;
+import net.minecraft.core.Direction;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraftforge.client.model.generators.BlockStateProvider;
 import net.minecraftforge.client.model.generators.ConfiguredModel;
+import net.minecraftforge.client.model.generators.ItemModelBuilder;
 import net.minecraftforge.client.model.generators.ModelFile;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.registries.RegistryObject;
@@ -23,6 +27,8 @@ import java.util.function.Supplier;
 public class AlchemiaBlockStateProvider extends BlockStateProvider {
     private static final Logger LOGGER = LogUtils.getLogger();
 
+    private static final int DEFAULT_ANGLE_OFFSET = 180;
+
     public AlchemiaBlockStateProvider(DataGenerator gen, ExistingFileHelper exHelper){
         super(gen, Alchemia.MODID, exHelper);
     }
@@ -30,13 +36,28 @@ public class AlchemiaBlockStateProvider extends BlockStateProvider {
     @Override
     protected void registerStatesAndModels() {
         LOGGER.info("Starting Block Model Registration");
-        for (RegistryObject<Block> registryObject : BlockRegister.BLOCK_REGISTRY.values()){
+        for (RegistryObject<Block> registryObject : BlockRegistry.BLOCK_REGISTRY.values()){
             Block block = registryObject.get();
             if(block instanceof BlockIngredient ingredient) {
                 generateGenericBlockIngredient(ingredient);
             }
             if(block instanceof BlockGeneric) {
+                if(block instanceof BlockMineralBuddingGeneric mineralBuddingGeneric)
+                {
+                    generateGenericMineralBlock(registryObject, mineralBuddingGeneric.getIngredient());
+                    continue;
+                }
                 generateGenericBlock(registryObject);
+            }
+            if(block instanceof BlockMineralGeneric mineralGeneric)
+            {
+                Ingredients ingredient = mineralGeneric.getIngredient();
+                generateGenericMineralBlock(registryObject, ingredient);
+            }
+            if(block instanceof BlockMineralClusterGeneric clusterGeneric)
+            {
+                Ingredients ingredient = clusterGeneric.getIngredient();
+                generateClusterBlock(clusterGeneric, ingredient);
             }
         }
     }
@@ -47,6 +68,11 @@ public class AlchemiaBlockStateProvider extends BlockStateProvider {
 
     private void generateGenericBlock(Supplier<Block> block){
         cubeAll(block, resourceBlock("alchemy/" + blockName(block.get())));
+    }
+
+    private void generateGenericMineralBlock(Supplier<Block> block, Ingredients ingredient)
+    {
+        cubeAll(block, resourceBlock("minerals/" + ingredient.name().toLowerCase() + "/" + blockName(block.get())));
     }
 
     public ModelFile existingModel(Block block) {
@@ -79,6 +105,22 @@ public class AlchemiaBlockStateProvider extends BlockStateProvider {
                     return ConfiguredModel.builder()
                             .modelFile(models().cross(stageName, resourceBlock(stageName))).build();
                 }, ignored);
+    }
+
+    public void generateClusterBlock(BlockMineralClusterGeneric cluster, Ingredients ingredient)
+    {
+        String stageName = "block/" + ingredient.getType().name().toLowerCase() + "s/" + ingredient.name().toLowerCase() + "/growth_stage_" + cluster.getSize().ordinal();
+
+        String name = new ResourceLocation(Alchemia.MODID, ingredient.name().toLowerCase() + "_" + ((cluster.getSize() != BlockRegistry.BudSize.CLUSTER) ? "bud_" : "") + cluster.getSize().name().toLowerCase()).getPath();
+
+        getVariantBuilder(cluster)
+                .forAllStates(state -> {
+                    Direction dir = state.getValue(BlockStateProperties.FACING);
+
+                    return ConfiguredModel.builder()
+                            .modelFile(models().cross(name, new ResourceLocation(Alchemia.MODID, stageName))).rotationX(dir == Direction.DOWN ? 180 : dir.getAxis().isHorizontal() ? 90 : 0)
+                            .rotationY(dir.getAxis().isVertical() ? 0 : ((int) dir.toYRot() + DEFAULT_ANGLE_OFFSET) % 360).build();
+                });
     }
 
     public void simpleBlockAndItem(Supplier<? extends Block> b, ModelFile model)

@@ -23,11 +23,6 @@ public class SyncedBlockEntity extends BlockEntity {
     }
 
     @Override
-    public ClientboundBlockEntityDataPacket getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this, (e) -> e.getUpdateTag()); // (this.worldPosition, 3, this.getUpdateTag());
-    }
-
-    @Override
     public CompoundTag getUpdateTag() {
         CompoundTag tag = new CompoundTag();
         this.saveAdditional(tag);
@@ -35,14 +30,14 @@ public class SyncedBlockEntity extends BlockEntity {
     }
 
     @Override
-    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
-        load(pkt.getTag());
+    public ClientboundBlockEntityDataPacket getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this, (e) -> e.getUpdateTag()); // (this.worldPosition, 3, this.getUpdateTag());
     }
 
-    protected void inventoryChanged() {
-        super.setChanged();
-        if (level != null)
-            level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+    @Override
+    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
+        super.onDataPacket(net, pkt);
+        handleUpdateTag(pkt.getTag());
     }
 
     public void onDestroyed(BlockState state, BlockPos pos) {

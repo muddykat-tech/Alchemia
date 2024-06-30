@@ -1,8 +1,7 @@
 package muddykat.alchemia.common.blocks.tileentity.container;
 
 import muddykat.alchemia.common.blocks.tileentity.TileEntityAlchemyCauldron;
-import muddykat.alchemia.common.items.ItemAlchemiaGuide;
-import muddykat.alchemia.registration.registers.BlockRegister;
+import muddykat.alchemia.registration.registers.BlockRegistry;
 import muddykat.alchemia.registration.registers.MenuTypeRegistry;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
@@ -10,14 +9,11 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.player.StackedContents;
 import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.items.wrapper.RecipeWrapper;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
-
-import static com.blamejared.crafttweaker.natives.loot.ExpandLootContext.getTileEntity;
 
 public class AlchemicalCauldronMenu extends RecipeBookMenu<RecipeWrapper> {
 
@@ -90,7 +86,7 @@ public class AlchemicalCauldronMenu extends RecipeBookMenu<RecipeWrapper> {
 
     @Override
     public boolean stillValid(@NotNull Player playerIn) {
-        return stillValid(containerAccess, playerIn, BlockRegister.BLOCK_REGISTRY.get("alchemical_cauldron").get());
+        return stillValid(containerAccess, playerIn, BlockRegistry.BLOCK_REGISTRY.get("alchemical_cauldron").get());
     }
 
     public ContainerData getCauldronData() {

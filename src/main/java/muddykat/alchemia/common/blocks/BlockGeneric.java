@@ -9,4 +9,8 @@ public class BlockGeneric extends Block {
     public BlockGeneric() {
         super(Properties.copy(Blocks.CAULDRON));
     }
+
+    public BlockGeneric(Properties properties) {
+        super(properties);
+    }
 }

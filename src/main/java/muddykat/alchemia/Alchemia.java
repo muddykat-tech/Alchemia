@@ -24,7 +24,6 @@ import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.loading.FMLEnvironment;
 import org.slf4j.Logger;
 
 import javax.annotation.Nonnull;
@@ -38,6 +37,7 @@ import muddykat.alchemia.proxy.*;
 public class Alchemia
 {
     public static final String MODID = "alchemia";
+    public static final String MOD_NAME = "Alchemia";
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public static ISidedProxy proxy = DistExecutor.unsafeRunForDist(() -> ClientProxy::new, ()-> ServerProxy::new);
@@ -46,34 +46,29 @@ public class Alchemia
     {
         final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
+        LOGGER.info("|-=-=-=-=-=-=-=-=-=-=-=-=-=-|");
+        LOGGER.info(MOD_NAME + " Setup Phase");
         modEventBus.addListener(CommonSetup::init);
         modEventBus.addListener(ClientSetup::init);
 
         proxy.init();
 
+        LOGGER.info(MOD_NAME + " Initializing Configuration");
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Configuration.COMMON_CONFIG);
 
-        LOGGER.info(MODID + ": Setting up Item and Block Registration");
         AlchemiaRegistry.initialize();
+        AlchemiaRegistry.register();
 
-        BlockRegister.getRegistry().register(modEventBus);
-        ItemRegister.getRegistry().register(modEventBus);
-        AlchemiaBiomeFeatures.FEATURES.register(modEventBus);
-        AlchemiaPlacementModifiers.PLACEMENT_MODIFIERS.register(modEventBus);
-
-        BlockEntityTypeRegistry.TILES.register(modEventBus);
-        MenuTypeRegistry.MENU_TYPES.register(modEventBus);
-
-        LOGGER.info(MODID + ": Initializing Common Settings");
+        LOGGER.info(MOD_NAME + " Setting up Networking");
 
         NetworkHandler.register();
 
+        LOGGER.info(MOD_NAME + " Registering Event Handlers");
+
         MinecraftForge.EVENT_BUS.register(WorldEventHandler.class);
-
-
-        LOGGER.info(MODID + ": Completed");
-        // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
+        LOGGER.info(MOD_NAME + " Setup Complete");
+        LOGGER.info("|-=-=-=-=-=-=-=-=-=-=-=-=-=-|");
     }
 
 
@@ -98,7 +93,7 @@ public class Alchemia
         @Nonnull
         public ItemStack makeIcon()
         {
-            return new ItemStack(BlockRegister.BLOCK_REGISTRY.get("alchemical_cauldron").get());
+            return new ItemStack(BlockRegistry.BLOCK_REGISTRY.get("alchemical_cauldron").get());
         }
     };
 }
