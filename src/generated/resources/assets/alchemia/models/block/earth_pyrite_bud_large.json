@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cross",
+  "textures": {
+    "cross": "alchemia:block/minerals/earth_pyrite/growth_stage_2"
+  }
+}

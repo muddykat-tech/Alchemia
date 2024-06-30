@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cross",
+  "textures": {
+    "cross": "alchemia:block/minerals/arcane_crystal/growth_stage_0"
+  }
+}

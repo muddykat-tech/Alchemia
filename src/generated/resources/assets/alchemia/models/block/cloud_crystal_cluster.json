@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cross",
+  "textures": {
+    "cross": "alchemia:block/minerals/cloud_crystal/growth_stage_3"
+  }
+}

@@ -87,6 +87,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
     }
 
     private Random random = new Random();
+    private int cooldown = 0;
 
     @Override
     public void load(@NotNull CompoundTag compound) {
@@ -101,6 +102,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         xAlignment = compound.getInt("xAlignment");
         yAlignment = compound.getInt("yAlignment");
         needsUpdate = compound.getBoolean("needsUpdate");
+        cooldown = compound.getInt("cooldown");
 
         //effectList.clear();
         if(needsUpdate) updateEffectList();
@@ -113,6 +115,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         compound.putInt("xAlignment", xAlignment);
         compound.putInt("yAlignment", yAlignment);
         compound.putBoolean("needsUpdate", needsUpdate);
+        compound.putInt("cooldown", cooldown);
     }
 
     private CompoundTag writeItems(CompoundTag compound) {
@@ -303,7 +306,6 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         Ingredients ingredient = itemIngredient.getIngredient();
         this.xAlignment += (ingredient.getPrimaryAlignment().getX() + ingredient.getSecondaryAlignment().getX()) * (ingredient.getIngredientStrength() * (itemIngredient instanceof ItemIngredientCrushed ? ingredient.getCrushedPotency() : 1));
         this.yAlignment += (ingredient.getPrimaryAlignment().getY() + ingredient.getSecondaryAlignment().getY()) * (ingredient.getIngredientStrength() * (itemIngredient instanceof ItemIngredientCrushed ? ingredient.getCrushedPotency() : 1));
-
         if(xAlignment < -maxAlignment) {
             xAlignment = -maxAlignment;
         }
@@ -545,6 +547,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         this.getLevel().sendBlockUpdated(this.getBlockPos(), this.getBlockState(), this.getBlockState(), 3);
     }
 
+    List<ItemIngredient> contents = new ArrayList<>();
     int additionTimer = 20;
     boolean needsUpdate = false;
     public void tick() {
@@ -574,37 +577,40 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         }
 
         if(additionTimer > 0) additionTimer--;
+        if(waterLevel > 0) {
+            List<ItemEntity> items = level.getEntitiesOfClass(ItemEntity.class, new AABB(worldPosition).inflate(1.125));
+            if (items.isEmpty()) cooldown = 20;
+            for (ItemEntity entity : items) {
+                ItemStack stack = entity.getItem().copy();
+                int stack_size = stack.getCount();
+                if (stack.getItem() instanceof ItemIngredient ingredient) {
 
-        List<ItemEntity> items = level.getEntitiesOfClass(ItemEntity.class, new AABB(worldPosition).inflate(1.125));
-        List<ItemIngredient> contents = new ArrayList<>();
+                    if (cooldown < 1) {
+                        for (int i = 0; i < stack_size; i++) {
+                            stack.setCount(1);
+                            contents.add(ingredient);
+                        }
 
-        for (ItemEntity entity : items)
-        {
-            ItemStack stack = entity.getItem().copy();
-            if(stack.getItem() instanceof ItemIngredient ingredient)
-            {
-                for(int i = 0; i < stack.getCount(); i++)
-                {
-                    stack.setCount(1);
-                    contents.add(ingredient);
+                        cooldown = 20;
+                        entity.remove(Entity.RemovalReason.DISCARDED);
+                        needsUpdate = true;
+                    }
                 }
-
-                entity.remove(Entity.RemovalReason.DISCARDED);
-                needsUpdate = true;
+            }
+            Iterator<ItemIngredient> iterator = contents.iterator();
+            while (iterator.hasNext()) {
+                ItemIngredient ingredient = iterator.next();
+                addIngredient(ingredient);
+                iterator.remove(); // Remove the current element safely
+                if (!level.isClientSide) sync();
             }
         }
 
-        Iterator<ItemIngredient> iterator = contents.iterator();
-        while (iterator.hasNext()) {
-            ItemIngredient ingredient = iterator.next();
-            addIngredient(ingredient);
-            iterator.remove(); // Remove the current element safely
-            if(!level.isClientSide) sync();
-        }
+        if(this.cooldown > 0) this.cooldown--;
 
         updateWaterColor();
 
-        //Very hacky system to avoid needing to send constant update packets...
+        // Very hacky system to avoid needing to send constant update packets...
         // For some reason a single sync doesn't work when filling the cauldron with water...
         // And it's in a limbo until a second bucket of water is used on it.
         if(!level.isClientSide && needsUpdate)

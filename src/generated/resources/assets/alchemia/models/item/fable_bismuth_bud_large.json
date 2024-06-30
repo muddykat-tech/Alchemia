@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "alchemia:block/minerals/fable_bismuth/growth_stage_2"
+  }
+}

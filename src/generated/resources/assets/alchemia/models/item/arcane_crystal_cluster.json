@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "alchemia:block/minerals/arcane_crystal/growth_stage_3"
+  }
+}

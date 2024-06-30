@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cross",
+  "textures": {
+    "cross": "alchemia:block/minerals/frost_sapphire/growth_stage_2"
+  }
+}

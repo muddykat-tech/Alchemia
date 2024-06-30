@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "alchemia:block/minerals/fire_citrine/fire_citrine_budding_geode"
+  }
+}
