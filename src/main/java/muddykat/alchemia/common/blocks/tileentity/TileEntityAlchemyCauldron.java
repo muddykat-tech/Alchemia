@@ -597,6 +597,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
                     }
                 }
             }
+
             Iterator<ItemIngredient> iterator = contents.iterator();
             while (iterator.hasNext()) {
                 ItemIngredient ingredient = iterator.next();
