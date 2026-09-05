@@ -1,0 +1,95 @@
+{
+  "type": "alchemia:wild_herb",
+  "config": {
+    "primary_feature": {
+      "feature": {
+        "type": "minecraft:simple_block",
+        "config": {
+          "to_place": {
+            "type": "minecraft:randomized_int_state_provider",
+            "property": "age",
+            "source": {
+              "type": "minecraft:simple_state_provider",
+              "state": {
+                "Name": "alchemia:herb_whirlweed_seed",
+                "Properties": {
+                  "age": "0"
+                }
+              }
+            },
+            "values": {
+              "type": "minecraft:uniform",
+              "max_inclusive": 3,
+              "min_inclusive": 0
+            }
+          }
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_block_tag",
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ],
+                "tag": "minecraft:supports_vegetation"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "secondary_feature": {
+      "feature": {
+        "type": "minecraft:simple_block",
+        "config": {
+          "to_place": {
+            "type": "minecraft:simple_state_provider",
+            "state": {
+              "Name": "alchemia:herb_whirlweed_seed",
+              "Properties": {
+                "age": "0"
+              }
+            }
+          }
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_block_tag",
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ],
+                "tag": "minecraft:supports_vegetation"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "tries": 64,
+    "xz_spread": 6,
+    "y_spread": 3
+  }
+}

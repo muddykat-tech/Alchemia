@@ -1,0 +1,9 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "#alchemia:has_air_plants",
+  "features": [
+    "alchemia:roots_dreambeet",
+    "alchemia:fungi_rainbow_cap"
+  ],
+  "step": "underground_decoration"
+}

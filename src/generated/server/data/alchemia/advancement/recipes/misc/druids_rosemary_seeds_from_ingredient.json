@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_druids_rosemary_ingredient": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:herb_druids_rosemary"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "alchemia:druids_rosemary_seeds_from_ingredient"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_druids_rosemary_ingredient"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "alchemia:druids_rosemary_seeds_from_ingredient"
+    ]
+  }
+}

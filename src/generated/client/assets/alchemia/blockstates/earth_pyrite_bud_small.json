@@ -1,0 +1,30 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "alchemia:block/earth_pyrite_bud_small",
+      "x": 180
+    },
+    "facing=east": {
+      "model": "alchemia:block/earth_pyrite_bud_small",
+      "x": 90,
+      "y": 90
+    },
+    "facing=north": {
+      "model": "alchemia:block/earth_pyrite_bud_small",
+      "x": 90
+    },
+    "facing=south": {
+      "model": "alchemia:block/earth_pyrite_bud_small",
+      "x": 90,
+      "y": 180
+    },
+    "facing=up": {
+      "model": "alchemia:block/earth_pyrite_bud_small"
+    },
+    "facing=west": {
+      "model": "alchemia:block/earth_pyrite_bud_small",
+      "x": 90,
+      "y": 270
+    }
+  }
+}

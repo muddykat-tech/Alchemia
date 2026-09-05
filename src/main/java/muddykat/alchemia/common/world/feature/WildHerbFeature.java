@@ -4,16 +4,15 @@ import com.mojang.serialization.Codec;
 import muddykat.alchemia.common.world.configuration.WildHerbConfiguration;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.WorldGenLevel;
-import net.minecraft.world.level.levelgen.RandomSource;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 
-import java.util.Random;
+import java.util.Optional;
 
-public class WildHerbFeature extends Feature<WildHerbConfiguration>
-{
+public class WildHerbFeature extends Feature<WildHerbConfiguration> {
     public WildHerbFeature(Codec<WildHerbConfiguration> codec) {
         super(codec);
     }
@@ -23,40 +22,40 @@ public class WildHerbFeature extends Feature<WildHerbConfiguration>
         WildHerbConfiguration config = context.config();
         BlockPos origin = context.origin();
         WorldGenLevel level = context.level();
-        Random random = context.random();
+        RandomSource random = context.random();
 
-        int i = 0;
+        int placed = 0;
         int tries = config.tries();
         int xzSpread = config.xzSpread() + 1;
         int ySpread = config.ySpread() + 1;
 
         BlockPos.MutableBlockPos mutablePos = new BlockPos.MutableBlockPos();
 
-        Holder<PlacedFeature> floorFeature = config.floorFeature();
-        if (floorFeature != null) {
-            for (int j = 0; j < tries; ++j) {
+        Optional<Holder<PlacedFeature>> floorFeature = config.floorFeature();
+        if (floorFeature.isPresent()) {
+            for (int i = 0; i < tries; ++i) {
                 mutablePos.setWithOffset(origin, random.nextInt(xzSpread) - random.nextInt(xzSpread), random.nextInt(ySpread) - random.nextInt(ySpread), random.nextInt(xzSpread) - random.nextInt(xzSpread));
-                if (config.floorFeature().value().place(level, context.chunkGenerator(), random, mutablePos)) {
-                    ++i;
+                if (floorFeature.get().value().place(level, context.chunkGenerator(), random, mutablePos)) {
+                    ++placed;
                 }
             }
         }
 
-        for (int k = 0; k < tries; ++k) {
-            int shorterXZ = xzSpread - 2;
+        int shorterXZ = Math.max(1, xzSpread - 2);
+        for (int i = 0; i < tries; ++i) {
             mutablePos.setWithOffset(origin, random.nextInt(shorterXZ) - random.nextInt(shorterXZ), random.nextInt(ySpread) - random.nextInt(ySpread), random.nextInt(shorterXZ) - random.nextInt(shorterXZ));
             if (config.primaryFeature().value().place(level, context.chunkGenerator(), random, mutablePos)) {
-                ++i;
+                ++placed;
             }
         }
 
-        for (int l = 0; l < tries; ++l) {
+        for (int i = 0; i < tries; ++i) {
             mutablePos.setWithOffset(origin, random.nextInt(xzSpread) - random.nextInt(xzSpread), random.nextInt(ySpread) - random.nextInt(ySpread), random.nextInt(xzSpread) - random.nextInt(xzSpread));
             if (config.secondaryFeature().value().place(level, context.chunkGenerator(), random, mutablePos)) {
-                ++i;
+                ++placed;
             }
         }
 
-        return i > 0;
+        return placed > 0;
     }
 }

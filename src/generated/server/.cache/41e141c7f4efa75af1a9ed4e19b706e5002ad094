@@ -1,0 +1,8 @@
+// 26.2	2026-09-06T01:57:06.856825757	Tags for minecraft:worldgen/biome mod id alchemia
+effccb28b31b456c3317bad9b992d5a65974d02b data/alchemia/tags/worldgen/biome/has_air_plants.json
+b991457d08f4a3bb3c8cd7429c98dbbfaa19f510 data/alchemia/tags/worldgen/biome/has_earth_plants.json
+0ed57b2e1856c530f0c43fcfec9d76c2251a6ac5 data/alchemia/tags/worldgen/biome/has_fire_plants.json
+5b782cebcf6d3e5b1f522f489f474b0983ff960a data/alchemia/tags/worldgen/biome/has_frost_sapphire.json
+4239d8145d9fa0677bc0d448b6fab62f712f5888 data/alchemia/tags/worldgen/biome/has_spellbloom.json
+2944ae777e62a8dd3deba5b599580348862684c5 data/alchemia/tags/worldgen/biome/has_sulphur_shelf.json
+b58ce5231a730114d0fc156b98ebd68c1ee4e643 data/alchemia/tags/worldgen/biome/has_water_plants.json

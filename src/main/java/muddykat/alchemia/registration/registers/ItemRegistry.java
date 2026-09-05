@@ -1,28 +1,30 @@
 package muddykat.alchemia.registration.registers;
 
 import muddykat.alchemia.Alchemia;
-import muddykat.alchemia.common.items.AlchemicalPotion;
 import muddykat.alchemia.common.items.ItemAlchemiaGuide;
+import muddykat.alchemia.common.items.ItemMortarPestle;
 import muddykat.alchemia.common.items.helper.Ingredients;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.ItemLike;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.DeferredItem;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
-import java.util.HashMap;
-import java.util.function.Supplier;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.function.Function;
 
 public class ItemRegistry {
-    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, Alchemia.MODID);
+    public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(Alchemia.MODID);
 
-    public static HashMap<String, RegistryObject<Item>> ITEM_REGISTRY = new HashMap<>();
+    public static final Map<String, DeferredItem<Item>> ITEM_REGISTRY = new LinkedHashMap<>();
 
-    public static void registerItem(String registry_name,  Supplier<Item> itemSupplier){
-        ITEM_REGISTRY.put(registry_name, ITEMS.register(registry_name, itemSupplier));
+    public static DeferredItem<Item> registerItem(String registry_name, Function<Item.Properties, ? extends Item> factory) {
+        DeferredItem<Item> item = ITEMS.registerItem(registry_name, factory);
+        ITEM_REGISTRY.put(registry_name, item);
+        return item;
     }
 
-    public static DeferredRegister<Item> getRegistry() {
+    public static DeferredRegister.Items getRegistry() {
         return ITEMS;
     }
 
@@ -30,7 +32,7 @@ public class ItemRegistry {
         return ITEM_REGISTRY.get(ingredient.getSeedRegistryName()).get();
     }
 
-    public static ItemLike getItemFromRegistry(String reg_name){
+    public static ItemLike getItemFromRegistry(String reg_name) {
         return ITEM_REGISTRY.get(reg_name).get();
     }
 
@@ -39,6 +41,7 @@ public class ItemRegistry {
             ingredient.register();
         }
 
-        ItemRegistry.registerItem("alchemia_guide", ItemAlchemiaGuide::new);
+        registerItem("alchemia_guide", ItemAlchemiaGuide::new);
+        registerItem("mortar_and_pestle", ItemMortarPestle::new);
     }
 }

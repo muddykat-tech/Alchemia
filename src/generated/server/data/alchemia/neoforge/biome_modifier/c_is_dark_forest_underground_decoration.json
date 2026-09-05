@@ -1,0 +1,6 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "#c:is_dark_forest",
+  "features": "alchemia:geode_arcane_crystal",
+  "step": "underground_decoration"
+}

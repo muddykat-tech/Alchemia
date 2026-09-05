@@ -1,0 +1,10 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "#alchemia:has_earth_plants",
+  "features": [
+    "alchemia:roots_terraria",
+    "alchemia:fungi_witch_mushroom",
+    "alchemia:geode_earth_pyrite"
+  ],
+  "step": "underground_decoration"
+}

@@ -1,0 +1,9 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "#alchemia:has_fire_plants",
+  "features": [
+    "alchemia:roots_lava_root",
+    "alchemia:fungi_magma_morel"
+  ],
+  "step": "underground_decoration"
+}

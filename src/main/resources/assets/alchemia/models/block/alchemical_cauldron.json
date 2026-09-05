@@ -1,6 +1,5 @@
 {
 	"credit": "Made with Blockbench",
-	"render_type": "minecraft:translucent",
 	"textures": {
 		"coal_block": "alchemia:block/alchemy/coal_block",
 		"chain": "alchemia:block/alchemy/chain",
@@ -227,7 +226,7 @@
 			"faces": {
 				"north": {"uv": [0, 3, 1.5, 4.5], "texture": "#fire_log"},
 				"east": {"uv": [11, 0, 16, 1.5], "texture": "#fire_log"},
-				"south": {"uv": [0, 0, 3, 3], "texture": "#missing"},
+				"south": {"uv": [0, 0, 3, 3], "texture": "#fire_log"},
 				"west": {"uv": [11, 0, 16, 1.5], "texture": "#fire_log"},
 				"up": {"uv": [14.5, 1.5, 16, 6.5], "texture": "#fire_log"},
 				"down": {"uv": [13, 1.5, 14.5, 6.5], "texture": "#fire_log"}
@@ -239,7 +238,7 @@
 			"to": [2, 3, 23],
 			"rotation": {"angle": 45, "axis": "y", "origin": [0, 0, 0]},
 			"faces": {
-				"north": {"uv": [0, 0, 3, 3], "texture": "#missing"},
+				"north": {"uv": [0, 0, 3, 3], "texture": "#fire_log"},
 				"east": {"uv": [11.5, 0, 16, 1.5], "texture": "#fire_log"},
 				"south": {"uv": [0, 3, 1.5, 4.5], "texture": "#fire_log"},
 				"west": {"uv": [11.5, 0, 16, 1.5], "texture": "#fire_log"},
@@ -480,7 +479,7 @@
 				"north": {"uv": [0, 0, 10.5, 0], "rotation": 270, "texture": "#chain"},
 				"east": {"uv": [0, 0, 16, 3], "rotation": 90, "texture": "#chain"},
 				"south": {"uv": [0, 0, 10.5, 0], "rotation": 90, "texture": "#chain"},
-				"west": {"uv": [0, 0, 16.5, 3], "rotation": 90, "texture": "#chain"},
+				"west": {"uv": [0, 0, 16, 3], "rotation": 90, "texture": "#chain"},
 				"up": {"uv": [0, 0, 2, 0], "rotation": 90, "texture": "#chain"},
 				"down": {"uv": [0, 0, 2, 0], "rotation": 90, "texture": "#chain"}
 			}

@@ -1,70 +1,88 @@
 package muddykat.alchemia.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Matrix4f;
-import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.blocks.tileentity.TileEntityAlchemyCauldron;
 import net.minecraft.client.renderer.BiomeColors;
-import net.minecraft.client.renderer.EffectInstance;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.Material;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.client.resources.model.sprite.SpriteGetter;
+import net.minecraft.client.resources.model.sprite.SpriteId;
+import net.minecraft.client.renderer.SpriteMapper;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
+import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+public class AlchemicalCauldronRenderer implements BlockEntityRenderer<TileEntityAlchemyCauldron, AlchemicalCauldronRenderState> {
 
-public class AlchemicalCauldronRenderer implements BlockEntityRenderer<TileEntityAlchemyCauldron> {
-    public AlchemicalCauldronRenderer(BlockEntityRendererProvider.Context context){
+    private static final float[] FLUID_HEIGHT = {0.337f, 0.5625f, 0.75f, 0.9375f};
+    private static final SpriteMapper BLOCK_SPRITES = new SpriteMapper(TextureAtlas.LOCATION_BLOCKS, "block");
+    private static final SpriteId WATER_SPRITE = BLOCK_SPRITES.defaultNamespaceApply("water_still");
+    private static final int ALPHA = 190;
 
+    private final SpriteGetter sprites;
+
+    public AlchemicalCauldronRenderer(BlockEntityRendererProvider.Context context) {
+        this.sprites = context.sprites();
     }
 
-    private static final float[] FLUID_HEIGHT = { 0.337f, 0.5625f, 0.75f, 0.9375f };
-    private static final Material WATER_MATERIAL = new Material(InventoryMenu.BLOCK_ATLAS, new ResourceLocation("block/water_still"));
+    @Override
+    public AlchemicalCauldronRenderState createRenderState() {
+        return new AlchemicalCauldronRenderState();
+    }
 
     @Override
-    public void render(TileEntityAlchemyCauldron pBlockEntity, float pPartialTick, PoseStack poseStack, MultiBufferSource buffer, int packedLight, int packedOverlay)
-    {
-        if(pBlockEntity.getPotion() == null) return;
+    public void extractRenderState(TileEntityAlchemyCauldron blockEntity, AlchemicalCauldronRenderState state, float partialTicks,
+                                   Vec3 cameraPosition, ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
+        BlockEntityRenderer.super.extractRenderState(blockEntity, state, partialTicks, cameraPosition, breakProgress);
 
-        int color = pBlockEntity.getPotionColor();
-        if(color == 0) color = BiomeColors.getAverageWaterColor(Objects.requireNonNull(pBlockEntity.getLevel()), pBlockEntity.getBlockPos());
+        state.waterLevel = blockEntity.getWaterLevel();
+        int color = blockEntity.getPotionColor();
+        if (color == 0 && blockEntity.getLevel() != null) {
+            color = BiomeColors.getAverageWaterColor((BlockAndTintGetter) blockEntity.getLevel(), blockEntity.getBlockPos());
+        }
+        state.potionColor = color;
+    }
 
-        int red = (color >> 16) & 255;
-        int green = (color >> 8) & 255;
-        int blue = color & 255;
-        int alpha = 190;
+    @Override
+    public void submit(AlchemicalCauldronRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
+        if (state.waterLevel <= 0) return;
 
-        int liquidLevel = pBlockEntity.getWaterLevel() - 1;
+        int red = (state.potionColor >> 16) & 255;
+        int green = (state.potionColor >> 8) & 255;
+        int blue = state.potionColor & 255;
+        int packedColor = (ALPHA << 24) | (red << 16) | (green << 8) | blue;
 
-        if(pBlockEntity.getWaterLevel() <= 0) return;
-
-        TextureAtlasSprite water = WATER_MATERIAL.sprite();
+        TextureAtlasSprite water = sprites.get(WATER_SPRITE);
+        int liquidLevel = Math.min(state.waterLevel, FLUID_HEIGHT.length) - 1;
+        int lightCoords = state.lightCoords;
 
         poseStack.pushPose();
         poseStack.translate(0, FLUID_HEIGHT[liquidLevel], 0);
 
-        VertexConsumer consumer = buffer.getBuffer(RenderType.translucentNoCrumbling());
-        Matrix4f matrix = poseStack.last().pose();
+        RenderType renderType = RenderTypes.entityTranslucent(TextureAtlas.LOCATION_BLOCKS);
 
-        float sizeFactor = 0.05f;
-        float maxV = (water.getV1() - water.getV0()) * sizeFactor;
-        float minV = (water.getV1() - water.getV0()) * (1 - sizeFactor);
+        collector.order(0).submitCustomGeometry(poseStack, renderType, (pose, buffer) -> {
+            float sizeFactor = 0.05f;
+            float maxV = (water.getV1() - water.getV0()) * sizeFactor;
+            float minV = (water.getV1() - water.getV0()) * (1 - sizeFactor);
 
-        consumer.vertex(matrix, sizeFactor, 0, 1 - sizeFactor).color(red, green, blue, alpha).uv(water.getU0(), water.getV0() + maxV).uv2(packedLight).overlayCoords(packedOverlay).normal(1, 1, 1).endVertex();
-        consumer.vertex(matrix, 1 - sizeFactor, 0, 1 - sizeFactor).color(red, green, blue, alpha).uv(water.getU1(), water.getV0() + maxV).uv2(packedLight).overlayCoords(packedOverlay).normal(1, 1, 1).endVertex();
-        consumer.vertex(matrix, 1 - sizeFactor, 0, sizeFactor).color(red, green, blue, alpha).uv(water.getU1(), water.getV0() + minV).uv2(packedLight).overlayCoords(packedOverlay).normal(1, 1, 1).endVertex();
-        consumer.vertex(matrix, sizeFactor, 0, sizeFactor).color(red, green, blue, alpha).uv(water.getU0(), water.getV0() + minV).uv2(packedLight).overlayCoords(packedOverlay).normal(1, 1, 1).endVertex();
+            buffer.addVertex(pose, sizeFactor, 0, 1 - sizeFactor).setColor(packedColor).setUv(water.getU0(), water.getV0() + maxV)
+                    .setLight(lightCoords).setOverlay(OverlayTexture.NO_OVERLAY).setNormal(pose, 0, 1, 0);
+            buffer.addVertex(pose, 1 - sizeFactor, 0, 1 - sizeFactor).setColor(packedColor).setUv(water.getU1(), water.getV0() + maxV)
+                    .setLight(lightCoords).setOverlay(OverlayTexture.NO_OVERLAY).setNormal(pose, 0, 1, 0);
+            buffer.addVertex(pose, 1 - sizeFactor, 0, sizeFactor).setColor(packedColor).setUv(water.getU1(), water.getV0() + minV)
+                    .setLight(lightCoords).setOverlay(OverlayTexture.NO_OVERLAY).setNormal(pose, 0, 1, 0);
+            buffer.addVertex(pose, sizeFactor, 0, sizeFactor).setColor(packedColor).setUv(water.getU0(), water.getV0() + minV)
+                    .setLight(lightCoords).setOverlay(OverlayTexture.NO_OVERLAY).setNormal(pose, 0, 1, 0);
+        });
 
         poseStack.popPose();
     }

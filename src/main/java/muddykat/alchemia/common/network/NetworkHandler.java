@@ -2,52 +2,28 @@ package muddykat.alchemia.common.network;
 
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.network.packets.PacketPotionRecipe;
-import muddykat.alchemia.common.network.packets.TESyncPacket;
-import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import muddykat.alchemia.common.network.packets.PacketDiscover;
+import muddykat.alchemia.common.network.packets.PacketForgetRecipe;
+import muddykat.alchemia.common.network.packets.PacketNameBrew;
+import muddykat.alchemia.common.network.packets.PacketSelectRecipe;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkRegistry;
-import net.minecraftforge.network.PacketDistributor;
-import net.minecraftforge.network.simple.SimpleChannel;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public class NetworkHandler {
-    public static SimpleChannel INSTANCE;
+    private static final String PROTOCOL_VERSION = "1.0";
 
-    private static int packetId = 0;
-    private static int id(){
-        return packetId++;
+    public static void register(final RegisterPayloadHandlersEvent event) {
+        event.registrar(PROTOCOL_VERSION)
+                .playToClient(PacketPotionRecipe.TYPE, PacketPotionRecipe.STREAM_CODEC, PacketPotionRecipe::handle)
+                .playToServer(PacketSelectRecipe.TYPE, PacketSelectRecipe.STREAM_CODEC, PacketSelectRecipe::handle)
+                .playToServer(PacketForgetRecipe.TYPE, PacketForgetRecipe.STREAM_CODEC, PacketForgetRecipe::handle)
+                .playToServer(PacketDiscover.TYPE, PacketDiscover.STREAM_CODEC, PacketDiscover::handle)
+                .playToServer(PacketNameBrew.TYPE, PacketNameBrew.STREAM_CODEC, PacketNameBrew::handle);
     }
 
-    public static void register() {
-        INSTANCE = NetworkRegistry.newSimpleChannel(new ResourceLocation(Alchemia.MODID, "network"), () -> "1.0", (s) -> true, (s) -> true);
-
-        // To send the seed to the client for potion map!
-        INSTANCE.messageBuilder(PacketPotionRecipe.class, ++packetId, NetworkDirection.PLAY_TO_CLIENT)
-                .decoder(PacketPotionRecipe::new)
-                .encoder(PacketPotionRecipe::toBytes)
-                .consumer(PacketPotionRecipe::handle)
-                .add();
-
-        INSTANCE.registerMessage(
-                ++packetId,
-                TESyncPacket.class,
-                TESyncPacket::encode,
-                TESyncPacket::decode,
-                TESyncPacket::consume
-        );
-    }
-
-    public static <MSG> void sendToServer(MSG message){
-        INSTANCE.sendToServer(message);
-    }
-
-    public static <MSG> void sendToPlayer(MSG message, ServerPlayer player) {
-        NetworkHandler.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), message);
-    }
-
-    public static <MSG> void sendToTracking(Level world, BlockPos pos, MSG msg) {
-        NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with(() -> world.getChunkAt(pos)), msg);
+    public static void sendToPlayer(CustomPacketPayload payload, ServerPlayer player) {
+        PacketDistributor.sendToPlayer(player, payload);
     }
 }

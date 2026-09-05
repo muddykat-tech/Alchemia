@@ -1,0 +1,6 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "#c:is_mushroom",
+  "features": "alchemia:geode_fable_bismuth",
+  "step": "underground_decoration"
+}

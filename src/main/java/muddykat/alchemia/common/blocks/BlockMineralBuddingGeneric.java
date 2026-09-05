@@ -4,27 +4,26 @@ import muddykat.alchemia.common.items.helper.Ingredients;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.AmethystClusterBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.BuddingAmethystBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.material.PushReaction;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Random;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class BlockMineralBuddingGeneric extends BlockGeneric {
 
     private static final Direction[] DIRECTIONS = Direction.values();
     private final Ingredients ingredient;
-    private final List<? extends AmethystClusterBlock> clusters;
+    private final List<Supplier<? extends AmethystClusterBlock>> clusters;
 
-    public BlockMineralBuddingGeneric(Ingredients ingredient, List<? extends AmethystClusterBlock> clusters) {
-        super(Properties.copy(Blocks.BUDDING_AMETHYST));
+    public BlockMineralBuddingGeneric(Ingredients ingredient, List<Supplier<? extends AmethystClusterBlock>> clusters, Properties properties) {
+        super(properties);
         assert !clusters.isEmpty();
         this.clusters = clusters;
         this.ingredient = ingredient;
@@ -40,42 +39,38 @@ public class BlockMineralBuddingGeneric extends BlockGeneric {
     }
 
     @Override
-    public void randomTick(BlockState state, ServerLevel world, BlockPos pos, Random random) {
-        if (random.nextInt(5) == 0) {
-            Direction direction = DIRECTIONS[random.nextInt(DIRECTIONS.length)];
-            BlockPos blockPos = pos.offset(direction.getNormal());
-            BlockState blockState = world.getBlockState(blockPos);
-            Block blockStateBlock = blockState.getBlock();
-            AmethystClusterBlock nextBlock = null;
+    protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        if (random.nextInt(5) != 0) return;
 
-            if (canGrowIn(blockState)) {
-                nextBlock = clusters.get(0);
-            } else if (blockStateBlock instanceof AmethystClusterBlock clusterBlock && blockState.getValue(AmethystClusterBlock.FACING) == direction) {
-                if (clusters.contains(clusterBlock)) {
-                    int nextBlockIndex = clusters.indexOf(clusterBlock) + 1;
-                    if (nextBlockIndex < clusters.size()) {
-                        nextBlock = clusters.get(nextBlockIndex);
-                    }
-                }
-            }
+        Direction direction = DIRECTIONS[random.nextInt(DIRECTIONS.length)];
+        BlockPos blockPos = pos.offset(direction.getUnitVec3i());
+        BlockState blockState = level.getBlockState(blockPos);
+        List<Block> resolved = getClusters();
+        Block nextBlock = null;
 
-            if (nextBlock != null) {
-                BlockState toSet = nextBlock.defaultBlockState()
-                        .setValue(AmethystClusterBlock.FACING, direction)
-                        .setValue(AmethystClusterBlock.WATERLOGGED, blockState.getFluidState().getType() == Fluids.WATER);
-                world.setBlockAndUpdate(blockPos, toSet);
+        if (canGrowIn(blockState)) {
+            nextBlock = resolved.get(0);
+        } else if (blockState.getBlock() instanceof AmethystClusterBlock clusterBlock && blockState.getValue(AmethystClusterBlock.FACING) == direction) {
+            int nextBlockIndex = resolved.indexOf(clusterBlock) + 1;
+            if (nextBlockIndex > 0 && nextBlockIndex < resolved.size()) {
+                nextBlock = resolved.get(nextBlockIndex);
             }
+        }
+
+        if (nextBlock != null) {
+            BlockState toSet = nextBlock.defaultBlockState()
+                    .setValue(AmethystClusterBlock.FACING, direction)
+                    .setValue(AmethystClusterBlock.WATERLOGGED, blockState.getFluidState().getType() == Fluids.WATER);
+            level.setBlockAndUpdate(blockPos, toSet);
         }
     }
 
     public List<Block> getClusters() {
-        return Collections.unmodifiableList(clusters);
+        return clusters.stream().map(supplier -> (Block) supplier.get()).collect(Collectors.toList());
     }
 
     public List<BlockState> getClusterStates() {
-        return this.getClusters().stream()
-                .map((Block::defaultBlockState))
-                .collect(Collectors.toList());
+        return getClusters().stream().map(Block::defaultBlockState).collect(Collectors.toList());
     }
 
     public Ingredients getIngredient() {

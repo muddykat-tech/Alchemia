@@ -1,0 +1,12 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "#alchemia:has_water_plants",
+  "features": [
+    "alchemia:patch_wild_waterbloom",
+    "alchemia:patch_wild_coldleaf",
+    "alchemia:patch_wild_icefruit",
+    "alchemia:patch_wild_thunder_thistle",
+    "alchemia:patch_wild_mageberry"
+  ],
+  "step": "vegetal_decoration"
+}

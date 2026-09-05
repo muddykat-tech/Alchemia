@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_magma_morel_ingredient": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:mushroom_magma_morel"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "alchemia:magma_morel_seeds_from_ingredient"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_magma_morel_ingredient"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "alchemia:magma_morel_seeds_from_ingredient"
+    ]
+  }
+}

@@ -1,25 +1,24 @@
 package muddykat.alchemia.common.world.filter;
 
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import muddykat.alchemia.registration.registers.PlacementModifierRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.tags.TagKey;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.levelgen.placement.PlacementContext;
 import net.minecraft.world.level.levelgen.placement.PlacementFilter;
 import net.minecraft.world.level.levelgen.placement.PlacementModifierType;
-import net.minecraftforge.registries.ForgeRegistries;
 
-import java.util.Random;
-
-public class BiomeTagFilter extends PlacementFilter
-{
-    public static final Codec<BiomeTagFilter> CODEC = RecordCodecBuilder.create((builder) ->
+public class BiomeTagFilter extends PlacementFilter {
+    public static final MapCodec<BiomeTagFilter> CODEC = RecordCodecBuilder.mapCodec(builder ->
             builder.group(
-                    TagKey.codec(ForgeRegistries.BIOMES.getRegistryKey()).fieldOf("biome_tag").forGetter((instance) -> instance.biomeTag)
+                    TagKey.codec(Registries.BIOME).fieldOf("biome_tag").forGetter(instance -> instance.biomeTag)
             ).apply(builder, BiomeTagFilter::new));
+
     private final TagKey<Biome> biomeTag;
 
     private BiomeTagFilter(TagKey<Biome> biomeTag) {
@@ -31,7 +30,7 @@ public class BiomeTagFilter extends PlacementFilter
     }
 
     @Override
-    protected boolean shouldPlace(PlacementContext context, Random random, BlockPos pos) {
+    protected boolean shouldPlace(PlacementContext context, RandomSource random, BlockPos pos) {
         Holder<Biome> biome = context.getLevel().getBiome(pos);
         return biome.is(biomeTag);
     }

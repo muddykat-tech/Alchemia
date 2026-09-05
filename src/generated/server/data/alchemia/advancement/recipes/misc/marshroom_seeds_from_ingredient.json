@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_marshroom_ingredient": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:mushroom_marshroom"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "alchemia:marshroom_seeds_from_ingredient"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_marshroom_ingredient"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "alchemia:marshroom_seeds_from_ingredient"
+    ]
+  }
+}

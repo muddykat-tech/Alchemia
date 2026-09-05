@@ -1,28 +1,27 @@
 package muddykat.alchemia.common.potion;
 
 import muddykat.alchemia.common.items.helper.IngredientAlignment;
+import net.minecraft.core.Holder;
 import net.minecraft.world.effect.MobEffect;
-import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.alchemy.Potions;
-import net.minecraft.world.item.crafting.Ingredient;
 
 public enum PotionEnum {
-    Healing(MobEffects.HEAL, 3, IngredientAlignment.Water, IngredientAlignment.Air, Rarity.RARE),
-    Harm(MobEffects.HARM, 3, IngredientAlignment.Fire, IngredientAlignment.Void, Rarity.RARE),
+    Healing(MobEffects.INSTANT_HEALTH, 3, IngredientAlignment.Water, IngredientAlignment.Air, Rarity.RARE),
+    Harm(MobEffects.INSTANT_DAMAGE, 3, IngredientAlignment.Fire, IngredientAlignment.Void, Rarity.RARE),
     Fire_Protection(MobEffects.FIRE_RESISTANCE, 3, IngredientAlignment.Water, IngredientAlignment.Void, Rarity.UNCOMMON),
     Regeneration(MobEffects.REGENERATION, 3, IngredientAlignment.Earth, IngredientAlignment.Water, Rarity.UNCOMMON),
     Luck(MobEffects.LUCK, 3, IngredientAlignment.Air, IngredientAlignment.Void, Rarity.EPIC),
-    Speed(MobEffects.MOVEMENT_SPEED, 3, IngredientAlignment.Air, IngredientAlignment.Fire, Rarity.COMMON),
-    Slow(MobEffects.MOVEMENT_SLOWDOWN, 3, IngredientAlignment.Earth, IngredientAlignment.Void, Rarity.COMMON),
-    Dig_Speed(MobEffects.DIG_SPEED, 3, IngredientAlignment.Fire, IngredientAlignment.Earth, Rarity.UNCOMMON),
-    Dig_Slowdown(MobEffects.DIG_SLOWDOWN, 3, IngredientAlignment.Water, IngredientAlignment.Void, Rarity.UNCOMMON),
-    Damage_Boost(MobEffects.DAMAGE_BOOST, 3, IngredientAlignment.Fire, IngredientAlignment.Air, Rarity.RARE),
-    Jump(MobEffects.JUMP, 3, IngredientAlignment.Fire, IngredientAlignment.Void, Rarity.EPIC),
-    Confusion(MobEffects.CONFUSION, 3, IngredientAlignment.Void, IngredientAlignment.Water, Rarity.EPIC),
-    Damage_Resistance(MobEffects.DAMAGE_RESISTANCE, 3, IngredientAlignment.Earth, IngredientAlignment.Void, Rarity.EPIC),
+    Speed(MobEffects.SPEED, 3, IngredientAlignment.Air, IngredientAlignment.Fire, Rarity.COMMON),
+    Slow(MobEffects.SLOWNESS, 3, IngredientAlignment.Earth, IngredientAlignment.Void, Rarity.COMMON),
+    Dig_Speed(MobEffects.HASTE, 3, IngredientAlignment.Fire, IngredientAlignment.Earth, Rarity.UNCOMMON),
+    Dig_Slowdown(MobEffects.MINING_FATIGUE, 3, IngredientAlignment.Water, IngredientAlignment.Void, Rarity.UNCOMMON),
+    Damage_Boost(MobEffects.STRENGTH, 3, IngredientAlignment.Fire, IngredientAlignment.Air, Rarity.RARE),
+    Jump(MobEffects.JUMP_BOOST, 3, IngredientAlignment.Fire, IngredientAlignment.Void, Rarity.EPIC),
+    Confusion(MobEffects.NAUSEA, 3, IngredientAlignment.Void, IngredientAlignment.Water, Rarity.EPIC),
+    Damage_Resistance(MobEffects.RESISTANCE, 3, IngredientAlignment.Earth, IngredientAlignment.Void, Rarity.EPIC),
     Water_Breathing(MobEffects.WATER_BREATHING, 3, IngredientAlignment.Air, IngredientAlignment.Water, Rarity.RARE),
     Invisibility(MobEffects.INVISIBILITY, 3, IngredientAlignment.Void, IngredientAlignment.Air, Rarity.EPIC),
     Blindness(MobEffects.BLINDNESS, 3, IngredientAlignment.Void, IngredientAlignment.Earth, Rarity.UNCOMMON),
@@ -42,13 +41,13 @@ public enum PotionEnum {
     Dolphins_Grace(MobEffects.DOLPHINS_GRACE, 3, IngredientAlignment.Water, IngredientAlignment.Air, Rarity.RARE),
     Bad_Omen(MobEffects.BAD_OMEN, 3, IngredientAlignment.Fire, IngredientAlignment.Void, Rarity.EPIC);
 
-    MobEffect effect;
-    int maxStrength;
+    final Holder<MobEffect> effect;
+    final int maxStrength;
     private final IngredientAlignment primaryAlignment;
     private final IngredientAlignment secondaryAlignment;
     private final Rarity rarity;
 
-    PotionEnum(MobEffect effect, int maxStrength, IngredientAlignment primaryAlignment, IngredientAlignment secondaryAlignment, Rarity rarity){
+    PotionEnum(Holder<MobEffect> effect, int maxStrength, IngredientAlignment primaryAlignment, IngredientAlignment secondaryAlignment, Rarity rarity){
         this.effect = effect;
         this.maxStrength = maxStrength - 1;
         this.rarity = rarity;
@@ -56,8 +55,12 @@ public enum PotionEnum {
         this.secondaryAlignment = secondaryAlignment;
     }
 
-    public MobEffect getEffect() {
+    public Holder<MobEffect> getEffect() {
         return effect;
+    }
+
+    public int getMaxStrength() {
+        return maxStrength;
     }
 
     public Rarity getRarity() {
@@ -72,8 +75,7 @@ public enum PotionEnum {
         return secondaryAlignment;
     }
 
-    public Potion getPotion() {
-        // Map each MobEffect to its corresponding Potion
+    public Holder<Potion> getPotion() {
         if (this == PotionEnum.Healing) {
             return Potions.REGENERATION;
         } else if (this == PotionEnum.Harm) {
@@ -119,7 +121,7 @@ public enum PotionEnum {
         } else if (this == PotionEnum.Health_Boost) {
             return Potions.STRONG_HEALING;
         } else if (this == PotionEnum.Absorption) {
-            return Potions.LONG_FIRE_RESISTANCE; // Example mapping, adjust as needed
+            return Potions.LONG_FIRE_RESISTANCE;
         } else if (this == PotionEnum.Saturation) {
             return Potions.STRONG_REGENERATION;
         } else if (this == PotionEnum.Glowing) {

@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "alchemia:herb_dragon_pepper",
+    "minecraft:shears"
+  ],
+  "result": {
+    "id": "alchemia:herb_dragon_pepper_seed"
+  }
+}

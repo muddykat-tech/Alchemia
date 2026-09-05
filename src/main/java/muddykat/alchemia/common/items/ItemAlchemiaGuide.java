@@ -1,88 +1,90 @@
 package muddykat.alchemia.common.items;
 
-import muddykat.alchemia.Alchemia;
-import muddykat.alchemia.client.gui.AlchemicalScreen;
-import muddykat.alchemia.client.helper.ScreenHelper;
 import muddykat.alchemia.common.blocks.tileentity.TileEntityAlchemyCauldron;
-import muddykat.alchemia.common.blocks.tileentity.container.AlchemicalCauldronMenu;
-import net.minecraft.client.Minecraft;
-import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
+import muddykat.alchemia.common.potion.BrewRecipe;
+import muddykat.alchemia.common.potion.BrewRecipeBook;
+import muddykat.alchemia.common.potion.PotionEnum;
+import muddykat.alchemia.common.potion.RecipeDiscovery;
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.UseOnContext;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 public class ItemAlchemiaGuide extends Item {
 
-    public ItemAlchemiaGuide() {
-        super(new Properties().tab(Alchemia.ITEM_GROUP).stacksTo(1));
+    private static final int TOOLTIP_LIST_LIMIT = 12;
+
+    public ItemAlchemiaGuide(Properties properties) {
+        super(properties.stacksTo(1));
     }
 
-
     @Override
-    public InteractionResult useOn(UseOnContext context) {
-        ItemStack stack = context.getItemInHand();
-        BlockPos clickPos = context.getClickedPos();
-        Player player = context.getPlayer();
-        BlockPos existingPosition = null;
-        CompoundTag tag;
-        if (stack.hasTag())
-        {
-            tag = stack.getTag();
-            existingPosition = new BlockPos(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));
-        }
-        else
-        {
-            tag = new CompoundTag();
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltips, TooltipFlag flag) {
+        List<String> names = RecipeDiscovery.stored(stack);
+
+        tooltips.accept(Component.translatable("alchemia.guide.recorded", names.size(), RecipeDiscovery.total())
+                .withStyle(ChatFormatting.GRAY));
+        tooltips.accept(Component.translatable("alchemia.guide.brews", BrewRecipeBook.recipes(stack).size())
+                .withStyle(ChatFormatting.GRAY));
+
+        BrewRecipe chosen = BrewRecipeBook.selectedRecipe(stack);
+        if (chosen != null) {
+            tooltips.accept(Component.translatable("alchemia.guide.selected", chosen.displayName()).withStyle(ChatFormatting.GOLD));
         }
 
-        if(existingPosition == null || !existingPosition.equals(clickPos)) {
-            BlockEntity blockEntity = context.getLevel().getBlockEntity(clickPos);
-            if (blockEntity instanceof TileEntityAlchemyCauldron cauldron) {
-                if (context.getLevel().isClientSide) {
-                    return InteractionResult.CONSUME;
-                } else {
-                    tag.putInt("x", clickPos.getX());
-                    tag.putInt("y", clickPos.getY());
-                    tag.putInt("z", clickPos.getZ());
-                    player.displayClientMessage(new TranslatableComponent("alchemia.guide.bound.message"), true);
-                }
+        if (names.isEmpty()) {
+            tooltips.accept(Component.translatable("alchemia.guide.empty").withStyle(ChatFormatting.DARK_GRAY));
+            return;
+        }
+
+        int shown = 0;
+        for (String name : names) {
+            PotionEnum recipe = RecipeDiscovery.byName(name);
+            if (recipe == null) continue;
+            if (shown == TOOLTIP_LIST_LIMIT) {
+                tooltips.accept(Component.translatable("alchemia.guide.more", names.size() - shown).withStyle(ChatFormatting.DARK_GRAY));
+                break;
             }
+            tooltips.accept(Component.literal(" ").append(recipe.getEffect().value().getDisplayName()).withStyle(ChatFormatting.BLUE));
+            shown++;
         }
-
-        stack.setTag(tag);
-        return super.useOn(context);
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level pLevel, List<Component> tooltips, TooltipFlag pIsAdvanced) {
+    public InteractionResult onItemUseFirst(ItemStack stack, UseOnContext context) {
+        Player player = context.getPlayer();
+        if (player == null || !player.isShiftKeyDown()) return InteractionResult.PASS;
 
-        if (stack.hasTag())
-        {
-            CompoundTag tag = stack.getTag();
-            BlockPos existingPosition = new BlockPos(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));
-            tooltips.add(new TextComponent("Bound: " + existingPosition.toString()));
+        Level level = context.getLevel();
+        if (!(level.getBlockEntity(context.getClickedPos()) instanceof TileEntityAlchemyCauldron cauldron)) {
+            return InteractionResult.PASS;
         }
+        if (level.isClientSide()) return InteractionResult.CONSUME;
 
-        super.appendHoverText(stack, pLevel, tooltips, pIsAdvanced);
+        return cauldron.replaySelectedRecipe(player, stack);
+    }
+
+    @Override
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
+        ItemStack stack = player.getItemInHand(hand);
+        if (level.isClientSide()) {
+            muddykat.alchemia.client.ClientHooks.openGuide(stack, hand);
+        }
+        return InteractionResult.SUCCESS;
     }
 
     @Override
     public boolean isFoil(ItemStack stack) {
-        return stack.hasTag();
+        return !RecipeDiscovery.stored(stack).isEmpty();
     }
 }

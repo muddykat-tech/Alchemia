@@ -1,0 +1,19 @@
+{
+  "model": {
+    "type": "minecraft:range_dispatch",
+    "entries": [
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "alchemia:item/mushroom_rainbow_cap_crushed"
+        },
+        "threshold": 1.0
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "alchemia:item/mushroom_rainbow_cap"
+    },
+    "property": "alchemia:crush"
+  }
+}

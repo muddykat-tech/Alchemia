@@ -1,0 +1,11 @@
+{
+  "remove": [
+    "#c:is_mushroom",
+    "#c:is_mountain",
+    "#c:is_dark_forest"
+  ],
+  "values": [
+    "#c:is_cold/overworld",
+    "#c:is_wet/overworld"
+  ]
+}

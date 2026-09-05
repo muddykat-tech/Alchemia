@@ -1,0 +1,12 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "#alchemia:has_earth_plants",
+  "features": [
+    "alchemia:patch_wild_lifeleaf",
+    "alchemia:patch_wild_goldthorn",
+    "alchemia:patch_wild_goodberry",
+    "alchemia:patch_wild_healers_heather",
+    "alchemia:patch_wild_terrorbud"
+  ],
+  "step": "vegetal_decoration"
+}

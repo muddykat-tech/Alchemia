@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "alchemia:herb_druids_rosemary",
+    "minecraft:shears"
+  ],
+  "result": {
+    "id": "alchemia:herb_druids_rosemary_seed"
+  }
+}

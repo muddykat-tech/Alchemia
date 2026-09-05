@@ -1,56 +1,66 @@
 package muddykat.alchemia.common.blocks;
 
+import com.mojang.serialization.MapCodec;
 import muddykat.alchemia.common.items.helper.IngredientAlignment;
 import muddykat.alchemia.common.items.helper.IngredientType;
 import muddykat.alchemia.common.items.helper.Ingredients;
+import muddykat.alchemia.common.world.IngredientHabitat;
 import muddykat.alchemia.registration.registers.ItemRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
-import net.minecraftforge.common.IPlantable;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
 
-import java.util.Random;
+public class BlockIngredient extends CropBlock {
 
-public class BlockIngredient extends CropBlock implements BonemealableBlock, IPlantable {
+    public static final MapCodec<BlockIngredient> CODEC = simpleCodec(properties -> new BlockIngredient(Ingredients.Firebell, IngredientType.Flower, properties));
 
     public static final IntegerProperty AGE = BlockStateProperties.AGE_3;
+
     protected final Ingredients ingredientData;
     protected final IngredientType type;
-    public BlockIngredient(Ingredients ingredient, IngredientType iType) {
-        super(Properties.copy(Blocks.WHEAT));
+
+    public BlockIngredient(Ingredients ingredient, IngredientType iType, Properties properties) {
+        super(properties);
         this.registerDefaultState(this.defaultBlockState().setValue(AGE, 0));
         this.ingredientData = ingredient;
         this.type = iType;
-
     }
-    public @NotNull IntegerProperty getAgeProperty() {
+
+    @Override
+    public MapCodec<? extends CropBlock> codec() {
+        return CODEC;
+    }
+
+    @Override
+    public IntegerProperty getAgeProperty() {
         return AGE;
     }
 
+    @Override
     public int getMaxAge() {
         return 3;
     }
 
-    public boolean isMaxAge(BlockState state) {
-        return state.getValue(this.getAgeProperty()) >= this.getMaxAge();
-    }
-
     @Override
-    public boolean isValidBonemealTarget(BlockGetter pLevel, BlockPos pPos, BlockState pState, boolean pIsClient) {
-        return !isMaxAge(pState);
+    public boolean isValidBonemealTarget(LevelReader level, BlockPos pos, BlockState state) {
+        return !isMaxAge(state);
     }
 
     @Override
@@ -59,32 +69,27 @@ public class BlockIngredient extends CropBlock implements BonemealableBlock, IPl
     }
 
     @Override
-    public boolean isBonemealSuccess(Level pLevel, Random pRandom, BlockPos pPos, BlockState pState) {
+    public boolean isBonemealSuccess(Level level, RandomSource random, BlockPos pos, BlockState state) {
         return true;
     }
 
-    protected int getAge(BlockState state) {
-        return state.getValue(this.getAgeProperty());
-    }
-
+    @Override
     protected int getBonemealAgeIncrease(Level level) {
-        return Mth.nextInt(level.random, 1, 4);
+        return Mth.nextInt(level.getRandom(), 1, 4);
     }
 
     @Override
-    public void performBonemeal(ServerLevel level, Random rand, BlockPos pos, BlockState state) {
-        int ageGrowth = Math.min(this.getAge(state) + this.getBonemealAgeIncrease(level), 7);
-        if (ageGrowth <= this.getMaxAge()) {
-            level.setBlockAndUpdate(pos, state.setValue(AGE, ageGrowth));
-        }
+    public void performBonemeal(ServerLevel level, RandomSource random, BlockPos pos, BlockState state) {
+        int ageGrowth = Math.min(this.getAge(state) + this.getBonemealAgeIncrease(level), getMaxAge());
+        level.setBlockAndUpdate(pos, state.setValue(AGE, ageGrowth));
     }
 
     @Override
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
-        pBuilder.add(AGE);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        builder.add(AGE);
     }
 
-    public Ingredients getIngredient(){
+    public Ingredients getIngredient() {
         return ingredientData;
     }
 
@@ -93,62 +98,59 @@ public class BlockIngredient extends CropBlock implements BonemealableBlock, IPl
     }
 
     @Override
-    protected boolean mayPlaceOn(BlockState pState, BlockGetter pLevel, BlockPos pPos) {
-        switch(type) {
-            case Flower, Herb -> {
-                return ingredientData.getPrimaryAlignment() == IngredientAlignment.Fire ? pState.is(BlockTags.SAND) : pState.is(BlockTags.DIRT) || pState.is(Blocks.FARMLAND);
-            }
-            case Mushroom -> {
-                return pState.is(BlockTags.BASE_STONE_OVERWORLD) && pState.getLightEmission(pLevel, pPos) <= 5;
-            }
-            case Root -> {
-                Block source = Blocks.WATER;
-                if(ingredientData.getPrimaryAlignment() == IngredientAlignment.Fire){
-                    source = Blocks.LAVA;
-                }
-                return pLevel.getBlockState(pPos.below()).is(Blocks.AIR) && pLevel.getBlockState(pPos.above()).is(BlockTags.DIRT) && pLevel.getBlockState(pPos.above(2)).is(source);
-            }
-            case Mineral -> {
-                return pState.is(BlockTags.BASE_STONE_OVERWORLD);
-            }
-        }
-        return false;
+    protected boolean mayPlaceOn(BlockState state, BlockGetter level, BlockPos pos) {
+        return switch (IngredientHabitat.of(ingredientData)) {
+            case SURFACE -> state.is(BlockTags.SUPPORTS_VEGETATION);
+            case SAND -> state.is(BlockTags.SAND);
+            case AQUATIC -> isSeabed(state);
+            case UNDERGROUND -> state.is(BlockTags.BASE_STONE_OVERWORLD);
+            case SULFUR -> isSulfur(state);
+            case CEILING -> hasRootSupport(level, pos.above());
+            case GEODE -> state.is(BlockTags.BASE_STONE_OVERWORLD);
+        };
+    }
+
+    private static boolean isSeabed(BlockState state) {
+        return state.is(BlockTags.SAND) || state.is(BlockTags.DIRT) || state.is(Blocks.GRAVEL) || state.is(Blocks.CLAY);
+    }
+
+    private static boolean isSulfur(BlockState state) {
+        return state.is(Blocks.SULFUR) || state.is(Blocks.POTENT_SULFUR);
+    }
+
+    private boolean hasRootSupport(BlockGetter level, BlockPos pos) {
+        return level.getBlockState(pos.below()).isAir() && level.getBlockState(pos.above()).is(BlockTags.DIRT);
     }
 
     @Override
-    public boolean canSurvive(BlockState pState, LevelReader pLevel, BlockPos pPos) {
-        BlockPos blockpos = pPos.below();
+    protected boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
+        BlockPos below = pos.below();
 
+        if (state.getBlock() == this) {
+            IngredientHabitat habitat = IngredientHabitat.of(ingredientData);
+            BlockState soil = level.getBlockState(below);
 
+            return switch (habitat) {
+                case CEILING -> hasRootSupport(level, pos);
+                case AQUATIC -> isSeabed(soil) && level.getFluidState(pos).is(FluidTags.WATER);
+                case SURFACE -> soil.canSustainPlant(level, below, Direction.UP, state)
+                        .toBoolean(soil.is(BlockTags.SUPPORTS_VEGETATION));
+                default -> this.mayPlaceOn(soil, level, below);
+            };
+        }
 
-        if (pState.getBlock() == this) //Forge: This function is called during world gen and placement, before this block is set, so if we are not 'here' then assume it's the pre-check.
-            switch(type){
-                case Root -> {
-                    Block source = Blocks.WATER;
-                    if(ingredientData.getPrimaryAlignment() == IngredientAlignment.Fire){
-                        source = Blocks.LAVA;
-                    }
-                    return pLevel.getBlockState(pPos.below()).is(Blocks.AIR) && pLevel.getBlockState(pPos.above()).is(BlockTags.DIRT) && pLevel.getBlockState(pPos.above(2)).is(source);
-                }
-                case Mushroom -> {
-                    return pLevel.getBlockState(blockpos.below()).is(BlockTags.BASE_STONE_OVERWORLD);
-                }
-                default -> {
-                    if(ingredientData.getPrimaryAlignment() == IngredientAlignment.Fire) {
-                        return pLevel.getBlockState(blockpos).is(BlockTags.SAND);
-                    }
-                    return pLevel.getBlockState(blockpos).canSustainPlant(pLevel, blockpos, Direction.UP, this);
-                }
-            }
-        return this.mayPlaceOn(pLevel.getBlockState(blockpos), pLevel, blockpos);
+        return this.mayPlaceOn(level.getBlockState(below), level, below);
+    }
+
+    @Override
+    protected FluidState getFluidState(BlockState state) {
+        return IngredientHabitat.of(ingredientData) == IngredientHabitat.AQUATIC
+                ? Fluids.WATER.getSource(false)
+                : super.getFluidState(state);
     }
 
     @Override
     protected ItemLike getBaseSeedId() {
         return ItemRegistry.getSeedByIngredient(getIngredient());
-    }
-    @Override
-    public ItemStack getCloneItemStack(BlockGetter pLevel, BlockPos pPos, BlockState pState) {
-        return new ItemStack(this.getBaseSeedId());
     }
 }

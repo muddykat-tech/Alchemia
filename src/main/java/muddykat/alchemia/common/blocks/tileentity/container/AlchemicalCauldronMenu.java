@@ -1,92 +1,120 @@
 package muddykat.alchemia.common.blocks.tileentity.container;
 
 import muddykat.alchemia.common.blocks.tileentity.TileEntityAlchemyCauldron;
+import muddykat.alchemia.common.items.ItemIngredient;
 import muddykat.alchemia.registration.registers.BlockRegistry;
 import muddykat.alchemia.registration.registers.MenuTypeRegistry;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.player.StackedContents;
-import net.minecraft.world.inventory.*;
-import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.inventory.SimpleContainerData;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.items.wrapper.RecipeWrapper;
-import org.jetbrains.annotations.NotNull;
+import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
+import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
 
 import java.util.Objects;
 
-public class AlchemicalCauldronMenu extends RecipeBookMenu<RecipeWrapper> {
+public class AlchemicalCauldronMenu extends AbstractContainerMenu {
+
+    public static final int INGREDIENT_SLOTS = 6;
+
+    private static final int SLOT_ROW_X = 101;
+    private static final int SLOT_ROW_Y = 181;
+    private static final int INVENTORY_X = 74;
+    private static final int INVENTORY_Y = 222;
+    private static final int HOTBAR_Y = 280;
 
     private final ContainerData cauldronData;
     private final TileEntityAlchemyCauldron alchemyCauldron;
     private final ContainerLevelAccess containerAccess;
+
     public AlchemicalCauldronMenu(final int windowId, final Inventory playerInventory, final TileEntityAlchemyCauldron cauldron, ContainerData cauldronData) {
         super(MenuTypeRegistry.ALCHEMICAL_CAULDRON.get(), windowId);
         this.alchemyCauldron = cauldron;
         this.cauldronData = cauldronData;
         this.containerAccess = ContainerLevelAccess.create(cauldron.getLevel(), cauldron.getBlockPos());
-    }
-    public AlchemicalCauldronMenu(final int windowID, final Inventory playerInventory, final FriendlyByteBuf data){
-        this(windowID, playerInventory, getTileEntity(playerInventory, data), new SimpleContainerData(4));
-    }
-    @Override
-    public void fillCraftSlotsStackedContents(StackedContents pItemHelper) {
 
-    }
+        ItemStacksResourceHandler handler = cauldron.getInventory();
+        for (int slot = 0; slot < INGREDIENT_SLOTS; slot++) {
+            addSlot(new ResourceHandlerSlot(handler, handler::set, slot, SLOT_ROW_X + slot * 18 + 1, SLOT_ROW_Y + 1) {
+                @Override
+                public boolean mayPlace(ItemStack stack) {
+                    return stack.getItem() instanceof ItemIngredient;
+                }
+            });
+        }
 
-    @Override
-    public void clearCraftingContent() {
+        for (int row = 0; row < 3; row++) {
+            for (int column = 0; column < 9; column++) {
+                addSlot(new Slot(playerInventory, column + row * 9 + 9, INVENTORY_X + column * 18 + 1, INVENTORY_Y + row * 18 + 1));
+            }
+        }
 
-    }
+        for (int column = 0; column < 9; column++) {
+            addSlot(new Slot(playerInventory, column, INVENTORY_X + column * 18 + 1, HOTBAR_Y + 1));
+        }
 
-    @Override
-    public boolean recipeMatches(Recipe<? super RecipeWrapper> pRecipe) {
-        return false;
-    }
-
-    @Override
-    public int getResultSlotIndex() {
-        return 0;
-    }
-
-    @Override
-    public int getGridWidth() {
-        return 0;
+        addDataSlots(cauldronData);
     }
 
-    @Override
-    public int getGridHeight() {
-        return 0;
+    public AlchemicalCauldronMenu(final int windowID, final Inventory playerInventory, final RegistryFriendlyByteBuf data) {
+        this(windowID, playerInventory, getBlockEntity(playerInventory, data), new SimpleContainerData(3));
     }
 
-    @Override
-    public int getSize() {
-        return 0;
-    }
-
-    @Override
-    public RecipeBookType getRecipeBookType() {
-        return null;
-    }
-
-    @Override
-    public boolean shouldMoveToInventory(int pSlotIndex) {
-        return false;
-    }
-
-    private static TileEntityAlchemyCauldron getTileEntity(final Inventory playerInventory, final FriendlyByteBuf data) {
+    private static TileEntityAlchemyCauldron getBlockEntity(final Inventory playerInventory, final RegistryFriendlyByteBuf data) {
         Objects.requireNonNull(playerInventory, "playerInventory cannot be null");
         Objects.requireNonNull(data, "data cannot be null");
-        final BlockEntity tileAtPos = playerInventory.player.level.getBlockEntity(data.readBlockPos());
-        if (tileAtPos instanceof TileEntityAlchemyCauldron) {
-            return (TileEntityAlchemyCauldron) tileAtPos;
+        final BlockEntity blockEntity = playerInventory.player.level().getBlockEntity(data.readBlockPos());
+        if (blockEntity instanceof TileEntityAlchemyCauldron cauldron) {
+            return cauldron;
         }
-        throw new IllegalStateException("Tile entity is not correct! " + tileAtPos);
+        throw new IllegalStateException("Block entity is not correct! " + blockEntity);
     }
 
     @Override
-    public boolean stillValid(@NotNull Player playerIn) {
-        return stillValid(containerAccess, playerIn, BlockRegistry.BLOCK_REGISTRY.get("alchemical_cauldron").get());
+    public ItemStack quickMoveStack(Player player, int slotIndex) {
+        Slot slot = this.slots.get(slotIndex);
+        if (!slot.hasItem()) return ItemStack.EMPTY;
+
+        ItemStack stack = slot.getItem();
+        ItemStack original = stack.copy();
+
+        if (slotIndex < INGREDIENT_SLOTS) {
+            if (!moveItemStackTo(stack, INGREDIENT_SLOTS, this.slots.size(), true)) return ItemStack.EMPTY;
+        } else if (stack.getItem() instanceof ItemIngredient) {
+            if (!moveItemStackTo(stack, 0, INGREDIENT_SLOTS, false)) return ItemStack.EMPTY;
+        } else {
+            return ItemStack.EMPTY;
+        }
+
+        if (stack.isEmpty()) {
+            slot.set(ItemStack.EMPTY);
+        } else {
+            slot.setChanged();
+        }
+
+        return original;
+    }
+
+    public static final int BUTTON_BREW = 0;
+
+    @Override
+    public boolean clickMenuButton(Player player, int buttonId) {
+        if (buttonId == BUTTON_BREW) {
+            alchemyCauldron.commitQueue(player);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean stillValid(Player player) {
+        return stillValid(containerAccess, player, BlockRegistry.BLOCK_REGISTRY.get("alchemical_cauldron").get());
     }
 
     public ContainerData getCauldronData() {

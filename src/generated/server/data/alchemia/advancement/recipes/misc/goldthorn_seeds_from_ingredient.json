@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_goldthorn_ingredient": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:herb_goldthorn"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "alchemia:goldthorn_seeds_from_ingredient"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_goldthorn_ingredient"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "alchemia:goldthorn_seeds_from_ingredient"
+    ]
+  }
+}
