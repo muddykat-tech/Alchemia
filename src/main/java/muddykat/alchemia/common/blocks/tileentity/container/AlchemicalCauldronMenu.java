@@ -13,6 +13,7 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
@@ -22,6 +23,10 @@ import java.util.Objects;
 public class AlchemicalCauldronMenu extends AbstractContainerMenu {
 
     public static final int INGREDIENT_SLOTS = 6;
+    public static final int CAULDRON_SLOTS = 8;
+
+    public static final int SPECIAL_SLOT_X = 57;
+    public static final int SPECIAL_SLOT_GAP = 18;
 
     private static final int SLOT_ROW_X = 101;
     private static final int SLOT_ROW_Y = 181;
@@ -44,10 +49,26 @@ public class AlchemicalCauldronMenu extends AbstractContainerMenu {
             addSlot(new ResourceHandlerSlot(handler, handler::set, slot, SLOT_ROW_X + slot * 18 + 1, SLOT_ROW_Y + 1) {
                 @Override
                 public boolean mayPlace(ItemStack stack) {
-                    return stack.getItem() instanceof ItemIngredient;
+                    return TileEntityAlchemyCauldron.isBrewingInput(stack);
                 }
             });
         }
+
+        addSlot(new ResourceHandlerSlot(handler, handler::set, TileEntityAlchemyCauldron.REDSTONE_SLOT,
+                SPECIAL_SLOT_X + 1, SLOT_ROW_Y + 1) {
+            @Override
+            public boolean mayPlace(ItemStack stack) {
+                return stack.is(Items.REDSTONE);
+            }
+        });
+
+        addSlot(new ResourceHandlerSlot(handler, handler::set, TileEntityAlchemyCauldron.GUNPOWDER_SLOT,
+                SPECIAL_SLOT_X + SPECIAL_SLOT_GAP + 1, SLOT_ROW_Y + 1) {
+            @Override
+            public boolean mayPlace(ItemStack stack) {
+                return stack.is(Items.GUNPOWDER);
+            }
+        });
 
         for (int row = 0; row < 3; row++) {
             for (int column = 0; column < 9; column++) {
@@ -84,10 +105,14 @@ public class AlchemicalCauldronMenu extends AbstractContainerMenu {
         ItemStack stack = slot.getItem();
         ItemStack original = stack.copy();
 
-        if (slotIndex < INGREDIENT_SLOTS) {
-            if (!moveItemStackTo(stack, INGREDIENT_SLOTS, this.slots.size(), true)) return ItemStack.EMPTY;
-        } else if (stack.getItem() instanceof ItemIngredient) {
+        if (slotIndex < CAULDRON_SLOTS) {
+            if (!moveItemStackTo(stack, CAULDRON_SLOTS, this.slots.size(), true)) return ItemStack.EMPTY;
+        } else if (TileEntityAlchemyCauldron.isBrewingInput(stack)) {
             if (!moveItemStackTo(stack, 0, INGREDIENT_SLOTS, false)) return ItemStack.EMPTY;
+        } else if (stack.is(Items.REDSTONE)) {
+            if (!moveItemStackTo(stack, INGREDIENT_SLOTS, INGREDIENT_SLOTS + 1, false)) return ItemStack.EMPTY;
+        } else if (stack.is(Items.GUNPOWDER)) {
+            if (!moveItemStackTo(stack, INGREDIENT_SLOTS + 1, CAULDRON_SLOTS, false)) return ItemStack.EMPTY;
         } else {
             return ItemStack.EMPTY;
         }

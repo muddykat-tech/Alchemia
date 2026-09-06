@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_albedo": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:albedo"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "alchemia:citrinitas"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_albedo"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "alchemia:citrinitas"
+    ]
+  }
+}

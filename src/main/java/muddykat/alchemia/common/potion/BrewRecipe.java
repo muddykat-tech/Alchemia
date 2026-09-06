@@ -10,6 +10,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import muddykat.alchemia.registration.registers.DataComponentRegistry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
@@ -140,15 +142,20 @@ public record BrewRecipe(String id, String name, List<BrewRecipe.BrewEffect> eff
 
     public static ItemStack stackFor(String entry) {
         Item item = itemFor(nameOf(entry));
-        if (!(item instanceof ItemIngredient)) return ItemStack.EMPTY;
+        if (item == null) return ItemStack.EMPTY;
 
         ItemStack stack = new ItemStack(item);
+        if (!(item instanceof ItemIngredient)) return stack;
         int crush = crushOf(entry);
         if (crush > 0) stack.set(DataComponentRegistry.CRUSH.get(), crush);
         return stack;
     }
 
     public static Item itemFor(String registryName) {
+        if (registryName.indexOf(':') >= 0) {
+            return BuiltInRegistries.ITEM.getValue(Identifier.parse(registryName));
+        }
+
         var holder = ItemRegistry.ITEM_REGISTRY.get(registryName);
         return holder == null ? null : holder.get();
     }

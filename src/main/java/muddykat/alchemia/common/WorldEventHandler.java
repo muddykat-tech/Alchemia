@@ -1,5 +1,9 @@
 package muddykat.alchemia.common;
 
+import muddykat.alchemia.Alchemia;
+import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerPlayer;
 import muddykat.alchemia.registration.registers.BlockRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.Container;
@@ -15,9 +19,23 @@ import net.neoforged.neoforge.event.level.BlockEvent;
 
 public class WorldEventHandler {
 
+    private static final Identifier CAULDRON_ADVANCEMENT =
+            Identifier.fromNamespaceAndPath(Alchemia.MODID, "cauldron");
+
+    private static void awardCauldronAdvancement(Player player) {
+        if (!(player instanceof ServerPlayer serverPlayer)) return;
+
+        AdvancementHolder advancement = serverPlayer.level().getServer().getAdvancements().get(CAULDRON_ADVANCEMENT);
+        if (advancement == null) return;
+
+        for (String criterion : advancement.value().criteria().keySet()) {
+            serverPlayer.getAdvancements().award(advancement, criterion);
+        }
+    }
+
     @SubscribeEvent
     public static void cauldronCreation(BlockEvent.EntityPlaceEvent event) {
-        if (!(event.getEntity() instanceof Player)) return;
+        if (!(event.getEntity() instanceof Player player)) return;
 
         BlockState block = event.getPlacedBlock();
         if (!(block.getBlock() instanceof CauldronBlock)) return;
@@ -27,6 +45,8 @@ public class WorldEventHandler {
             BlockPos pos = event.getPos();
             event.getLevel().setBlock(pos, Blocks.AIR.defaultBlockState(), 1 | 8);
             event.getLevel().setBlock(pos.below(), BlockRegistry.BLOCK_REGISTRY.get("alchemical_cauldron").get().defaultBlockState(), 1);
+
+            awardCauldronAdvancement(player);
         }
     }
 

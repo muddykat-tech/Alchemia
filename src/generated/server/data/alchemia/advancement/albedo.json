@@ -1,0 +1,32 @@
+{
+  "parent": "alchemia:nigredo",
+  "criteria": {
+    "unlocked": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:albedo"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.alchemia.albedo.description"
+    },
+    "icon": {
+      "id": "alchemia:albedo"
+    },
+    "title": {
+      "translate": "advancements.alchemia.albedo.title"
+    }
+  },
+  "requirements": [
+    [
+      "unlocked"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

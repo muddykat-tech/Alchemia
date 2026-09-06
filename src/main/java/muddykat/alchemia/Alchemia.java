@@ -4,6 +4,7 @@ import com.mojang.logging.LogUtils;
 import muddykat.alchemia.common.CommonSetup;
 import muddykat.alchemia.common.WorldEventHandler;
 import muddykat.alchemia.common.config.Configuration;
+import muddykat.alchemia.registration.registers.IngredientTypeRegistry;
 import muddykat.alchemia.common.network.NetworkHandler;
 import muddykat.alchemia.common.network.packets.PacketPotionRecipe;
 import muddykat.alchemia.common.potion.PotionMap;
@@ -34,6 +35,7 @@ public class Alchemia {
 
         LOGGER.info(MOD_NAME + " Initializing Configuration");
         modContainer.registerConfig(ModConfig.Type.COMMON, Configuration.COMMON_CONFIG);
+        modContainer.registerConfig(ModConfig.Type.SERVER, Configuration.SERVER_CONFIG);
 
         AlchemiaRegistry.initialize();
         AlchemiaRegistry.register(modEventBus);
@@ -43,6 +45,7 @@ public class Alchemia {
 
         LOGGER.info(MOD_NAME + " Registering Event Handlers");
         NeoForge.EVENT_BUS.register(WorldEventHandler.class);
+        NeoForge.EVENT_BUS.register(muddykat.alchemia.common.PhilosopherStoneHandler.class);
         NeoForge.EVENT_BUS.register(this);
 
         LOGGER.info(MOD_NAME + " Setup Complete");

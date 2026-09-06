@@ -5,6 +5,7 @@ import muddykat.alchemia.common.items.helper.IngredientAlignment;
 import muddykat.alchemia.common.items.helper.IngredientPath;
 import muddykat.alchemia.common.items.helper.IngredientPathTooltip;
 import muddykat.alchemia.common.potion.PotionMap;
+import muddykat.alchemia.common.utility.TextUtils;
 import muddykat.alchemia.common.items.helper.IngredientType;
 import muddykat.alchemia.common.items.helper.Ingredients;
 import muddykat.alchemia.registration.registers.DataComponentRegistry;
@@ -89,6 +90,8 @@ public class ItemIngredient extends Item {
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltips, TooltipFlag flag) {
         super.appendHoverText(stack, context, display, tooltips, flag);
+
+        tooltips.accept(TextUtils.brewingSource());
 
         int crush = crushOf(stack);
         tooltips.accept(Component.translatable("alchemia.tooltip.potency",

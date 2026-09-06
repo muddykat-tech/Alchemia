@@ -40,6 +40,12 @@ public class DataComponentRegistry {
                     .networkSynchronized(ByteBufCodecs.VAR_INT)
                     .build());
 
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> CHARGES = DATA_COMPONENTS.register("charges",
+            () -> DataComponentType.<Integer>builder()
+                    .persistent(Codec.intRange(0, 64))
+                    .networkSynchronized(ByteBufCodecs.VAR_INT)
+                    .build());
+
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<String>> SELECTED_RECIPE = DATA_COMPONENTS.register("selected_recipe",
             () -> DataComponentType.<String>builder()
                     .persistent(Codec.STRING)

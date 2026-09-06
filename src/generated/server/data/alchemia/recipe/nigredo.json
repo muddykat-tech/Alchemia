@@ -1,0 +1,53 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "neoforge:ingredient_type": "alchemia:potion_effect",
+      "effects": [
+        {
+          "amplifier": 2,
+          "effect": "minecraft:slowness"
+        }
+      ]
+    },
+    {
+      "neoforge:ingredient_type": "alchemia:potion_effect",
+      "effects": [
+        {
+          "amplifier": 2,
+          "effect": "minecraft:resistance"
+        }
+      ]
+    },
+    {
+      "neoforge:ingredient_type": "alchemia:potion_effect",
+      "effects": [
+        {
+          "amplifier": 2,
+          "effect": "minecraft:poison"
+        }
+      ]
+    },
+    {
+      "neoforge:ingredient_type": "alchemia:potion_effect",
+      "effects": [
+        {
+          "amplifier": 2,
+          "effect": "minecraft:strength"
+        }
+      ]
+    },
+    {
+      "neoforge:ingredient_type": "alchemia:potion_effect",
+      "effects": [
+        {
+          "amplifier": 2,
+          "effect": "minecraft:blindness"
+        }
+      ]
+    }
+  ],
+  "result": {
+    "id": "alchemia:nigredo"
+  }
+}

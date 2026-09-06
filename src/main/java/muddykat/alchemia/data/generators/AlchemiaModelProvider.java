@@ -73,6 +73,8 @@ public class AlchemiaModelProvider extends ModelProvider {
                 flatItem(itemModels, item, Identifier.fromNamespaceAndPath(Alchemia.MODID, "item/book/guide"));
             } else if (item instanceof BlockItemGeneric blockItem && blockItem.getBlock() instanceof BlockMineralClusterGeneric cluster) {
                 flatItem(itemModels, item, clusterTexture(cluster));
+            } else if (MAGNUM_OPUS.contains(itemName(item))) {
+                flatItem(itemModels, item, Identifier.fromNamespaceAndPath(Alchemia.MODID, "item/" + itemName(item)));
             }
         }
     }
@@ -142,6 +144,9 @@ public class AlchemiaModelProvider extends ModelProvider {
     private Identifier flatModel(ItemModelGenerators itemModels, String name, Identifier texture) {
         return ModelTemplates.FLAT_ITEM.create(itemModel(name), TextureMapping.layer0(new Material(texture)), itemModels.modelOutput);
     }
+
+    private static final java.util.Set<String> MAGNUM_OPUS =
+            java.util.Set.of("nigredo", "albedo", "citrinitas", "rubedo", "philosopher_stone");
 
     private void flatItem(ItemModelGenerators itemModels, Item item, Identifier texture) {
         Identifier modelLocation = ModelTemplates.FLAT_ITEM.create(itemModel(itemName(item)),

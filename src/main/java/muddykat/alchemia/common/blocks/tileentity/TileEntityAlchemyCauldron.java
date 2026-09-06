@@ -11,6 +11,8 @@ import muddykat.alchemia.registration.registers.BlockEntityTypeRegistry;
 import muddykat.alchemia.common.items.ItemAlchemiaGuide;
 import muddykat.alchemia.common.potion.BrewRecipe;
 import muddykat.alchemia.common.potion.BrewRecipeBook;
+import muddykat.alchemia.common.config.Configuration;
+import muddykat.alchemia.common.potion.VanillaIngredients;
 import muddykat.alchemia.common.potion.IngredientDiscovery;
 import muddykat.alchemia.common.potion.RecipeDiscovery;
 import net.minecraft.client.Minecraft;
@@ -79,11 +81,15 @@ import static net.minecraft.world.InteractionResult.SUCCESS;
 
 public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements MenuProvider, Nameable {
 
-    private static final int INVENTORY_SLOT_COUNT = 6;
+    private static final int INGREDIENT_SLOT_COUNT = 6;
+    public static final int REDSTONE_SLOT = 6;
+    public static final int GUNPOWDER_SLOT = 7;
+    private static final int INVENTORY_SLOT_COUNT = 8;
+    public static final int REDSTONE_DURATION_BONUS = 1200;
 
     private int waterLevel;
     private final int maxWaterLevel = 4;
-    private final ItemStacksResourceHandler inventory;
+    private ItemStacksResourceHandler inventory;
 
     private int xAlignment;
     private int yAlignment;
@@ -100,6 +106,8 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
     private final List<String> addedIngredients = new ArrayList<>();
     private String brewName = "";
     private boolean spoiled = false;
+    private int durationBonus = 0;
+    private boolean lingeringRequested = false;
     private int potion_color = 0xffffff;
 
     private Set<MobEffectInstance> effectList = new HashSet<>();
@@ -124,7 +132,10 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        input.child("Inventory").ifPresent(inventory::deserialize);
+        input.child("Inventory").ifPresent(saved -> {
+            inventory.deserialize(saved);
+            inventory = resizeInventory(inventory);
+        });
         waterLevel = input.getIntOr("waterLevel", 0);
         xAlignment = input.getIntOr("xAlignment", balanceAlignment);
         yAlignment = input.getIntOr("yAlignment", balanceAlignment);
@@ -138,6 +149,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         effectList.addAll(input.read("effects", MobEffectInstance.CODEC.listOf()).orElse(List.of()));
         brewName = input.getString("brewName").orElse("");
         spoiled = input.getBooleanOr("spoiled", false);
+        durationBonus = input.getIntOr("durationBonus", 0);
         updateWaterColor();
     }
 
@@ -154,6 +166,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         output.store("effects", MobEffectInstance.CODEC.listOf(), List.copyOf(effectList));
         output.putString("brewName", brewName);
         output.putBoolean("spoiled", spoiled);
+        output.putInt("durationBonus", durationBonus);
     }
 
     @Override
@@ -170,19 +183,6 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
             }
             empty();
             return SUCCESS;
-        }
-
-        if (heldItem.equals(Items.GUNPOWDER)) {
-            if (potion_type.equals(Items.POTION)) {
-                if (!level.isClientSide()) {
-                    level.playSound(null, pos, SoundEvents.BREWING_STAND_BREW, SoundSource.BLOCKS, 1.0F, 1.0F);
-                    level.gameEvent(null, GameEvent.FLUID_PLACE, pos);
-                }
-                heldStack.shrink(1);
-                player.setItemInHand(hand, heldStack);
-                setSplashResult();
-                if (!level.isClientSide()) sync();
-            }
         }
 
         if (heldItem instanceof BucketItem && heldItem.equals(Items.WATER_BUCKET)) {
@@ -211,7 +211,17 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
             return InteractionResult.FAIL;
         }
 
-        if (heldItem.equals(Items.GLASS_BOTTLE)) {
+        if (heldItem.equals(Items.DRAGON_BREATH)) {
+            if (getWaterLevel() <= 0) return InteractionResult.FAIL;
+
+            if (!hasGunpowder()) {
+                message(player, "alchemia.brew.needs_gunpowder");
+                return InteractionResult.FAIL;
+            }
+            lingeringRequested = true;
+        }
+
+        if (heldItem.equals(Items.GLASS_BOTTLE) || heldItem.equals(Items.DRAGON_BREATH)) {
             if (getWaterLevel() > 0) {
                 takeWaterPortion();
                 ItemStack potion = getPotion();
@@ -219,6 +229,11 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
                 List<String> used = getAddedIngredients();
                 heldStack.shrink(1);
                 player.getInventory().add(potion);
+
+                if (hasGunpowder() && !level.isClientSide()) {
+                    inventory.set(GUNPOWDER_SLOT, ItemResource.EMPTY, 0);
+                }
+                lingeringRequested = false;
 
                 if (!level.isClientSide() && !spoiled) BrewRecipeBook.record(player, brewed, used, getBrewName());
 
@@ -355,6 +370,11 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         }
     }
 
+    private Item resultType() {
+        if (lingeringRequested) return Items.LINGERING_POTION;
+        return hasGunpowder() ? Items.SPLASH_POTION : Items.POTION;
+    }
+
     public void setSplashResult() {
         potion_type = Items.SPLASH_POTION;
         BlockPos pos = getBlockPos();
@@ -372,11 +392,21 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         potion_type = Items.POTION;
     }
 
+    private ItemStacksResourceHandler resizeInventory(ItemStacksResourceHandler saved) {
+        if (saved.size() >= INVENTORY_SLOT_COUNT) return saved;
+
+        ItemStacksResourceHandler resized = createHandler();
+        for (int slot = 0; slot < saved.size(); slot++) {
+            resized.set(slot, saved.getResource(slot), saved.getAmountAsInt(slot));
+        }
+        return resized;
+    }
+
     private ItemStacksResourceHandler createHandler() {
         return new ItemStacksResourceHandler(INVENTORY_SLOT_COUNT) {
             @Override
             protected int getCapacity(int index, ItemResource resource) {
-                return 1;
+                return index == REDSTONE_SLOT ? 64 : 1;
             }
         };
     }
@@ -416,11 +446,11 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
 
     public List<ItemStack> getQueuedIngredients() {
         List<ItemStack> queued = new ArrayList<>();
-        for (int slot = 0; slot < INVENTORY_SLOT_COUNT; slot++) {
+        for (int slot = 0; slot < INGREDIENT_SLOT_COUNT; slot++) {
             int amount = inventory.getAmountAsInt(slot);
             if (amount <= 0) continue;
             ItemResource resource = inventory.getResource(slot);
-            if (resource.getItem() instanceof ItemIngredient) {
+            if (isBrewingInput(resource.toStack(1))) {
                 for (int i = 0; i < amount; i++) queued.add(resource.toStack(1));
             }
         }
@@ -431,7 +461,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         if (level == null || level.isClientSide()) return InteractionResult.SUCCESS;
 
         List<ItemStack> queued = getQueuedIngredients();
-        if (queued.isEmpty()) {
+        if (queued.isEmpty() && !hasRedstone()) {
             message(player, "alchemia.brew.empty_queue");
             return InteractionResult.FAIL;
         }
@@ -440,7 +470,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
             return InteractionResult.FAIL;
         }
 
-        for (int slot = 0; slot < INVENTORY_SLOT_COUNT; slot++) {
+        for (int slot = 0; slot < INGREDIENT_SLOT_COUNT; slot++) {
             inventory.set(slot, ItemResource.EMPTY, 0);
         }
 
@@ -449,6 +479,8 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
             addIngredient(queuedStack);
         }
 
+        applyRedstone();
+
         BlockPos pos = getBlockPos();
         level.playSound(null, pos, SoundEvents.BREWING_STAND_BREW, SoundSource.BLOCKS, 1.0F, 1.1F);
         level.gameEvent(null, GameEvent.SPLASH, pos);
@@ -456,6 +488,37 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         sync();
 
         return InteractionResult.SUCCESS;
+    }
+
+    public void addRedstoneCharge() {
+        if (spoiled || totalPotency() >= maxPotency()) return;
+
+        durationBonus += REDSTONE_DURATION_BONUS;
+        addedIngredients.add(BrewRecipe.encode(BuiltInRegistries.ITEM.getKey(Items.REDSTONE).toString(), 0));
+        updateWaterColor();
+    }
+
+    private void applyRedstone() {
+        int held = redstoneCount();
+        if (held <= 0 || spoiled) return;
+
+        int room = maxPotency() - totalPotency();
+        int taken = Math.min(held, room);
+        if (taken <= 0) return;
+
+        for (int charge = 0; charge < taken; charge++) {
+            addedIngredients.add(BrewRecipe.encode(BuiltInRegistries.ITEM.getKey(Items.REDSTONE).toString(), 0));
+        }
+
+        int left = held - taken;
+        if (left > 0) {
+            inventory.set(REDSTONE_SLOT, inventory.getResource(REDSTONE_SLOT), left);
+        } else {
+            inventory.set(REDSTONE_SLOT, ItemResource.EMPTY, 0);
+        }
+
+        durationBonus += taken * REDSTONE_DURATION_BONUS;
+        updateWaterColor();
     }
 
     private static void message(Player player, String key) {
@@ -491,15 +554,32 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         return landing[0] == xAlignment && landing[1] == yAlignment;
     }
 
+    public static boolean isBrewingInput(ItemStack stack) {
+        return stack.getItem() instanceof ItemIngredient || VanillaIngredients.isVanillaIngredient(stack);
+    }
+
+    private static String encodeOf(ItemStack stack) {
+        Identifier id = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        if (id == null) return null;
+
+        String name = stack.getItem() instanceof ItemIngredient ? id.getPath() : id.toString();
+        return BrewRecipe.encode(name, ItemIngredient.crushOf(stack));
+    }
+
     public void addIngredient(ItemStack stack) {
-        if (!(stack.getItem() instanceof ItemIngredient itemIngredient)) return;
+        if (stack.is(Items.REDSTONE)) {
+            addRedstoneCharge();
+            return;
+        }
+
+        if (!isBrewingInput(stack)) return;
 
         BlockPos here = getBlockPos();
         PotionMap.PotionPath path = PotionMap.INSTANCE.walk(this.xAlignment, this.yAlignment, stack);
 
         if (path.dead()) {
-            Identifier deadId = BuiltInRegistries.ITEM.getKey(itemIngredient);
-            if (deadId != null) addedIngredients.add(BrewRecipe.encode(deadId.getPath(), ItemIngredient.crushOf(stack)));
+            String deadEntry = encodeOf(stack);
+            if (deadEntry != null) addedIngredients.add(deadEntry);
 
             spoil();
             return;
@@ -513,8 +593,8 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
             return;
         }
 
-        Identifier id = BuiltInRegistries.ITEM.getKey(itemIngredient);
-        if (id != null) addedIngredients.add(BrewRecipe.encode(id.getPath(), ItemIngredient.crushOf(stack)));
+        String entry = encodeOf(stack);
+        if (entry != null) addedIngredients.add(entry);
 
         List<int[]> cells = path.cells();
         for (int i = 0; i < cells.size() - 1; i++) {
@@ -529,7 +609,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         updateEffectList();
         BlockPos pos = getBlockPos();
 
-        if (getEffectList().size() > MAX_EFFECTS) {
+        if (totalPotency() > maxPotency()) {
             spoil();
             return;
         }
@@ -564,28 +644,58 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         updateWaterColor();
     }
 
+    private boolean slotHolds(int slot, Item item) {
+        return slot < inventory.size() && inventory.getAmountAsInt(slot) > 0
+                && inventory.getResource(slot).getItem() == item;
+    }
+
+    public boolean hasRedstone() {
+        return redstoneCount() > 0;
+    }
+
+    public int redstoneCount() {
+        return slotHolds(REDSTONE_SLOT, Items.REDSTONE) ? inventory.getAmountAsInt(REDSTONE_SLOT) : 0;
+    }
+
+    public int redstoneCharges() {
+        return durationBonus / REDSTONE_DURATION_BONUS;
+    }
+
+    public boolean hasGunpowder() {
+        return slotHolds(GUNPOWDER_SLOT, Items.GUNPOWDER);
+    }
+
+    public int getDurationBonus() {
+        return durationBonus;
+    }
+
     public boolean isSpoiled() {
         return spoiled;
     }
 
-    public int previewEffectCount(List<ItemStack> queued) {
-        if (PotionMap.INSTANCE == null) return 0;
-
-        Set<Holder<MobEffect>> effects = new HashSet<>();
-        for (MobEffectInstance instance : effectList) effects.add(instance.getEffect());
+    public Map<Holder<MobEffect>, Integer> previewPotencies(List<ItemStack> queued) {
+        Map<Holder<MobEffect>, Integer> potencies = new LinkedHashMap<>();
+        for (MobEffectInstance instance : effectList) {
+            potencies.put(instance.getEffect(), instance.getAmplifier() + 1);
+        }
+        if (PotionMap.INSTANCE == null) return potencies;
 
         int x = xAlignment;
         int y = yAlignment;
 
         for (ItemStack stack : queued) {
+            if (stack.is(Items.REDSTONE)) continue;
+
             PotionMap.PotionPath path = PotionMap.INSTANCE.walk(x, y, stack);
-            if (path.dead()) return -1;
+            if (path.dead()) return null;
             if (path.stalled()) continue;
 
             List<int[]> cells = path.cells();
             for (int i = 0; i < cells.size() - 1; i++) {
                 PotionMap.PotionEffectPosition passed = PotionMap.INSTANCE.getEffectAt(cells.get(i)[0], cells.get(i)[1]);
-                if (passed != null && passed.getEffect() != null) effects.add(passed.getEffect());
+                if (passed != null && passed.getEffect() != null) {
+                    potencies.put(passed.getEffect(), passed.getStrength() + 1);
+                }
             }
 
             int[] end = path.end(x, y);
@@ -593,9 +703,20 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
             y = end[1];
 
             PotionMap.PotionEffectPosition landing = PotionMap.INSTANCE.getEffectPotion(new int[]{x, y});
-            if (landing.getEffect() != null) effects.add(landing.getEffect());
+            if (landing.getEffect() != null) {
+                potencies.put(landing.getEffect(), landing.getStrength() + 1);
+            }
         }
-        return effects.size();
+        return potencies;
+    }
+
+    public int previewPotency(List<ItemStack> queued) {
+        Map<Holder<MobEffect>, Integer> potencies = previewPotencies(queued);
+        if (potencies == null) return -1;
+
+        int total = redstoneCharges();
+        for (int potency : potencies.values()) total += potency;
+        return total;
     }
 
     private void spoil() {
@@ -717,7 +838,15 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         return new AlchemicalCauldronMenu(id, playerInventory, this, alchemicalCauldronData);
     }
 
-    public static final int MAX_EFFECTS = 3;
+    public static int maxPotency() {
+        return Configuration.maxPotency();
+    }
+
+    public int totalPotency() {
+        int total = redstoneCharges();
+        for (MobEffectInstance instance : effectList) total += instance.getAmplifier() + 1;
+        return total;
+    }
 
     public Collection<MobEffectInstance> getEffectList() {
         return effectList;
@@ -726,6 +855,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
     public void resetEffectList() {
         addedIngredients.clear();
         spoiled = false;
+        durationBonus = 0;
         effectList.clear();
         effectList = new HashSet<>();
         xAlignment = PotionMap.INSTANCE.getMiddlePosition();
@@ -768,7 +898,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
     }
 
     public ItemStack getPotion() {
-        ItemStack customPotion = new ItemStack(potion_type);
+        ItemStack customPotion = new ItemStack(resultType());
         if (spoiled) {
             customPotion.set(DataComponents.POTION_CONTENTS,
                     new PotionContents(Optional.empty(), Optional.of(SPOILED_COLOR), List.of(), Optional.of("ruined")));
@@ -779,10 +909,17 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
             return customPotion;
         }
 
+        List<MobEffectInstance> brewed = new ArrayList<>();
+        for (MobEffectInstance instance : getEffectList()) {
+            brewed.add(new MobEffectInstance(instance.getEffect(),
+                    instance.getDuration() + durationBonus, instance.getAmplifier()));
+        }
+
         customPotion.set(DataComponents.POTION_CONTENTS,
-                new PotionContents(Optional.empty(), Optional.of(getPotionColor()), List.copyOf(getEffectList()), Optional.of("alchemical")));
+                new PotionContents(Optional.empty(), Optional.of(getPotionColor()), brewed, Optional.of("alchemical")));
         if (!brewName.isEmpty()) {
-            customPotion.set(DataComponents.CUSTOM_NAME, Component.literal(brewName));
+            customPotion.set(DataComponents.CUSTOM_NAME,
+                    Component.literal(brewName).withStyle(style -> style.withItalic(false)));
         }
         if (level != null && !level.isClientSide()) sync();
         return customPotion;

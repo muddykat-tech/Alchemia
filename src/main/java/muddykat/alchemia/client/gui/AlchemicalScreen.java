@@ -28,11 +28,16 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.core.Holder;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.item.alchemy.PotionContents;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -47,12 +52,26 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
     private static final int EFFECTS_GAP = 6;
     private static final int EFFECTS_W = 108;
     private static final int EFFECTS_Y = 16;
-    private static final int EFFECTS_ROW_H = 22;
+    //private static final int EFFECTS_ROW_H = 22;
+    //private static final int EFFECT_ROWS = 4;
 
     private static final int VIEW_INSET_X = 22;
     private static final int VIEW_INSET_Y = 16;
     private static final int VIEW_WIDTH = 265;
     private static final int VIEW_HEIGHT = 160;
+
+    private static final Identifier SYMBOLS_TEXTURE = Identifier.fromNamespaceAndPath(Alchemia.MODID, "textures/book/images/symbols.png");
+    private static final int SYMBOLS_W = 21;
+    private static final int SYMBOLS_H = 45;
+    private static final int DUST_U = 0;
+    private static final int DUST_V = 16;
+    private static final int DUST_W = 12;
+    private static final int DUST_H = 11;
+    private static final int GHOST_ALPHA = 0x80FFFFFF;
+    private static final int POTENCY_PER_ROW = 5;
+    private static final int POTENCY_CELL = 18;
+    private static final int LINE_HEIGHT = 10;
+    private static final int RUINED_TEXT_Y = 46;
 
     private static final int SLOT_ROW_X = 101;
     private static final int SLOT_ROW_Y = 181;
@@ -70,6 +89,12 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
     private static final int BUTTON_DISABLED = 0xFFB6A98C;
     private static final int GHOST_RGB = 0x6A4E2A;
     private static final int BLOCKED_RGB = 0x6B2418;
+    private static final int GAINED_RGB = 0x57C24A;
+    private static final int EDGE_FILL = 0x662A4A8E;
+    private static final int EDGE_LINE = 0xAA3C63B4;
+    private static final int AURA_UNKNOWN_RGB = 0x7A6A50;
+    private static final int AURA_CORE_ALPHA = 96;
+    private static final int AURA_DASH = 2;
 
     private static final int PANEL_FILL = 0xFFE7CD9D;
     private static final int PANEL_EDGE = 0xFF8A6A42;
@@ -304,7 +329,7 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
         graphics.blit(RenderPipelines.GUI_TEXTURED, BACKGROUND_TEXTURE, this.leftPos, this.topPos, 0.0F, 0.0F, IMAGE_WIDTH, BOOK_HEIGHT, IMAGE_WIDTH, BOOK_HEIGHT);
         extractMap(graphics, mouseX, mouseY);
         extractSlotPanels(graphics);
-        extractEffectsPanel(graphics);
+        extractEffectsPanel(graphics, mouseX, mouseY);
         extractBrewButton(graphics, mouseX, mouseY);
     }
 
@@ -402,13 +427,69 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
         return y;
     }
 
-    private void extractEffectsPanel(GuiGraphicsExtractor graphics) {
+    private Map<Holder<MobEffect>, Integer> gainedEffects() {
         TileEntityAlchemyCauldron cauldron = this.getMenu().getCauldron();
-        List<MobEffectInstance> effects = new ArrayList<>(cauldron.getEffectList());
+        Map<Holder<MobEffect>, Integer> predicted = cauldron.previewPotencies(queuedIngredients());
+        Map<Holder<MobEffect>, Integer> gained = new LinkedHashMap<>();
+        if (predicted == null) return gained;
+
+        Map<Holder<MobEffect>, Integer> current = new LinkedHashMap<>();
+        for (MobEffectInstance instance : cauldron.getEffectList()) {
+            current.put(instance.getEffect(), instance.getAmplifier() + 1);
+        }
+
+        predicted.forEach((effect, potency) -> {
+            int held = current.getOrDefault(effect, 0);
+            if (potency > held) gained.put(effect, potency - held);
+        });
+        return gained;
+    }
+
+    private record PotencySlot(Component name, Holder<MobEffect> effect, boolean redstone) {}
+
+    private List<PotencySlot> potencySlots(TileEntityAlchemyCauldron cauldron) {
+        List<PotencySlot> slots = new ArrayList<>();
+
+        for (int charge = 0; charge < cauldron.redstoneCharges(); charge++) {
+            slots.add(new PotencySlot(Component.translatable("alchemia.gui.redstone",
+                    cauldron.getDurationBonus() / 20), null, true));
+        }
+
+        for (MobEffectInstance instance : cauldron.getEffectList()) {
+            Component name = Component.translatable("alchemia.gui.effect.entry",
+                    instance.getEffect().value().getDisplayName(), instance.getAmplifier() + 1,
+                    (instance.getDuration() + cauldron.getDurationBonus()) / 20);
+
+            for (int i = 0; i <= instance.getAmplifier(); i++) {
+                slots.add(new PotencySlot(name, instance.getEffect(), false));
+            }
+        }
+        return slots;
+    }
+
+    private void ghostDust(GuiGraphicsExtractor graphics, int slotX, int slotY) {
+        graphics.blit(RenderPipelines.GUI_TEXTURED, SYMBOLS_TEXTURE,
+                slotX + (18 - DUST_W) / 2, slotY + (18 - DUST_H) / 2,
+                DUST_U, DUST_V, DUST_W, DUST_H, SYMBOLS_W, SYMBOLS_H, GHOST_ALPHA);
+    }
+
+    private void extractEffectsPanel(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        TileEntityAlchemyCauldron cauldron = this.getMenu().getCauldron();
+
+        int budget = TileEntityAlchemyCauldron.maxPotency();
+        int rows = Math.max(1, (budget + POTENCY_PER_ROW - 1) / POTENCY_PER_ROW);
+        int columns = Math.min(budget, POTENCY_PER_ROW);
+
+        boolean ruined = cauldron.isSpoiled();
+        List<FormattedCharSequence> ruinedLines = ruined
+                ? this.font.split(Component.translatable("alchemia.gui.effects.ruined"), EFFECTS_W - 8)
+                : List.of();
 
         int panelX = this.leftPos + IMAGE_WIDTH + EFFECTS_GAP;
         int panelY = this.topPos + EFFECTS_Y;
-        int panelH = 30 + TileEntityAlchemyCauldron.MAX_EFFECTS * EFFECTS_ROW_H + 4;
+        int panelH = ruined
+                ? RUINED_TEXT_Y + ruinedLines.size() * LINE_HEIGHT + 6
+                : 30 + rows * POTENCY_CELL + 8;
 
         graphics.fill(panelX, panelY, panelX + EFFECTS_W, panelY + panelH, PANEL_FILL);
         graphics.outline(panelX, panelY, EFFECTS_W, panelH, PANEL_EDGE);
@@ -420,42 +501,63 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
         graphics.fill(panelX + 4, panelY + 17, panelX + EFFECTS_W - 4, panelY + 21, ARGB.opaque(swatch));
         graphics.outline(panelX + 4, panelY + 17, EFFECTS_W - 8, 4, PANEL_EDGE);
 
-        int rowY = panelY + 26;
+        if (ruined) {
+            graphics.item(new ItemStack(Items.SKELETON_SKULL), panelX + (EFFECTS_W - 16) / 2, panelY + 26);
 
-        if (cauldron.isSpoiled()) {
-            graphics.item(new ItemStack(Items.SKELETON_SKULL), panelX + (EFFECTS_W - 16) / 2, rowY + 2);
-            drawCentredWrapped(graphics, Component.translatable("alchemia.gui.effects.ruined"),
-                    panelX + EFFECTS_W / 2, rowY + 22, EFFECTS_W - 8, ARGB.opaque(BLOCKED_RGB));
+            int lineY = panelY + RUINED_TEXT_Y;
+            for (FormattedCharSequence line : ruinedLines) {
+                graphics.text(this.font, line, panelX + (EFFECTS_W - this.font.width(line)) / 2, lineY,
+                        ARGB.opaque(BLOCKED_RGB), false);
+                lineY += LINE_HEIGHT;
+            }
             return;
         }
 
-        if (effects.isEmpty()) {
-            drawCentredWrapped(graphics, Component.translatable(cauldron.getWaterLevel() > 0
-                            ? "alchemia.gui.effects.none" : "alchemia.gui.effects.dry"),
-                    panelX + EFFECTS_W / 2, rowY + 6, EFFECTS_W - 8, INK_FAINT);
-            return;
+        List<PotencySlot> filled = potencySlots(cauldron);
+
+        List<Holder<MobEffect>> incoming = new ArrayList<>();
+        gainedEffects().forEach((effect, potency) -> {
+            for (int i = 0; i < potency; i++) incoming.add(effect);
+        });
+        int gridX = panelX + (EFFECTS_W - columns * POTENCY_CELL) / 2;
+        int gridY = panelY + 26;
+        Component hovered = null;
+
+        for (int index = 0; index < budget; index++) {
+            int x = gridX + (index % POTENCY_PER_ROW) * POTENCY_CELL;
+            int y = gridY + (index / POTENCY_PER_ROW) * POTENCY_CELL;
+
+            slotBackdrop(graphics, x, y);
+
+            if (index >= filled.size()) {
+                int ahead = index - filled.size();
+                if (ahead < incoming.size()) {
+                    double beat = (Math.sin(Util.getMillis() / 300.0) + 1.0) * 0.5;
+                    graphics.blitSprite(RenderPipelines.GUI_TEXTURED, Hud.getMobEffectSprite(incoming.get(ahead)),
+                            x + 1, y + 1, 16, 16, ARGB.color((int) Math.round(70 + beat * 110), 0xFFFFFF));
+                }
+                continue;
+            }
+
+            PotencySlot slot = filled.get(index);
+            if (slot.redstone()) {
+                graphics.item(new ItemStack(Items.REDSTONE), x + 1, y + 1);
+            } else {
+                graphics.blitSprite(RenderPipelines.GUI_TEXTURED, Hud.getMobEffectSprite(slot.effect()),
+                        x + 1, y + 1, 16, 16);
+            }
+
+            if (mouseX >= x && mouseX < x + POTENCY_CELL && mouseY >= y && mouseY < y + POTENCY_CELL) {
+                hovered = slot.name();
+            }
         }
 
-        for (MobEffectInstance instance : effects) {
-            slotBackdrop(graphics, panelX + 4, rowY);
-            graphics.blitSprite(RenderPipelines.GUI_TEXTURED, Hud.getMobEffectSprite(instance.getEffect()),
-                    panelX + 5, rowY + 1, 16, 16);
+        int used = cauldron.totalPotency();
+        drawCentredWrapped(graphics, Component.translatable("alchemia.gui.effects.budget", used, budget),
+                panelX + EFFECTS_W / 2, panelY + panelH - 11, EFFECTS_W - 8,
+                used >= budget ? ARGB.opaque(BLOCKED_RGB) : INK_FAINT);
 
-            Component name = instance.getEffect().value().getDisplayName();
-            Component detail = Component.translatable("alchemia.gui.potency",
-                    instance.getAmplifier() + 1, instance.getDuration() / 20);
-
-            graphics.text(this.font, this.font.plainSubstrByWidth(name.getString(), EFFECTS_W - 30),
-                    panelX + 24, rowY + 2, INK, false);
-            graphics.text(this.font, detail, panelX + 24, rowY + 11, INK_FAINT, false);
-
-            rowY += EFFECTS_ROW_H;
-        }
-
-        if (effects.size() >= TileEntityAlchemyCauldron.MAX_EFFECTS) {
-            drawCentredWrapped(graphics, Component.translatable("alchemia.gui.effects.full"),
-                    panelX + EFFECTS_W / 2, panelY + panelH - 11, EFFECTS_W - 8, ARGB.opaque(BLOCKED_RGB));
-        }
+        if (hovered != null) graphics.setTooltipForNextFrame(hovered, mouseX, mouseY);
     }
 
     private void extractBrewButton(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
@@ -473,14 +575,15 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
 
     private boolean canBrew() {
         TileEntityAlchemyCauldron cauldron = this.getMenu().getCauldron();
-        return cauldron.getWaterLevel() > 0 && !queuedIngredients().isEmpty();
+        if (cauldron.getWaterLevel() <= 0) return false;
+        return !queuedIngredients().isEmpty() || cauldron.hasRedstone();
     }
 
     private List<ItemStack> queuedIngredients() {
         List<ItemStack> queued = new ArrayList<>();
         for (int slot = 0; slot < AlchemicalCauldronMenu.INGREDIENT_SLOTS; slot++) {
             ItemStack stack = this.getMenu().getSlot(slot).getItem();
-            if (stack.getItem() instanceof ItemIngredient) {
+            if (TileEntityAlchemyCauldron.isBrewingInput(stack)) {
                 for (int i = 0; i < stack.getCount(); i++) queued.add(stack.copyWithCount(1));
             }
         }
@@ -491,6 +594,16 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
         for (int slot = 0; slot < AlchemicalCauldronMenu.INGREDIENT_SLOTS; slot++) {
             slotBackdrop(graphics, this.leftPos + SLOT_ROW_X + slot * 18, this.topPos + SLOT_ROW_Y);
         }
+
+        TileEntityAlchemyCauldron cauldron = this.getMenu().getCauldron();
+        int specialX = this.leftPos + AlchemicalCauldronMenu.SPECIAL_SLOT_X;
+        int specialY = this.topPos + SLOT_ROW_Y;
+
+        slotBackdrop(graphics, specialX, specialY);
+        slotBackdrop(graphics, specialX + AlchemicalCauldronMenu.SPECIAL_SLOT_GAP, specialY);
+
+        if (!cauldron.hasRedstone()) ghostDust(graphics, specialX, specialY);
+        if (!cauldron.hasGunpowder()) ghostDust(graphics, specialX + AlchemicalCauldronMenu.SPECIAL_SLOT_GAP, specialY);
 
         int panelX = this.leftPos + INVENTORY_X - 6;
         int panelY = this.topPos + INVENTORY_Y - 6;
@@ -565,6 +678,8 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
 
         graphics.enableScissor(left, top, right, bottom);
 
+        drawMapEdge(graphics, left, top, right, bottom);
+
         extractDeadzones(graphics, left, top, right, bottom);
 
         int node = Math.max(6, (int) Math.round(NODE_BASE * Mth.clamp(zoom, 0.55, 2.0)));
@@ -579,13 +694,15 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
 
             if (nx < left - node || nx > right + node || ny < top - node || ny > bottom + node) continue;
 
-            drawThread(graphics, (int) Math.round(originX), (int) Math.round(originY), nx, ny, thickness);
-
             PotionEnum recipe = entry.effect().getRecipe();
             boolean discovered = recipe != null && known.contains(recipe);
 
+            drawEffectAura(graphics, nx, ny, entry, discovered);
+            drawThread(graphics, (int) Math.round(originX), (int) Math.round(originY), nx, ny, thickness);
+
             graphics.blitSprite(RenderPipelines.GUI_TEXTURED, Hud.getMobEffectSprite(entry.effect().getEffect()),
                     nx - half, ny - half, node, node, discovered ? -1 : UNKNOWN_TINT);
+
 
             if (discovered && zoom >= LABEL_ZOOM) {
                 Component name = entry.effect().getEffect().value().getDisplayName();
@@ -639,12 +756,18 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
         boolean stalled = false;
         boolean doomed = false;
 
+        Set<Holder<MobEffect>> held = new HashSet<>();
+        for (MobEffectInstance instance : cauldron.getEffectList()) held.add(instance.getEffect());
+
+        List<int[]> pickups = new ArrayList<>();
+
         for (ItemStack queuedStack : queued) {
-            if (!(queuedStack.getItem() instanceof ItemIngredient)) continue;
+            if (!TileEntityAlchemyCauldron.isBrewingInput(queuedStack)) continue;
 
             PotionMap.PotionPath path = PotionMap.INSTANCE.walk(x, y, queuedStack);
             if (path.stalled()) {
                 stalled = true;
+                if (path.teleport()) drawOffMapAttempt(graphics, x, y, queuedStack, prevX, prevY, node);
                 continue;
             }
 
@@ -679,6 +802,22 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
 
             int[] end = path.end(x, y);
 
+            if (!path.teleport()) {
+                List<int[]> cells = path.cells();
+                for (int i = 0; i < cells.size() - 1; i++) {
+                    PotionMap.PotionEffectPosition passed =
+                            PotionMap.INSTANCE.getEffectAt(cells.get(i)[0], cells.get(i)[1]);
+                    if (passed != null && passed.getEffect() != null && held.add(passed.getEffect())) {
+                        pickups.add(cells.get(i));
+                    }
+                }
+            }
+
+            PotionMap.PotionEffectPosition arrival = PotionMap.INSTANCE.getEffectPotion(end);
+            if (arrival.getEffect() != null && held.add(arrival.getEffect())) {
+                pickups.add(end);
+            }
+
             if (path.teleport()) {
                 int px = (int) Math.round(screenX(end[0]));
                 int py = (int) Math.round(screenY(end[1]));
@@ -691,18 +830,26 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
             y = end[1];
         }
 
-        int predicted = cauldron.previewEffectCount(queued);
-        boolean overloaded = predicted > TileEntityAlchemyCauldron.MAX_EFFECTS;
+        int predicted = cauldron.previewPotency(queued);
+        boolean overloaded = predicted > TileEntityAlchemyCauldron.maxPotency();
 
         int half = Math.max(3, node / 3);
         int ghost = stalled || doomed || overloaded ? BLOCKED_RGB : GHOST_RGB;
-        graphics.outline(prevX - half, prevY - half, half * 2, half * 2, ARGB.color(200, ghost));
-        graphics.outline(prevX - half - 1, prevY - half - 1, half * 2 + 2, half * 2 + 2, ARGB.color(80, ghost));
+
+        if (!doomed && !overloaded) {
+            for (int[] cell : pickups) {
+                drawPlanMarker(graphics, (int) Math.round(screenX(cell[0])),
+                        (int) Math.round(screenY(cell[1])), node, GAINED_RGB);
+            }
+        }
+
+        drawPlanMarker(graphics, prevX, prevY, node, ghost);
 
         if (doomed || overloaded) {
             graphics.item(new ItemStack(Items.SKELETON_SKULL), prevX - 8, prevY - 8);
-            Component warning = Component.translatable(doomed
-                    ? "alchemia.gui.doomed" : "alchemia.gui.overloaded", predicted);
+            Component warning = doomed
+                    ? Component.translatable("alchemia.gui.doomed")
+                    : Component.translatable("alchemia.gui.overloaded", predicted, TileEntityAlchemyCauldron.maxPotency());
             int warnX = Mth.clamp(prevX, viewLeft() + this.font.width(warning) / 2 + 2,
                     viewLeft() + VIEW_WIDTH - this.font.width(warning) / 2 - 2);
             graphics.text(this.font, warning, warnX - this.font.width(warning) / 2, prevY + half + 3,
@@ -719,6 +866,42 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
                     viewLeft() + VIEW_WIDTH - this.font.width(label) / 2 - 2);
             graphics.text(this.font, label, labelX - this.font.width(label) / 2, prevY + half + 3, INK, false);
         }
+    }
+
+    private void drawOffMapAttempt(GuiGraphicsExtractor graphics, int x, int y, ItemStack stack,
+                                   int fromX, int fromY, int node) {
+        List<int[]> curve = PotionMap.INSTANCE.teleportCurve(x, y, stack);
+        if (curve.isEmpty()) return;
+
+        int px = fromX;
+        int py = fromY;
+
+        for (int[] cell : curve) {
+            int cx = (int) Math.round(screenX(cell[0]));
+            int cy = (int) Math.round(screenY(cell[1]));
+            drawSegment(graphics, px, py, cx, cy, true);
+            px = cx;
+            py = cy;
+        }
+
+        int half = Math.max(3, node / 3);
+        int blocked = ARGB.color(220, BLOCKED_RGB);
+
+        graphics.fill(px - half, py - 1, px + half, py + 1, blocked);
+        graphics.fill(px - 1, py - half, px + 1, py + half, blocked);
+        graphics.outline(px - half - 1, py - half - 1, half * 2 + 2, half * 2 + 2, ARGB.color(120, BLOCKED_RGB));
+
+        Component label = Component.translatable("alchemia.gui.offmap");
+        int labelX = Mth.clamp(px, viewLeft() + this.font.width(label) / 2 + 2,
+                viewLeft() + VIEW_WIDTH - this.font.width(label) / 2 - 2);
+        graphics.text(this.font, label, labelX - this.font.width(label) / 2, py + half + 3,
+                ARGB.opaque(BLOCKED_RGB), false);
+    }
+
+    private void drawPlanMarker(GuiGraphicsExtractor graphics, int x, int y, int node, int rgb) {
+        int half = Math.max(3, node / 3);
+        graphics.outline(x - half, y - half, half * 2, half * 2, ARGB.color(200, rgb));
+        graphics.outline(x - half - 1, y - half - 1, half * 2 + 2, half * 2 + 2, ARGB.color(80, rgb));
     }
 
     private void drawNodeDot(GuiGraphicsExtractor graphics, int px, int py, int cellX, int cellY) {
@@ -740,6 +923,25 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
             int py = (int) Math.round(y0 + dy * t);
             graphics.fill(px - 1, py - 1, px + 1, py + 1, ARGB.color(190, GHOST_RGB));
         }
+    }
+
+    private void drawMapEdge(GuiGraphicsExtractor graphics, int left, int top, int right, int bottom) {
+        int size = PotionMap.INSTANCE.getSize();
+
+        int x0 = Mth.clamp((int) Math.round(screenX(-0.5)), left, right);
+        int x1 = Mth.clamp((int) Math.round(screenX(size - 0.5)), left, right);
+        int y0 = Mth.clamp((int) Math.round(screenY(-0.5)), top, bottom);
+        int y1 = Mth.clamp((int) Math.round(screenY(size - 0.5)), top, bottom);
+
+        if (y0 > top) graphics.fill(left, top, right, y0, EDGE_FILL);
+        if (y1 < bottom) graphics.fill(left, y1, right, bottom, EDGE_FILL);
+        if (x0 > left) graphics.fill(left, y0, x0, y1, EDGE_FILL);
+        if (x1 < right) graphics.fill(x1, y0, right, y1, EDGE_FILL);
+
+        if (x0 > left) graphics.fill(x0 - 1, y0, x0 + 1, y1, EDGE_LINE);
+        if (x1 < right) graphics.fill(x1 - 1, y0, x1 + 1, y1, EDGE_LINE);
+        if (y0 > top) graphics.fill(x0, y0 - 1, x1, y0 + 1, EDGE_LINE);
+        if (y1 < bottom) graphics.fill(x0, y1 - 1, x1, y1 + 1, EDGE_LINE);
     }
 
     private void extractDeadzones(GuiGraphicsExtractor graphics, int left, int top, int right, int bottom) {
@@ -773,10 +975,6 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
         int radius = (int) Math.round(node * 0.55 + pulse * 3.0);
         int alpha = (int) Math.round(70 + pulse * 90);
 
-        ItemStack marker = new ItemStack(Items.POTION);
-        marker.set(DataComponents.POTION_CONTENTS,
-                new PotionContents(Optional.empty(), Optional.of(cauldron.getPotionColor()), List.of(), Optional.empty()));
-
         Matrix3x2fStack pose = graphics.pose();
         pose.pushMatrix();
         pose.translate(x, y);
@@ -785,9 +983,74 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
 
         graphics.outline(-radius, -radius, radius * 2, radius * 2, ARGB.color(alpha, 0x2A1F14));
         graphics.outline(-radius - 1, -radius - 1, radius * 2 + 2, radius * 2 + 2, ARGB.color(alpha / 3, 0x2A1F14));
+        ItemStack marker = new ItemStack(cauldron.hasGunpowder() ? Items.SPLASH_POTION : Items.POTION);
+        marker.set(DataComponents.POTION_CONTENTS,
+                new PotionContents(Optional.empty(), Optional.of(cauldron.getPotionColor()), List.of(), Optional.empty()));
         graphics.item(marker, -8, -8);
 
         pose.popMatrix();
+    }
+
+    private void drawEffectAura(GuiGraphicsExtractor graphics, int cx, int cy,
+                                PotionMap.MapEntry entry, boolean discovered) {
+        double cellW = SPACING_X * zoom;
+        double cellH = SPACING_Y * zoom;
+        if (cellW < 2 || cellH < 2) return;
+
+        double reachX = (PotionMap.EFFECT_RADIUS + 0.5) * cellW;
+        double reachY = (PotionMap.EFFECT_RADIUS + 0.5) * cellH;
+        if (cx + reachX < viewLeft() || cx - reachX > viewLeft() + VIEW_WIDTH
+                || cy + reachY < viewTop() || cy - reachY > viewTop() + VIEW_HEIGHT) return;
+
+        int rgb = discovered ? entry.effect().getEffect().value().getColor() : AURA_UNKNOWN_RGB;
+        double pulse = (Math.sin(Util.getMillis() / 520.0 + cx * 0.35) + 1.0) * 0.5;
+        double glow = 0.72 + pulse * 0.28;
+
+        int radius = PotionMap.EFFECT_RADIUS;
+
+        for (int dx = -radius; dx <= radius; dx++) {
+            for (int dy = -radius; dy <= radius; dy++) {
+                int ring = Math.max(Math.abs(dx), Math.abs(dy));
+
+                int cellX = entry.x() + dx;
+                int cellY = entry.y() + dy;
+
+                int x0 = (int) Math.round(screenX(cellX - 0.5));
+                int x1 = (int) Math.round(screenX(cellX + 0.5));
+                int y0 = (int) Math.round(screenY(cellY - 0.5));
+                int y1 = (int) Math.round(screenY(cellY + 0.5));
+                if (x1 <= x0) x1 = x0 + 1;
+                if (y1 <= y0) y1 = y0 + 1;
+
+                int alpha = (int) Math.round(AURA_CORE_ALPHA / (1.0 + ring) * glow);
+                graphics.fill(x0, y0, x1, y1, ARGB.color(alpha, rgb));
+
+                int edge = ARGB.color(Math.min(255, (int) Math.round(alpha * 2.4)), rgb);
+                if (outsideReach(dx, dy - 1, radius)) dottedEdge(graphics, x0, y0, x1, y0 + 1, true, edge);
+                if (outsideReach(dx, dy + 1, radius)) dottedEdge(graphics, x0, y1 - 1, x1, y1, true, edge);
+                if (outsideReach(dx - 1, dy, radius)) dottedEdge(graphics, x0, y0, x0 + 1, y1, false, edge);
+                if (outsideReach(dx + 1, dy, radius)) dottedEdge(graphics, x1 - 1, y0, x1, y1, false, edge);
+            }
+        }
+    }
+
+    private void dottedEdge(GuiGraphicsExtractor graphics, int x0, int y0, int x1, int y1,
+                            boolean horizontal, int colour) {
+        int length = horizontal ? x1 - x0 : y1 - y0;
+
+        for (int i = 0; i < length; i++) {
+            if ((i / AURA_DASH) % 2 == 1) continue;
+
+            if (horizontal) {
+                graphics.fill(x0 + i, y0, x0 + i + 1, y1, colour);
+            } else {
+                graphics.fill(x0, y0 + i, x1, y0 + i + 1, colour);
+            }
+        }
+    }
+
+    private static boolean outsideReach(int dx, int dy, int radius) {
+        return Math.max(Math.abs(dx), Math.abs(dy)) > radius;
     }
 
     private void drawThread(GuiGraphicsExtractor graphics, int x0, int y0, int x1, int y1, int thickness) {

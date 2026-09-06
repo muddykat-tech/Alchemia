@@ -1,0 +1,54 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "alchemia:citrinitas",
+    {
+      "neoforge:ingredient_type": "alchemia:potion_effect",
+      "effects": [
+        {
+          "amplifier": 2,
+          "effect": "minecraft:saturation"
+        }
+      ]
+    },
+    {
+      "neoforge:ingredient_type": "alchemia:potion_effect",
+      "effects": [
+        {
+          "amplifier": 2,
+          "effect": "minecraft:regeneration"
+        }
+      ]
+    },
+    {
+      "neoforge:ingredient_type": "alchemia:potion_effect",
+      "effects": [
+        {
+          "amplifier": 2,
+          "effect": "minecraft:absorption"
+        }
+      ]
+    },
+    {
+      "neoforge:ingredient_type": "alchemia:potion_effect",
+      "effects": [
+        {
+          "amplifier": 2,
+          "effect": "minecraft:wither"
+        }
+      ]
+    },
+    {
+      "neoforge:ingredient_type": "alchemia:potion_effect",
+      "effects": [
+        {
+          "amplifier": 2,
+          "effect": "minecraft:health_boost"
+        }
+      ]
+    }
+  ],
+  "result": {
+    "id": "alchemia:rubedo"
+  }
+}

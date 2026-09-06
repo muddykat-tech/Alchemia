@@ -1,0 +1,63 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "alchemia:nigredo",
+    {
+      "neoforge:ingredient_type": "alchemia:potion_effect",
+      "effects": [
+        {
+          "amplifier": 2,
+          "effect": "minecraft:invisibility"
+        }
+      ]
+    },
+    {
+      "neoforge:ingredient_type": "alchemia:potion_effect",
+      "effects": [
+        {
+          "amplifier": 2,
+          "effect": "minecraft:speed"
+        }
+      ]
+    },
+    {
+      "neoforge:ingredient_type": "alchemia:potion_effect",
+      "effects": [
+        {
+          "amplifier": 2,
+          "effect": "minecraft:night_vision"
+        }
+      ]
+    },
+    {
+      "neoforge:ingredient_type": "alchemia:potion_effect",
+      "effects": [
+        {
+          "amplifier": 2,
+          "effect": "minecraft:haste"
+        }
+      ]
+    },
+    {
+      "neoforge:ingredient_type": "alchemia:potion_effect",
+      "effects": [
+        {
+          "amplifier": 2,
+          "effect": "minecraft:levitation"
+        }
+      ]
+    },
+    {
+      "neoforge:ingredient_type": "alchemia:potion_effect",
+      "effects": [
+        {
+          "amplifier": 2,
+          "effect": "minecraft:dolphins_grace"
+        }
+      ]
+    }
+  ],
+  "result": {
+    "id": "alchemia:albedo"
+  }
+}

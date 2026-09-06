@@ -18,7 +18,10 @@ import java.util.*;
 
 public class PotionMap {
     public static PotionMap INSTANCE;
+    public static final int HARD_MARGIN = 3;
+
     private final int size;
+    private final int softSize;
     private final int middlePosition;
     public final HashMap<String, PotionEffectPosition> effectHashMap = new HashMap<>();
     private final List<MapEntry> entries = new ArrayList<>();
@@ -26,7 +29,8 @@ public class PotionMap {
 
     public PotionMap(long seed) {
         Random rand = new Random(seed);
-        size = PotionEnum.values().length * 2;
+        softSize = PotionEnum.values().length * 2;
+        size = softSize + HARD_MARGIN * 2;
         middlePosition = size / 2;
 
         int minDistance = 6;
@@ -69,8 +73,8 @@ public class PotionMap {
                 int randX = middlePosition + (int) (randomRadius * Math.cos(angle));
                 int randY = middlePosition + (int) (randomRadius * Math.sin(angle));
 
-                randX = Math.max(0, Math.min(size - 1, randX));
-                randY = Math.max(0, Math.min(size - 1, randY));
+                randX = Math.max(HARD_MARGIN, Math.min(size - 1 - HARD_MARGIN, randX));
+                randY = Math.max(HARD_MARGIN, Math.min(size - 1 - HARD_MARGIN, randY));
 
                 boolean positionValid = true;
 
@@ -108,6 +112,7 @@ public class PotionMap {
     }
 
     public static final int MAX_CRYSTAL_GATED = 3;
+    public static final int EFFECT_RADIUS = 2;
 
     private static final int DEADZONE_MARGIN = 2;
     private static final int CENTRE_MARGIN = 6;
@@ -172,15 +177,26 @@ public class PotionMap {
     }
 
     public int[] teleportPolar(int x, int y, double angle, double radius) {
-        return new int[]{
-                clamp(x + (int) Math.round(Math.cos(angle) * radius)),
-                clamp(y + (int) Math.round(Math.sin(angle) * radius))
-        };
+        double cos = Math.cos(angle);
+        double sin = Math.sin(angle);
+
+        for (double reach = radius; reach >= 1.0; reach -= 1.0) {
+            int nx = x + (int) Math.round(cos * reach);
+            int ny = y + (int) Math.round(sin * reach);
+            if (inBounds(nx, ny)) return new int[]{nx, ny};
+        }
+        return new int[]{x, y};
     }
 
     public int[] teleport(int x, int y, int dx, int dy, int distance) {
         if (dx == 0 && dy == 0) return new int[]{middlePosition, middlePosition};
-        return new int[]{clamp(x + dx * distance), clamp(y + dy * distance)};
+
+        for (int step = distance; step >= 1; step--) {
+            int nx = x + dx * step;
+            int ny = y + dy * step;
+            if (inBounds(nx, ny)) return new int[]{nx, ny};
+        }
+        return new int[]{x, y};
     }
 
     public record PotionPath(List<int[]> cells, boolean teleport, boolean stalled, boolean dead) {
@@ -189,7 +205,79 @@ public class PotionMap {
         }
     }
 
+    public int[] positionOf(PotionEnum recipe) {
+        for (MapEntry entry : entries()) {
+            if (entry.effect().getRecipe() == recipe) return new int[]{entry.x(), entry.y()};
+        }
+        return null;
+    }
+
+    private PotionPath homingPath(int x, int y, PotionEnum target) {
+        int[] goal = positionOf(target);
+        if (goal == null) return new PotionPath(List.of(), false, true, false);
+
+        List<int[]> cells = new ArrayList<>();
+        int cx = x;
+        int cy = y;
+
+        for (int step = 0; step < VanillaIngredients.DRIFT_LENGTH; step++) {
+            if (cx == goal[0] && cy == goal[1]) break;
+
+            int nx = cx + Integer.signum(goal[0] - cx);
+            int ny = cy + Integer.signum(goal[1] - cy);
+            if (!inBounds(nx, ny) || isDeadzone(nx, ny)) break;
+
+            cx = nx;
+            cy = ny;
+            cells.add(new int[]{cx, cy});
+        }
+        return new PotionPath(cells, false, cells.isEmpty(), false);
+    }
+
+    public List<int[]> fixedDriftOffsets(PotionEnum target) {
+        int[] goal = positionOf(target);
+        if (goal == null) return List.of();
+
+        int reachX = goal[0] - middlePosition;
+        int reachY = goal[1] - middlePosition;
+        if (reachX == 0 && reachY == 0) return List.of();
+
+        double angle = Math.atan2(reachY, reachX);
+        List<int[]> offsets = new ArrayList<>();
+        int cx = 0;
+        int cy = 0;
+
+        for (int step = 1; step <= VanillaIngredients.DRIFT_LENGTH; step++) {
+            int tx = (int) Math.round(Math.cos(angle) * step);
+            int ty = (int) Math.round(Math.sin(angle) * step);
+
+            while (cx != tx || cy != ty) {
+                cx += Integer.signum(tx - cx);
+                cy += Integer.signum(ty - cy);
+                offsets.add(new int[]{cx, cy});
+            }
+        }
+        return offsets;
+    }
+
+    private PotionPath fixedPath(int x, int y, PotionEnum target) {
+        List<int[]> cells = new ArrayList<>();
+
+        for (int[] offset : fixedDriftOffsets(target)) {
+            int nx = x + offset[0];
+            int ny = y + offset[1];
+            if (!inBounds(nx, ny) || isDeadzone(nx, ny)) break;
+            cells.add(new int[]{nx, ny});
+        }
+        return new PotionPath(cells, false, cells.isEmpty(), false);
+    }
+
     public PotionPath walk(int x, int y, ItemStack stack) {
+        VanillaIngredients.Drift drift = VanillaIngredients.driftOf(stack);
+        if (drift != null) {
+            return drift.homing() ? homingPath(x, y, drift.target()) : fixedPath(x, y, drift.target());
+        }
+
         if (!(stack.getItem() instanceof ItemIngredient ingredient)) {
             return new PotionPath(List.of(), false, true, false);
         }
@@ -217,9 +305,9 @@ public class PotionMap {
         List<int[]> cells = new ArrayList<>();
 
         for (int[] offset : IngredientPath.pathFor(ingredient.getIngredient(), dx, dy, potency)) {
-            int nx = clamp(x + offset[0]);
-            int ny = clamp(y + offset[1]);
-            if (isDeadzone(nx, ny)) break;
+            int nx = x + offset[0];
+            int ny = y + offset[1];
+            if (!inBounds(nx, ny) || isDeadzone(nx, ny)) break;
             cells.add(new int[]{nx, ny});
         }
 
@@ -237,7 +325,10 @@ public class PotionMap {
 
         List<int[]> curve = new ArrayList<>();
         for (int[] offset : shape.teleportPreview(dx, dy, ingredient.getPotency(stack), 1.0)) {
-            curve.add(new int[]{clamp(x + offset[0]), clamp(y + offset[1])});
+            int nx = x + offset[0];
+            int ny = y + offset[1];
+            if (!inBounds(nx, ny)) break;
+            curve.add(new int[]{nx, ny});
         }
         return curve;
     }
@@ -332,8 +423,7 @@ public class PotionMap {
 
         PotionEffectPosition closestEffect = null;
         double closestDistance = Double.MAX_VALUE;
-
-        int maxDistance = 2;
+        int closestRing = Integer.MAX_VALUE;
 
         for (Map.Entry<String, PotionEffectPosition> entry : effectHashMap.entrySet()) {
             String positionKey = entry.getKey();
@@ -343,25 +433,26 @@ public class PotionMap {
             int x = Integer.parseInt(parts[0]);
             int y = Integer.parseInt(parts[1]);
 
-            double distance = Math.sqrt(Math.pow(x - alignment[0], 2) + Math.pow(y - alignment[1], 2));
+            int dx = x - alignment[0];
+            int dy = y - alignment[1];
+            int ring = Math.max(Math.abs(dx), Math.abs(dy));
+            if (ring > EFFECT_RADIUS) continue;
 
-            if (distance <= maxDistance && (closestEffect == null || distance < closestDistance)) {
+            double distance = Math.sqrt(dx * dx + dy * dy);
+            if (closestEffect == null || ring < closestRing
+                    || (ring == closestRing && distance < closestDistance)) {
                 closestEffect = effectPosition;
                 closestDistance = distance;
+                closestRing = ring;
             }
         }
 
-        if (closestEffect != null) {
-            if (closestDistance == 0) {
-                return closestEffect;
-            } else {
-                int originalStrength = closestEffect.getStrength();
-                int adjustedStrength = (int) Math.floor(originalStrength / closestDistance);
-                return new PotionEffectPosition(closestEffect.getRecipe(), closestEffect.getEffect(), closestEffect.getDuration(), Math.max(1, adjustedStrength-1), closestEffect.getPotion(), false);
-            }
-        }
+        if (closestEffect == null) return defaultEffect;
+        if (closestRing == 0) return closestEffect;
 
-        return defaultEffect;
+        int falloff = Math.max(0, closestEffect.getStrength() - closestRing);
+        return new PotionEffectPosition(closestEffect.getRecipe(), closestEffect.getEffect(),
+                closestEffect.getDuration(), falloff, closestEffect.getPotion(), false);
     }
 
     public List<MapEntry> entries() {
@@ -372,6 +463,14 @@ public class PotionMap {
             }
         }
         return entries;
+    }
+
+    public int getSize() {
+        return size;
+    }
+
+    public int getSoftSize() {
+        return softSize;
     }
 
     public int getMiddlePosition() {

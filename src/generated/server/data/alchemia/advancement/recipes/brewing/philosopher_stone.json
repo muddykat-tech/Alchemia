@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_rubedo": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:rubedo"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "alchemia:philosopher_stone"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_rubedo"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "alchemia:philosopher_stone"
+    ]
+  }
+}

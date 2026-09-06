@@ -1,0 +1,32 @@
+{
+  "parent": "alchemia:root",
+  "criteria": {
+    "unlocked": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:alchemia_guide"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.alchemia.guide.description"
+    },
+    "icon": {
+      "id": "alchemia:alchemia_guide"
+    },
+    "title": {
+      "translate": "advancements.alchemia.guide.title"
+    }
+  },
+  "requirements": [
+    [
+      "unlocked"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

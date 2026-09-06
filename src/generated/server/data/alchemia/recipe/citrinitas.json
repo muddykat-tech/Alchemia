@@ -1,0 +1,54 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "alchemia:albedo",
+    {
+      "neoforge:ingredient_type": "alchemia:potion_effect",
+      "effects": [
+        {
+          "amplifier": 2,
+          "effect": "minecraft:glowing"
+        }
+      ]
+    },
+    {
+      "neoforge:ingredient_type": "alchemia:potion_effect",
+      "effects": [
+        {
+          "amplifier": 2,
+          "effect": "minecraft:fire_resistance"
+        }
+      ]
+    },
+    {
+      "neoforge:ingredient_type": "alchemia:potion_effect",
+      "effects": [
+        {
+          "amplifier": 2,
+          "effect": "minecraft:conduit_power"
+        }
+      ]
+    },
+    {
+      "neoforge:ingredient_type": "alchemia:potion_effect",
+      "effects": [
+        {
+          "amplifier": 2,
+          "effect": "minecraft:bad_omen"
+        }
+      ]
+    },
+    {
+      "neoforge:ingredient_type": "alchemia:potion_effect",
+      "effects": [
+        {
+          "amplifier": 2,
+          "effect": "minecraft:instant_damage"
+        }
+      ]
+    }
+  ],
+  "result": {
+    "id": "alchemia:citrinitas"
+  }
+}

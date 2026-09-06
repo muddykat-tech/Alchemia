@@ -2,7 +2,9 @@ package muddykat.alchemia.registration.registers;
 
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.items.ItemAlchemiaGuide;
+import muddykat.alchemia.common.items.ItemGeneric;
 import muddykat.alchemia.common.items.ItemMortarPestle;
+import muddykat.alchemia.common.items.ItemPhilosopherStone;
 import muddykat.alchemia.common.items.helper.Ingredients;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.ItemLike;
@@ -43,5 +45,11 @@ public class ItemRegistry {
 
         registerItem("alchemia_guide", ItemAlchemiaGuide::new);
         registerItem("mortar_and_pestle", ItemMortarPestle::new);
+
+        registerItem("nigredo", ItemGeneric::new);
+        registerItem("albedo", ItemGeneric::new);
+        registerItem("citrinitas", ItemGeneric::new);
+        registerItem("rubedo", ItemGeneric::new);
+        registerItem("philosopher_stone", ItemPhilosopherStone::new);
     }
 }

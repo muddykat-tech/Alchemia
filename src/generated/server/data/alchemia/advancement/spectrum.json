@@ -1,0 +1,98 @@
+{
+  "parent": "alchemia:crystal",
+  "criteria": {
+    "mineral_arcane_crystal": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:mineral_arcane_crystal"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "mineral_cloud_crystal": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:mineral_cloud_crystal"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "mineral_earth_pyrite": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:mineral_earth_pyrite"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "mineral_fable_bismuth": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:mineral_fable_bismuth"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "mineral_fire_citrine": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:mineral_fire_citrine"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "mineral_frost_sapphire": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:mineral_frost_sapphire"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.alchemia.spectrum.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "id": "alchemia:mineral_fable_bismuth"
+    },
+    "title": {
+      "translate": "advancements.alchemia.spectrum.title"
+    }
+  },
+  "requirements": [
+    [
+      "mineral_cloud_crystal"
+    ],
+    [
+      "mineral_earth_pyrite"
+    ],
+    [
+      "mineral_frost_sapphire"
+    ],
+    [
+      "mineral_fire_citrine"
+    ],
+    [
+      "mineral_arcane_crystal"
+    ],
+    [
+      "mineral_fable_bismuth"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

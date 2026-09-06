@@ -1,0 +1,103 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "alchemia:rubedo",
+    {
+      "neoforge:ingredient_type": "alchemia:potion_effect",
+      "effects": [
+        {
+          "amplifier": 2,
+          "effect": "minecraft:luck"
+        }
+      ]
+    },
+    {
+      "neoforge:ingredient_type": "alchemia:potion_effect",
+      "effects": [
+        {
+          "amplifier": 2,
+          "effect": "minecraft:nausea"
+        }
+      ]
+    },
+    {
+      "neoforge:ingredient_type": "alchemia:potion_effect",
+      "effects": [
+        {
+          "effect": "minecraft:poison"
+        },
+        {
+          "effect": "minecraft:fire_resistance"
+        },
+        {
+          "effect": "minecraft:instant_damage"
+        },
+        {
+          "effect": "minecraft:slow_falling"
+        },
+        {
+          "effect": "minecraft:slowness"
+        }
+      ]
+    },
+    {
+      "neoforge:ingredient_type": "alchemia:potion_effect",
+      "effects": [
+        {
+          "effect": "minecraft:absorption"
+        },
+        {
+          "effect": "minecraft:glowing"
+        },
+        {
+          "effect": "minecraft:instant_health"
+        },
+        {
+          "effect": "minecraft:health_boost"
+        },
+        {
+          "effect": "minecraft:dolphins_grace"
+        }
+      ]
+    },
+    {
+      "neoforge:ingredient_type": "alchemia:potion_effect",
+      "effects": [
+        {
+          "effect": "minecraft:bad_omen"
+        },
+        {
+          "effect": "minecraft:wither"
+        },
+        {
+          "effect": "minecraft:weakness"
+        },
+        {
+          "effect": "minecraft:invisibility"
+        },
+        {
+          "effect": "minecraft:instant_damage"
+        }
+      ]
+    },
+    {
+      "neoforge:ingredient_type": "alchemia:potion_effect",
+      "effects": [
+        {
+          "amplifier": 1,
+          "effect": "minecraft:absorption"
+        },
+        {
+          "effect": "minecraft:fire_resistance"
+        },
+        {
+          "amplifier": 1,
+          "effect": "minecraft:resistance"
+        }
+      ]
+    }
+  ],
+  "result": {
+    "id": "alchemia:philosopher_stone"
+  }
+}
