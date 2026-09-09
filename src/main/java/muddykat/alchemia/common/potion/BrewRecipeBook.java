@@ -55,7 +55,7 @@ public class BrewRecipeBook {
         }
     }
 
-    public static int record(Player player, Collection<MobEffectInstance> effects, List<String> ingredients, String brewName) {
+    public static int record(Player player, BrewBase base, Collection<MobEffectInstance> effects, List<String> ingredients, String brewName) {
         if (ingredients.isEmpty()) return 0;
 
         List<BrewRecipe.BrewEffect> produced = new ArrayList<>();
@@ -72,7 +72,7 @@ public class BrewRecipeBook {
             if (!(stack.getItem() instanceof ItemAlchemiaGuide)) continue;
 
             List<BrewRecipe> stored = new ArrayList<>(recipes(stack));
-            stored.add(BrewRecipe.create(brewName, List.copyOf(produced), List.copyOf(ingredients)));
+            stored.add(BrewRecipe.create(brewName, base, List.copyOf(produced), List.copyOf(ingredients)));
             stack.set(DataComponentRegistry.BREW_RECIPES.get(), List.copyOf(stored));
             recorded++;
         }

@@ -1,0 +1,15 @@
+{
+  "loader": "neoforge:obj",
+  "model": "alchemia:models/alchemy_machine_right_upgrade.obj",
+  "mtl_override": "alchemia:models/alchemy_machine.mtl",
+  "flip_v": true,
+  "automatic_culling": false,
+  "transform": {
+    "translation": [-0.5, 0.0, 0.5]
+  },
+  "textures": {
+    "body": "alchemia:block/alchemy/alchemy_machine",
+    "glass": "alchemia:block/alchemy/glass",
+    "particle": "alchemia:block/alchemy/alchemy_machine"
+  }
+}

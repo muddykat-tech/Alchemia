@@ -15,6 +15,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import org.slf4j.Logger;
@@ -32,6 +33,7 @@ public class Alchemia {
         LOGGER.info(MOD_NAME + " Setup Phase");
 
         modEventBus.addListener(CommonSetup::init);
+        modEventBus.addListener(Alchemia::onConfigChanged);
 
         LOGGER.info(MOD_NAME + " Initializing Configuration");
         modContainer.registerConfig(ModConfig.Type.COMMON, Configuration.COMMON_CONFIG);
@@ -50,6 +52,12 @@ public class Alchemia {
 
         LOGGER.info(MOD_NAME + " Setup Complete");
         LOGGER.info("|-=-=-=-=-=-=-=-=-=-=-=-=-=-|");
+    }
+
+    private static void onConfigChanged(ModConfigEvent event) {
+        if (event.getConfig().getSpec() != Configuration.SERVER_CONFIG) return;
+        Configuration.clearBaseEffectCache();
+        PotionMap.rebuild();
     }
 
     @SubscribeEvent

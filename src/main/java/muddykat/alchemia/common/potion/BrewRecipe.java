@@ -21,17 +21,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public record BrewRecipe(String id, String name, List<BrewRecipe.BrewEffect> effects, List<String> ingredients) {
+public record BrewRecipe(String id, String name, String base, List<BrewRecipe.BrewEffect> effects, List<String> ingredients) {
 
     public BrewRecipe {
         if (id == null || id.isBlank()) {
             id = effects.stream().map(BrewEffect::recipe).sorted().collect(Collectors.joining("+"));
         }
         if (name == null) name = "";
+        if (base == null || base.isBlank()) base = BrewBase.WATER.getSerializedName();
     }
 
-    public static BrewRecipe create(String name, List<BrewEffect> effects, List<String> ingredients) {
-        return new BrewRecipe(java.util.UUID.randomUUID().toString(), name, effects, ingredients);
+    public static BrewRecipe create(String name, BrewBase base, List<BrewEffect> effects, List<String> ingredients) {
+        return new BrewRecipe(java.util.UUID.randomUUID().toString(), name, base.getSerializedName(), effects, ingredients);
+    }
+
+    public BrewBase brewBase() {
+        return BrewBase.byName(base);
     }
 
 
@@ -59,6 +64,7 @@ public record BrewRecipe(String id, String name, List<BrewRecipe.BrewEffect> eff
     private static final Codec<BrewRecipe> MODERN = RecordCodecBuilder.create(instance -> instance.group(
             Codec.STRING.optionalFieldOf("id", "").forGetter(BrewRecipe::id),
             Codec.STRING.optionalFieldOf("name", "").forGetter(BrewRecipe::name),
+            Codec.STRING.optionalFieldOf("base", BrewBase.WATER.getSerializedName()).forGetter(BrewRecipe::base),
             BrewEffect.CODEC.listOf().fieldOf("effects").forGetter(BrewRecipe::effects),
             Codec.STRING.listOf().fieldOf("ingredients").forGetter(BrewRecipe::ingredients)
     ).apply(instance, BrewRecipe::new));
@@ -67,13 +73,15 @@ public record BrewRecipe(String id, String name, List<BrewRecipe.BrewEffect> eff
             Codec.STRING.fieldOf("recipe").forGetter(brew -> brew.effects().getFirst().recipe()),
             Codec.STRING.listOf().fieldOf("ingredients").forGetter(BrewRecipe::ingredients),
             Codec.INT.fieldOf("potency").forGetter(brew -> brew.effects().getFirst().potency())
-    ).apply(instance, (recipe, ingredients, potency) -> new BrewRecipe("", "", List.of(new BrewEffect(recipe, potency)), ingredients)));
+    ).apply(instance, (recipe, ingredients, potency) -> new BrewRecipe("", "",
+            BrewBase.WATER.getSerializedName(), List.of(new BrewEffect(recipe, potency)), ingredients)));
 
     public static final Codec<BrewRecipe> CODEC = Codec.either(MODERN, LEGACY).xmap(Either::unwrap, Either::left);
 
     public static final StreamCodec<ByteBuf, BrewRecipe> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.STRING_UTF8, BrewRecipe::id,
             ByteBufCodecs.STRING_UTF8, BrewRecipe::name,
+            ByteBufCodecs.STRING_UTF8, BrewRecipe::base,
             BrewEffect.STREAM_CODEC.apply(ByteBufCodecs.collection(ArrayList::new)), BrewRecipe::effects,
             ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.collection(ArrayList::new)), BrewRecipe::ingredients,
             BrewRecipe::new);

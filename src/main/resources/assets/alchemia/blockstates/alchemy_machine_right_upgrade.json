@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "alchemia:block/alchemy_machine_right_upgrade" },
+    "facing=east": { "model": "alchemia:block/alchemy_machine_right_upgrade", "y": 90 },
+    "facing=south": { "model": "alchemia:block/alchemy_machine_right_upgrade", "y": 180 },
+    "facing=west": { "model": "alchemia:block/alchemy_machine_right_upgrade", "y": 270 }
+  }
+}

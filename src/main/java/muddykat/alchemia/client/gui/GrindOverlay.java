@@ -7,6 +7,7 @@ import muddykat.alchemia.common.items.helper.Ingredients;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Util;
@@ -24,9 +25,6 @@ public class GrindOverlay {
 
     private static final float FADE_SECONDS = 0.22F;
 
-    private static final int PANEL_FILL_RGB = 0x241C12;
-    private static final int PANEL_FILL_ALPHA = 192;
-    private static final int PANEL_EDGE_RGB = 0x6B5335;
     private static final int PATH_TAKEN = PathPalette.TAKEN;
     private static final int PATH_POTENTIAL = PathPalette.POTENTIAL;
     private static final int PATH_ORIGIN = PathPalette.ORIGIN;
@@ -112,9 +110,8 @@ public class GrindOverlay {
         int panelX = (graphics.guiWidth() - panelW) / 2;
         int panelY = graphics.guiHeight() * TOP_MARGIN_PERCENT / 100;
 
-        graphics.fill(panelX, panelY, panelX + panelW, panelY + panelH,
-                ARGB.color((int) (PANEL_FILL_ALPHA * fade), PANEL_FILL_RGB));
-        graphics.outline(panelX, panelY, panelW, panelH, shade(PANEL_EDGE_RGB, fade));
+        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, AlchemiaSprites.GRIND_PANEL,
+                panelX, panelY, panelW, panelH, shade(0xFFFFFF, fade));
 
         graphics.text(minecraft.font, cachedName, panelX + (panelW - minecraft.font.width(cachedName)) / 2,
                 panelY + PADDING, shade(LABEL_INK_RGB, fade), false);

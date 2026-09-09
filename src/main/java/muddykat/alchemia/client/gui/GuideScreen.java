@@ -100,11 +100,7 @@ public class GuideScreen extends Screen {
 
     private static final int DELETE_W = 62;
     private static final int DELETE_H = 16;
-    private static final int DELETE_FILL = 0xFFC2907E;
-    private static final int DELETE_HOVER = 0xFFD8A896;
-    private static final int DELETE_EDGE = 0xFF6B4335;
 
-    private static final int ROW_HOVER = 0x263A2A18;
     private static final int GRID_CELL = 5;
     private static final double PREVIEW_SCALE = 0.36;
     private static final int PATH_TAKEN = PathPalette.TAKEN;
@@ -188,7 +184,9 @@ public class GuideScreen extends Screen {
 
     private Component entryName(int index) {
         return switch (section) {
-            case RECIPES -> recipes.get(index).displayName();
+            case RECIPES -> Component.translatable("alchemia.guide.recipe.entry",
+                    recipes.get(index).displayName(),
+                    Component.translatable(recipes.get(index).brewBase().translationKey()));
             case EFFECTS -> effects.get(index).getEffect().value().getDisplayName();
             case INGREDIENTS -> ingredientStack(ingredients.get(index)).getHoverName();
         };
@@ -511,7 +509,8 @@ public class GuideScreen extends Screen {
             boolean isSelected = entrySelected(index);
 
             if (!isSelected && (hovered == index || marked == index)) {
-                graphics.fill(listTextX() - 2, rowY - 2, x + LEFT_PAGE_W, rowY + ROW_HEIGHT - 3, ROW_HOVER);
+                graphics.blitSprite(RenderPipelines.GUI_TEXTURED, AlchemiaSprites.ROW_HIGHLIGHT,
+                        listTextX() - 2, rowY - 2, x + LEFT_PAGE_W - (listTextX() - 2), ROW_HEIGHT - 1);
             }
 
             leftBookmark(graphics, markRowY(i), isSelected);
@@ -666,6 +665,9 @@ public class GuideScreen extends Screen {
             y = drawWrapped(graphics, Component.literal(recipe.name()), x, y, RIGHT_PAGE_W, INK_HEAD) + 2;
         }
 
+        y = drawWrapped(graphics, Component.translatable("alchemia.guide.recipe.base",
+                Component.translatable(recipe.brewBase().translationKey())), x, y, RIGHT_PAGE_W, INK_FAINT) + 2;
+
         for (BrewRecipe.BrewEffect effect : recipe.effects()) {
             if (y + LINE_HEIGHT > contentBottom) break;
 
@@ -758,8 +760,9 @@ public class GuideScreen extends Screen {
         int x = deleteX();
         int y = deleteY();
 
-        graphics.fill(x, y, x + DELETE_W, y + DELETE_H, overDelete(mouseX, mouseY) ? DELETE_HOVER : DELETE_FILL);
-        graphics.outline(x, y, DELETE_W, DELETE_H, DELETE_EDGE);
+        graphics.blitSprite(RenderPipelines.GUI_TEXTURED,
+                overDelete(mouseX, mouseY) ? AlchemiaSprites.DELETE_BUTTON_HIGHLIGHTED : AlchemiaSprites.DELETE_BUTTON,
+                x, y, DELETE_W, DELETE_H);
 
         Component label = Component.translatable("alchemia.guide.delete");
         graphics.text(this.font, label, x + (DELETE_W - this.font.width(label)) / 2, y + 4, INK_HEAD, false);

@@ -3,6 +3,7 @@ package muddykat.alchemia.client;
 import muddykat.alchemia.Alchemia;
 import com.mojang.datafixers.util.Either;
 import muddykat.alchemia.common.items.helper.IngredientPathTooltip;
+import muddykat.alchemia.common.potion.BrewBase;
 import muddykat.alchemia.common.potion.PotionMap;
 import muddykat.alchemia.common.potion.VanillaIngredients;
 import muddykat.alchemia.common.utility.TextUtils;
@@ -51,9 +52,9 @@ public class VanillaIngredientTooltip {
     @SubscribeEvent
     public static void onGatherComponents(RenderTooltipEvent.GatherComponents event) {
         VanillaIngredients.Drift drift = VanillaIngredients.driftOf(event.getItemStack());
-        if (drift == null || drift.homing() || PotionMap.INSTANCE == null) return;
+        if (drift == null || drift.homing() || !PotionMap.isReady()) return;
 
-        List<int[]> offsets = PotionMap.INSTANCE.fixedDriftOffsets(drift.target());
+        List<int[]> offsets = PotionMap.get(BrewBase.WATER).fixedDriftOffsets(drift.target());
         if (offsets.isEmpty()) return;
 
         event.getTooltipElements().add(Either.right(new IngredientPathTooltip(

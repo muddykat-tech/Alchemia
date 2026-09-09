@@ -2,6 +2,8 @@
   "values": [
     "alchemia:deepmetal_tile",
     "alchemia:alchemical_cauldron",
+    "alchemia:alchemy_machine_core",
+    "alchemia:alchemy_machine_right_upgrade",
     "alchemia:cloud_crystal_cluster",
     "alchemia:cloud_crystal_bud_large",
     "alchemia:cloud_crystal_bud_medium",

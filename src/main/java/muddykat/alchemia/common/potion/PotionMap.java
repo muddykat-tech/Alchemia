@@ -1,6 +1,7 @@
 package muddykat.alchemia.common.potion;
 
 import muddykat.alchemia.Alchemia;
+import muddykat.alchemia.common.config.Configuration;
 import muddykat.alchemia.common.items.ItemIngredient;
 import muddykat.alchemia.common.items.helper.IngredientAlignment;
 import muddykat.alchemia.common.items.helper.IngredientPath;
@@ -17,9 +18,13 @@ import net.minecraft.world.item.alchemy.Potions;
 import java.util.*;
 
 public class PotionMap {
-    public static PotionMap INSTANCE;
+    private static final EnumMap<BrewBase, PotionMap> MAPS = new EnumMap<>(BrewBase.class);
+    private static long currentSeed;
+    private static boolean seeded;
+
     public static final int HARD_MARGIN = 3;
 
+    private final BrewBase base;
     private final int size;
     private final int softSize;
     private final int middlePosition;
@@ -27,21 +32,30 @@ public class PotionMap {
     private final List<MapEntry> entries = new ArrayList<>();
     private final Set<Long> deadzones = new HashSet<>();
 
-    public PotionMap(long seed) {
+    public PotionMap(long seed, BrewBase base) {
         Random rand = new Random(seed);
+        this.base = base;
         softSize = PotionEnum.values().length * 2;
         size = softSize + HARD_MARGIN * 2;
         middlePosition = size / 2;
 
-        int minDistance = 6;
+        int minDistance = Configuration.effectSpacing();
 
         for (PotionEnum e : PotionEnum.values()) {
+            if (!base.allows(e)) continue;
             Holder<MobEffect> effect = e.getEffect();
             int strength = e.maxStrength;
             boolean placed = false;
+            int spacing = minDistance;
             int attempts = 0;
 
-            while (!placed && attempts < 250) {
+            while (!placed) {
+                if (attempts >= 250) {
+                    if (spacing <= 1) break;
+                    spacing--;
+                    attempts = 0;
+                }
+
                 int biasX = 0;
                 int biasY = 0;
                 for (IngredientAlignment alignment : e.getAlignments()) {
@@ -86,7 +100,7 @@ public class PotionMap {
 
                     double distance = Math.sqrt(Math.pow(x - randX, 2) + Math.pow(y - randY, 2));
 
-                    if (distance < minDistance) {
+                    if (distance < spacing) {
                         positionValid = false;
                         break;
                     }
@@ -101,26 +115,20 @@ public class PotionMap {
                 attempts++;
             }
 
+            if (!placed) placed = placeAnywhere(e, effect, strength);
+
             if (!placed) {
                 Alchemia.LOGGER.warn("Could not place potion effect {}", e.name());
             }
         }
 
         generateDeadzones(seed, rand);
-        Alchemia.LOGGER.info("Potion map built: {} effects, {} deadzone cells, {} effects need crystals",
-                effectHashMap.size(), deadzones.size(), crystalGated);
+        Alchemia.LOGGER.info("Potion map built for {}: {} effects, {} deadzone cells, {} effects need crystals",
+                base.getSerializedName(), effectHashMap.size(), deadzones.size(), crystalGated);
     }
 
-    public static final int MAX_CRYSTAL_GATED = 3;
     public static final int EFFECT_RADIUS = 2;
 
-    private static final int DEADZONE_MARGIN = 2;
-    private static final int CENTRE_MARGIN = 6;
-    private static final double NOISE_SCALE = 0.11;
-    private static final double MIN_THRESHOLD = 0.09;
-    private static final double THRESHOLD_SPREAD = 0.22;
-    private static final double MAX_THRESHOLD = 1.80;
-    private static final double THRESHOLD_STEP = 0.05;
 
     private int crystalGated;
 
@@ -343,32 +351,48 @@ public class PotionMap {
 
     private void generateDeadzones(long seed, Random rand) {
         PerlinSimplexNoise noise = new PerlinSimplexNoise(RandomSource.create(seed), List.of(-3, -2, -1, 0));
-        double start = MIN_THRESHOLD + rand.nextDouble() * THRESHOLD_SPREAD;
+        double noiseScale = Configuration.noiseScale();
+        double maxThreshold = Configuration.maxThreshold();
+        double step = Configuration.thresholdStep();
+        int maxGated = Configuration.maxCrystalGated();
+        double start = Configuration.minThreshold() + rand.nextDouble() * Configuration.thresholdSpread();
 
         Set<Long> protectedCells = new HashSet<>();
         for (MapEntry entry : entries()) {
-            markProtected(protectedCells, entry.x(), entry.y(), DEADZONE_MARGIN);
+            markProtected(protectedCells, entry.x(), entry.y(), Configuration.effectMargin());
         }
-        markProtected(protectedCells, middlePosition, middlePosition, CENTRE_MARGIN);
+        markProtected(protectedCells, middlePosition, middlePosition, Configuration.centreMargin());
 
-        for (double threshold = start; threshold <= MAX_THRESHOLD; threshold += THRESHOLD_STEP) {
+        for (double threshold = start; threshold <= maxThreshold; threshold += step) {
             deadzones.clear();
 
             for (int x = 0; x < size; x++) {
                 for (int y = 0; y < size; y++) {
                     if (protectedCells.contains(pack(x, y))) continue;
-                    if (noise.getValue(x * NOISE_SCALE, y * NOISE_SCALE, false) > threshold) {
+                    if (noise.getValue(x * noiseScale, y * noiseScale, false) > threshold) {
                         deadzones.add(pack(x, y));
                     }
                 }
             }
 
             crystalGated = countUnreachable(false);
-            if (crystalGated <= MAX_CRYSTAL_GATED && countUnreachable(true) == 0) return;
+            if (crystalGated <= maxGated && countUnreachable(true) == 0) return;
         }
 
         deadzones.clear();
         crystalGated = 0;
+    }
+
+    private boolean placeAnywhere(PotionEnum recipe, Holder<MobEffect> effect, int strength) {
+        for (int x = HARD_MARGIN; x <= size - 1 - HARD_MARGIN; x++) {
+            for (int y = HARD_MARGIN; y <= size - 1 - HARD_MARGIN; y++) {
+                String position = x + "," + y;
+                if (effectHashMap.containsKey(position)) continue;
+                effectHashMap.put(position, new PotionEffectPosition(recipe, effect, 1200, strength, recipe.getPotion(), true));
+                return true;
+            }
+        }
+        return false;
     }
 
     private void markProtected(Set<Long> protectedCells, int x, int y, int margin) {
@@ -414,11 +438,40 @@ public class PotionMap {
     }
 
     public static void scramble(long seed) {
-        INSTANCE = new PotionMap(seed);
+        currentSeed = seed;
+        seeded = true;
+        rebuild();
     }
 
-    public PotionEffectPosition getEffectPotion(int[] alignment){
-        String key = alignment[0] + "," + alignment[1];
+    public static void rebuild() {
+        if (!seeded) return;
+        MAPS.clear();
+        for (BrewBase brewBase : BrewBase.values()) {
+            MAPS.put(brewBase, new PotionMap(seedFor(currentSeed, brewBase), brewBase));
+        }
+    }
+
+    public static long seedFor(long seed, BrewBase base) {
+        long mixed = seed ^ (base.getSerializedName().hashCode() * 0x9E3779B97F4A7C15L);
+        mixed ^= mixed >>> 33;
+        mixed *= 0xFF51AFD7ED558CCDL;
+        mixed ^= mixed >>> 33;
+        return mixed;
+    }
+
+    public static PotionMap get(BrewBase base) {
+        return MAPS.get(base);
+    }
+
+    public static boolean isReady() {
+        return seeded && !MAPS.isEmpty();
+    }
+
+    public BrewBase base() {
+        return base;
+    }
+
+    public PotionEffectPosition getEffectPotion(int[] alignment) {
         PotionEffectPosition defaultEffect = new PotionEffectPosition(null, null, 10, 0, Potions.AWKWARD, false);
 
         PotionEffectPosition closestEffect = null;

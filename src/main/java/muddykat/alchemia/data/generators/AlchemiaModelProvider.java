@@ -7,6 +7,8 @@ import muddykat.alchemia.common.blocks.BlockMineralBuddingGeneric;
 import muddykat.alchemia.common.blocks.BlockMineralClusterGeneric;
 import muddykat.alchemia.common.blocks.BlockMineralGeneric;
 import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyCauldron;
+import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyMachineCore;
+import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyMachineUpgrade;
 import muddykat.alchemia.common.items.BlockItemGeneric;
 import muddykat.alchemia.common.items.ItemAlchemiaGuide;
 import muddykat.alchemia.common.items.ItemIngredient;
@@ -55,6 +57,8 @@ public class AlchemiaModelProvider extends ModelProvider {
                 generateMineralCube(blockModels, block, mineral.getIngredient());
             } else if (block instanceof BlockAlchemyCauldron) {
                 blockModels.registerSimpleItemModel(block, itemModel("alchemical_cauldron"));
+            } else if (block instanceof BlockAlchemyMachineCore || block instanceof BlockAlchemyMachineUpgrade) {
+                blockModels.registerSimpleItemModel(block, itemModel(blockName(block)));
             } else if (block instanceof BlockGeneric) {
                 generateAlchemyCube(blockModels, block);
             }
@@ -81,7 +85,9 @@ public class AlchemiaModelProvider extends ModelProvider {
 
     @Override
     protected java.util.stream.Stream<? extends net.minecraft.core.Holder<Block>> getKnownBlocks() {
-        return super.getKnownBlocks().filter(holder -> !(holder.value() instanceof BlockAlchemyCauldron));
+        return super.getKnownBlocks().filter(holder -> !(holder.value() instanceof BlockAlchemyCauldron)
+                && !(holder.value() instanceof BlockAlchemyMachineCore)
+                && !(holder.value() instanceof BlockAlchemyMachineUpgrade));
     }
 
     private void generateIngredientCrop(BlockModelGenerators blockModels, BlockIngredient block) {

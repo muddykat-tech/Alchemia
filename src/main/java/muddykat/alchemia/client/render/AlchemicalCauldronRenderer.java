@@ -2,6 +2,7 @@ package muddykat.alchemia.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import muddykat.alchemia.common.blocks.tileentity.TileEntityAlchemyCauldron;
+import muddykat.alchemia.common.potion.BrewBase;
 import net.minecraft.client.renderer.BiomeColors;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
@@ -45,8 +46,11 @@ public class AlchemicalCauldronRenderer implements BlockEntityRenderer<TileEntit
 
         state.waterLevel = blockEntity.getWaterLevel();
         int color = blockEntity.getPotionColor();
-        if (color == 0 && blockEntity.getLevel() != null) {
-            color = BiomeColors.getAverageWaterColor((BlockAndTintGetter) blockEntity.getLevel(), blockEntity.getBlockPos());
+        if (color == 0) {
+            BrewBase base = blockEntity.getBase();
+            color = base.usesBiomeColor() && blockEntity.getLevel() != null
+                    ? BiomeColors.getAverageWaterColor((BlockAndTintGetter) blockEntity.getLevel(), blockEntity.getBlockPos())
+                    : base.fluidColor();
         }
         state.potionColor = color;
     }

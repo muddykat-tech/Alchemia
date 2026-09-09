@@ -3,8 +3,8 @@ package muddykat.alchemia.data.generators;
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.items.helper.IngredientType;
 import muddykat.alchemia.common.items.helper.Ingredients;
+import muddykat.alchemia.common.crafting.MagnumOpus;
 import muddykat.alchemia.common.crafting.PotionEffectIngredient;
-import net.minecraft.world.effect.MobEffects;
 import muddykat.alchemia.data.AlchemiaItemTags;
 import muddykat.alchemia.registration.registers.ItemRegistry;
 import net.minecraft.core.HolderLookup;
@@ -56,63 +56,14 @@ public class AlchemiaRecipeProvider extends RecipeProvider {
     }
 
     private void magnumOpus() {
-        stage("nigredo", null,
-                PotionEffectIngredient.of(MobEffects.SLOWNESS, 3),
-                PotionEffectIngredient.of(MobEffects.RESISTANCE, 3),
-                PotionEffectIngredient.of(MobEffects.POISON, 3),
-                PotionEffectIngredient.of(MobEffects.STRENGTH, 3),
-                PotionEffectIngredient.of(MobEffects.BLINDNESS, 3));
-
-        stage("albedo", "nigredo",
-                PotionEffectIngredient.of(MobEffects.INVISIBILITY, 3),
-                PotionEffectIngredient.of(MobEffects.SPEED, 3),
-                PotionEffectIngredient.of(MobEffects.NIGHT_VISION, 3),
-                PotionEffectIngredient.of(MobEffects.HASTE, 3),
-                PotionEffectIngredient.of(MobEffects.LEVITATION, 3),
-                PotionEffectIngredient.of(MobEffects.DOLPHINS_GRACE, 3));
-
-        stage("citrinitas", "albedo",
-                PotionEffectIngredient.of(MobEffects.GLOWING, 3),
-                PotionEffectIngredient.of(MobEffects.FIRE_RESISTANCE, 3),
-                PotionEffectIngredient.of(MobEffects.CONDUIT_POWER, 3),
-                PotionEffectIngredient.of(MobEffects.BAD_OMEN, 3),
-                PotionEffectIngredient.of(MobEffects.INSTANT_DAMAGE, 3));
-
-        stage("rubedo", "citrinitas",
-                PotionEffectIngredient.of(MobEffects.SATURATION, 3),
-                PotionEffectIngredient.of(MobEffects.REGENERATION, 3),
-                PotionEffectIngredient.of(MobEffects.ABSORPTION, 3),
-                PotionEffectIngredient.of(MobEffects.WITHER, 3),
-                PotionEffectIngredient.of(MobEffects.HEALTH_BOOST, 3));
-
-        stage("philosopher_stone", "rubedo",
-                PotionEffectIngredient.of(MobEffects.LUCK, 3),
-                PotionEffectIngredient.of(MobEffects.NAUSEA, 3),
-                PotionEffectIngredient.ofAll(
-                        PotionEffectIngredient.need(MobEffects.POISON, 1),
-                        PotionEffectIngredient.need(MobEffects.FIRE_RESISTANCE, 1),
-                        PotionEffectIngredient.need(MobEffects.INSTANT_DAMAGE, 1),
-                        PotionEffectIngredient.need(MobEffects.SLOW_FALLING, 1),
-                        PotionEffectIngredient.need(MobEffects.SLOWNESS, 1)),
-                PotionEffectIngredient.ofAll(
-                        PotionEffectIngredient.need(MobEffects.ABSORPTION, 1),
-                        PotionEffectIngredient.need(MobEffects.GLOWING, 1),
-                        PotionEffectIngredient.need(MobEffects.INSTANT_HEALTH, 1),
-                        PotionEffectIngredient.need(MobEffects.HEALTH_BOOST, 1),
-                        PotionEffectIngredient.need(MobEffects.DOLPHINS_GRACE, 1)),
-                PotionEffectIngredient.ofAll(
-                        PotionEffectIngredient.need(MobEffects.BAD_OMEN, 1),
-                        PotionEffectIngredient.need(MobEffects.WITHER, 1),
-                        PotionEffectIngredient.need(MobEffects.WEAKNESS, 1),
-                        PotionEffectIngredient.need(MobEffects.INVISIBILITY, 1),
-                        PotionEffectIngredient.need(MobEffects.INSTANT_DAMAGE, 1)),
-                PotionEffectIngredient.ofAll(
-                        PotionEffectIngredient.need(MobEffects.ABSORPTION, 2),
-                        PotionEffectIngredient.need(MobEffects.FIRE_RESISTANCE, 1),
-                        PotionEffectIngredient.need(MobEffects.RESISTANCE, 2)));
+        for (MagnumOpus.Stage stage : MagnumOpus.STAGES) {
+            stage(stage);
+        }
     }
 
-    private void stage(String result, String previous, PotionEffectIngredient... potions) {
+    private void stage(MagnumOpus.Stage stage) {
+        String result = stage.result();
+        String previous = stage.previous();
         var builder = shapeless(RecipeCategory.BREWING, ItemRegistry.getItemFromRegistry(result));
 
         if (previous != null) {
@@ -122,7 +73,7 @@ public class AlchemiaRecipeProvider extends RecipeProvider {
             builder.unlockedBy("has_ingredient", has(AlchemiaItemTags.INGREDIENTS));
         }
 
-        for (PotionEffectIngredient potion : potions) {
+        for (PotionEffectIngredient potion : stage.potions()) {
             builder.requires(potion.toVanilla());
         }
         builder.save(this.output, recipeKey(result));

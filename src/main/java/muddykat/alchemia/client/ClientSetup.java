@@ -2,6 +2,7 @@ package muddykat.alchemia.client;
 
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.client.gui.AlchemicalScreen;
+import muddykat.alchemia.client.gui.AlchemyMachineScreen;
 import muddykat.alchemia.client.gui.ClientIngredientPathTooltip;
 import muddykat.alchemia.client.gui.GrindOverlay;
 import muddykat.alchemia.common.items.helper.IngredientPathTooltip;
@@ -28,6 +29,7 @@ public class ClientSetup {
     public static void onRegisterScreens(RegisterMenuScreensEvent event) {
         Alchemia.LOGGER.info(MOD_NAME + " Client Side Initialization");
         event.register(MenuTypeRegistry.ALCHEMICAL_CAULDRON.get(), AlchemicalScreen::new);
+        event.register(MenuTypeRegistry.ALCHEMY_MACHINE.get(), AlchemyMachineScreen::new);
     }
 
     @SubscribeEvent

@@ -6,7 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
-import net.minecraft.util.ARGB;
+import net.minecraft.client.renderer.RenderPipelines;
 
 import java.util.List;
 
@@ -16,8 +16,6 @@ public class ClientIngredientPathTooltip implements ClientTooltipComponent {
     private static final int PADDING = 4;
     private static final int LABEL_H = 11;
 
-    private static final int PANEL_FILL = 0xFF241C12;
-    private static final int PANEL_EDGE = 0xFF6B5335;
     private static final int TAKEN = PathPalette.TAKEN;
     private static final int POTENTIAL = PathPalette.POTENTIAL;
     private static final int ORIGIN = PathPalette.ORIGIN;
@@ -78,8 +76,7 @@ public class ClientIngredientPathTooltip implements ClientTooltipComponent {
         int width = getWidth(font);
         int height = getHeight(font);
 
-        graphics.fill(x, y, x + width, y + height, PANEL_FILL);
-        graphics.outline(x, y, width, height, PANEL_EDGE);
+        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, AlchemiaSprites.PATH_TOOLTIP_PANEL, x, y, width, height);
         graphics.text(font, tooltip.label(), x + PADDING, y + PADDING, LABEL_INK, false);
 
         int gridX = x + (width - gridWidth()) / 2;

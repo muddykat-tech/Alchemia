@@ -1,4 +1,4 @@
-// 26.2	2026-09-06T23:28:04.020141078	Model Definitions - alchemia
+// 26.2	2026-09-08T06:40:35.957901613	Model Definitions - alchemia
 908402afdbdc604079aea2ee9617f95944b09eb3 assets/alchemia/blockstates/arcane_crystal_bud_large.json
 a771a59815120c4134b31484c1318a99b8e204e8 assets/alchemia/blockstates/arcane_crystal_bud_medium.json
 17db3769a0ebcd3d5ca986ef68ed9e30dc6cfed1 assets/alchemia/blockstates/arcane_crystal_bud_small.json
@@ -71,6 +71,8 @@ ccf6e78712e05450c7616fa44aaae68f2318727f assets/alchemia/blockstates/root_terrar
 2d58b02db1a624231224524e680b57e3b23ac83b assets/alchemia/items/albedo.json
 d364b71d44317d3780bfbc533f1d3fc320598d3c assets/alchemia/items/alchemia_guide.json
 e2abdc904fdfb77602245117f3bd0a553a473cdb assets/alchemia/items/alchemical_cauldron.json
+afa7ca864661da2a01cf9d8a89fad26e09960a40 assets/alchemia/items/alchemy_machine_core.json
+0b4dd229dd969498b17a21698846c2013a124d8b assets/alchemia/items/alchemy_machine_right_upgrade.json
 514ca273293a2508190fa458b92ae64b78050a1e assets/alchemia/items/arcane_crystal_bud_large.json
 fee5082d5981205116e8c7022cdb3637323ec72e assets/alchemia/items/arcane_crystal_bud_medium.json
 b886b6312819be10a3ad652ce19528ce51a92ff7 assets/alchemia/items/arcane_crystal_bud_small.json

@@ -2,6 +2,8 @@ package muddykat.alchemia.data.generators.loot;
 
 import muddykat.alchemia.common.blocks.BlockIngredient;
 import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyCauldron;
+import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyMachineCore;
+import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyMachineUpgrade;
 import muddykat.alchemia.registration.registers.BlockRegistry;
 import muddykat.alchemia.registration.registers.ItemRegistry;
 import net.minecraft.core.HolderLookup;
@@ -35,6 +37,8 @@ public class BlockLoot extends BlockLootSubProvider {
                 add(block, LootTable.lootTable().withPool(randomAmountItem(ItemRegistry.getSeedByIngredient(ingredient.getIngredient()), 1, 4)));
             } else if (block instanceof BlockAlchemyCauldron) {
                 add(block, LootTable.lootTable().withPool(singleItem(Blocks.CAULDRON)).withPool(singleItem(Blocks.CAMPFIRE)));
+            } else if (block instanceof BlockAlchemyMachineCore || block instanceof BlockAlchemyMachineUpgrade) {
+                add(block, LootTable.lootTable().withPool(singleItem(block)));
             }
         }
     }
@@ -44,7 +48,8 @@ public class BlockLoot extends BlockLootSubProvider {
         List<Block> blocks = new ArrayList<>();
         for (var holder : BlockRegistry.BLOCK_REGISTRY.values()) {
             Block block = holder.get();
-            if (block instanceof BlockIngredient || block instanceof BlockAlchemyCauldron) {
+            if (block instanceof BlockIngredient || block instanceof BlockAlchemyCauldron
+                    || block instanceof BlockAlchemyMachineCore || block instanceof BlockAlchemyMachineUpgrade) {
                 blocks.add(block);
             }
         }

@@ -6,6 +6,9 @@ import muddykat.alchemia.common.blocks.BlockMineralBuddingGeneric;
 import muddykat.alchemia.common.blocks.BlockMineralClusterGeneric;
 import muddykat.alchemia.common.blocks.BlockMineralGeneric;
 import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyCauldron;
+import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyMachineCore;
+import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyMachineUpgrade;
+import muddykat.alchemia.common.blocks.helper.UpgradeSide;
 import muddykat.alchemia.common.items.BlockItemGeneric;
 import muddykat.alchemia.common.items.helper.IngredientType;
 import muddykat.alchemia.common.items.helper.Ingredients;
@@ -33,6 +36,7 @@ public class BlockRegistry {
     public static void initialize() {
         createBasicBlock("deepmetal_tile");
         createCauldronBlock("alchemical_cauldron");
+        createMachineBlocks();
 
         for (Ingredients ingredient : Ingredients.values()) {
             if (ingredient.getType().equals(IngredientType.Mineral)) {
@@ -59,6 +63,19 @@ public class BlockRegistry {
     public static void createCauldronBlock(String id) {
         DeferredBlock<Block> block = registerBlock(id, BlockAlchemyCauldron::new, () -> BlockBehaviour.Properties.ofFullCopy(Blocks.CAULDRON).noOcclusion());
         ItemRegistry.registerItem(id, properties -> new BlockItemGeneric(block.get(), properties));
+    }
+
+    public static void createMachineBlocks() {
+        DeferredBlock<Block> core = registerBlock("alchemy_machine_core", BlockAlchemyMachineCore::new,
+                () -> BlockBehaviour.Properties.ofFullCopy(Blocks.CAULDRON).noOcclusion());
+        ItemRegistry.registerItem("alchemy_machine_core", properties -> new BlockItemGeneric(core.get(), properties));
+
+        for (UpgradeSide side : UpgradeSide.values()) {
+            String id = side.registryName();
+            DeferredBlock<Block> upgrade = registerBlock(id, properties -> new BlockAlchemyMachineUpgrade(side, properties),
+                    () -> BlockBehaviour.Properties.ofFullCopy(Blocks.CAULDRON).noOcclusion());
+            ItemRegistry.registerItem(id, properties -> new BlockItemGeneric(upgrade.get(), properties));
+        }
     }
 
     public static void createMineralGeodeBlocks(Ingredients ingredient) {
