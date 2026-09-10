@@ -22,19 +22,19 @@ import java.util.Objects;
 
 public class AlchemyMachineMenu extends AbstractContainerMenu {
 
-    public static final int POTION_X = 43;
+    public static final int POTION_X = 50;
     public static final int POTION_Y = 20;
     public static final int SLOT_PITCH = 18;
 
-    public static final int INPUT_X = 48;
+    public static final int INPUT_X = 55;
     public static final int INPUT_Y = 54;
-    public static final int FUEL_X = 48;
+    public static final int FUEL_X = 55;
     public static final int FUEL_Y = 90;
-    public static final int OUTPUT_X = 112;
+    public static final int OUTPUT_X = 119;
     public static final int OUTPUT_Y = 72;
 
-    public static final int INVENTORY_X = 8;
-    public static final int INVENTORY_Y = 120;
+    public static final int INVENTORY_X = 15;
+    public static final int INVENTORY_Y = 119;
     public static final int HOTBAR_Y = 178;
 
     private final TileEntityAlchemyMachineCore core;

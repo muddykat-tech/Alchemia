@@ -5,6 +5,7 @@ import muddykat.alchemia.common.items.ItemIngredient;
 import muddykat.alchemia.common.items.ItemMortarPestle;
 import muddykat.alchemia.common.items.helper.Ingredients;
 import muddykat.alchemia.common.potion.BrewBase;
+import muddykat.alchemia.common.potion.BrewBases;
 import muddykat.alchemia.common.potion.PotionMap;
 import muddykat.alchemia.common.utility.ParticleUtils;
 import muddykat.alchemia.common.utility.TextUtils;
@@ -58,7 +59,12 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.access.ItemAccess;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
 import org.jspecify.annotations.Nullable;
 
@@ -89,7 +95,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
     public static final int REDSTONE_DURATION_BONUS = 1200;
 
     private int waterLevel;
-    private final int maxWaterLevel = 4;
+    private final int maxWaterLevel = BrewBase.MAX_FILL_LEVEL;
     private ItemStacksResourceHandler inventory;
 
     private int xAlignment;
@@ -107,7 +113,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
     private final List<String> addedIngredients = new ArrayList<>();
     private String brewName = "";
     private boolean spoiled = false;
-    private BrewBase base = BrewBase.WATER;
+    private BrewBase base = BrewBases.defaultBase();
     private int instability = 0;
     private int durationBonus = 0;
     private boolean lingeringRequested = false;
@@ -152,7 +158,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         effectList.addAll(input.read("effects", MobEffectInstance.CODEC.listOf()).orElse(List.of()));
         brewName = input.getString("brewName").orElse("");
         spoiled = input.getBooleanOr("spoiled", false);
-        base = BrewBase.byName(input.getString("base").orElse(BrewBase.WATER.getSerializedName()));
+        base = BrewBases.byId(input.getString("base").orElse(BrewBases.DEFAULT_ID));
         instability = input.getIntOr("instability", 0);
         durationBonus = input.getIntOr("durationBonus", 0);
         updateWaterColor();
@@ -171,7 +177,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         output.store("effects", MobEffectInstance.CODEC.listOf(), List.copyOf(effectList));
         output.putString("brewName", brewName);
         output.putBoolean("spoiled", spoiled);
-        output.putString("base", base.getSerializedName());
+        output.putString("base", base.id());
         output.putInt("instability", instability);
         output.putInt("durationBonus", durationBonus);
     }
@@ -192,54 +198,8 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
             return SUCCESS;
         }
 
-        BrewBase fullBase = BrewBase.byFullFill(heldStack);
-        if (fullBase != null) {
-            if (canFill()) {
-                Item remainder = fullBase.fullFillRemainder();
-                if (!player.isCreative()) {
-                    if (remainder != null) {
-                        player.setItemInHand(hand, ItemUtils.createFilledResult(heldStack, player, new ItemStack(remainder)));
-                    } else {
-                        heldStack.shrink(1);
-                        player.setItemInHand(hand, heldStack);
-                    }
-                }
-                player.awardStat(Stats.ITEM_USED.get(heldItem));
-                setFullBase(fullBase);
-                if (!level.isClientSide()) {
-                    level.playSound(null, pos, SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
-                    level.gameEvent(null, GameEvent.FLUID_PLACE, pos);
-                }
-
-                return SUCCESS;
-            }
-            return InteractionResult.FAIL;
-        }
-
-        BrewBase portionBase = BrewBase.byPortionFill(heldStack);
-        if (portionBase != null) {
-            if (!canAddPortion(portionBase)) {
-                if (waterLevel > 0 && portionBase != base) message(player, "alchemia.brew.wrong_base");
-                return InteractionResult.FAIL;
-            }
-
-            Item remainder = portionBase.portionRemainder();
-            if (!player.isCreative()) {
-                if (remainder != null) {
-                    player.setItemInHand(hand, ItemUtils.createFilledResult(heldStack, player, new ItemStack(remainder)));
-                } else {
-                    heldStack.shrink(1);
-                    player.setItemInHand(hand, heldStack);
-                }
-            }
-            player.awardStat(Stats.ITEM_USED.get(heldItem));
-            addBasePortion(portionBase);
-            if (!level.isClientSide()) {
-                level.playSound(null, pos, SoundEvents.BOTTLE_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
-                level.gameEvent(null, GameEvent.FLUID_PLACE, pos);
-            }
-            return SUCCESS;
-        }
+        InteractionResult filled = tryFill(player, hand, heldStack, pos, level);
+        if (filled != null) return filled;
 
         if (heldItem instanceof ItemIngredient) {
             if (getWaterLevel() > 0) {
@@ -330,9 +290,9 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
             return InteractionResult.FAIL;
         }
 
-        if (recipe.brewBase() != base) {
+        if (!recipe.brewBase().equals(base)) {
             serverPlayer.sendOverlayMessage(Component.translatable("alchemia.brew.wrong_recipe_base",
-                    Component.translatable(recipe.brewBase().translationKey())));
+                    recipe.brewBase().displayName()));
             return InteractionResult.FAIL;
         }
 
@@ -460,26 +420,70 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
     }
 
     public void setFullWater() {
-        setFullBase(BrewBase.WATER);
+        addFill(BrewBases.defaultBase(), BrewBase.MAX_FILL_LEVEL);
     }
 
-    public void setFullBase(BrewBase filled) {
-        resetEffectList();
-        this.base = filled;
-        this.waterLevel = this.maxWaterLevel;
+    private @Nullable InteractionResult tryFill(Player player, InteractionHand hand, ItemStack heldStack, BlockPos pos, Level level) {
+        Item heldItem = heldStack.getItem();
+        BrewBases.Match match = BrewBases.forItem(heldStack);
+        if (match == null) return tryFluidFill(player, hand, pos, level);
 
-        alchemicalCauldronData.set(1, xAlignment);
-        alchemicalCauldronData.set(2, yAlignment);
+        if (!canAcceptFill(match.base(), match.fill().levels())) return refuseFill(player, match.base());
 
-        refreshBaseColor();
-
-        needsUpdate = true;
-        markUpdated();
-
-        if (level != null && !level.isClientSide()) sync();
+        Item remainder = match.fill().remainderValue();
+        if (!player.isCreative()) {
+            if (remainder != null) {
+                player.setItemInHand(hand, ItemUtils.createFilledResult(heldStack, player, new ItemStack(remainder)));
+            } else {
+                heldStack.shrink(1);
+                player.setItemInHand(hand, heldStack);
+            }
+        }
+        player.awardStat(Stats.ITEM_USED.get(heldItem));
+        addFill(match.base(), match.fill().levels());
+        announceFill(level, pos, match.fill().levels());
+        return SUCCESS;
     }
 
-    public void addBasePortion(BrewBase filled) {
+    private @Nullable InteractionResult tryFluidFill(Player player, InteractionHand hand, BlockPos pos, Level level) {
+        ResourceHandler<FluidResource> held = ItemAccess.forPlayerInteraction(player, hand).oneByOne()
+                .getCapability(Capabilities.Fluid.ITEM);
+        if (held == null) return null;
+
+        for (int index = 0; index < held.size(); index++) {
+            FluidResource resource = held.getResource(index);
+            if (resource.isEmpty()) continue;
+
+            BrewBases.Match match = BrewBases.forFluid(resource);
+            if (match == null) continue;
+            if (!canAcceptFill(match.base(), match.fill().levels())) return refuseFill(player, match.base());
+
+            int amount = match.fill().fluidAmount();
+            try (Transaction transaction = Transaction.openRoot()) {
+                if (held.extract(index, resource, amount, transaction) < amount) continue;
+                transaction.commit();
+            }
+
+            addFill(match.base(), match.fill().levels());
+            announceFill(level, pos, match.fill().levels());
+            return SUCCESS;
+        }
+        return null;
+    }
+
+    private InteractionResult refuseFill(Player player, BrewBase filled) {
+        if (waterLevel > 0 && !filled.equals(base)) message(player, "alchemia.brew.wrong_base");
+        return FAIL;
+    }
+
+    private void announceFill(Level level, BlockPos pos, int levels) {
+        if (level.isClientSide()) return;
+        level.playSound(null, pos, levels >= BrewBase.MAX_FILL_LEVEL ? SoundEvents.BUCKET_EMPTY : SoundEvents.BOTTLE_EMPTY,
+                SoundSource.BLOCKS, 1.0F, 1.0F);
+        level.gameEvent(null, GameEvent.FLUID_PLACE, pos);
+    }
+
+    public void addFill(BrewBase filled, int levels) {
         if (waterLevel == 0) {
             resetEffectList();
             this.base = filled;
@@ -487,7 +491,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
             alchemicalCauldronData.set(2, yAlignment);
         }
 
-        this.waterLevel = Math.min(this.maxWaterLevel, this.waterLevel + 1);
+        this.waterLevel = Math.min(this.maxWaterLevel, this.waterLevel + levels);
         refreshBaseColor();
 
         needsUpdate = true;
@@ -496,16 +500,16 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         if (level != null && !level.isClientSide()) sync();
     }
 
-    public boolean canAddPortion(BrewBase filled) {
-        if (waterLevel >= maxWaterLevel) return false;
-        return waterLevel == 0 || (base == filled && isUntouched());
+    public boolean canAcceptFill(BrewBase filled, int levels) {
+        if (waterLevel == 0) return true;
+        return base.equals(filled) && isUntouched() && waterLevel + levels <= maxWaterLevel;
     }
 
     private void refreshBaseColor() {
         if (level == null || !level.isClientSide()) return;
-        potion_color = base.usesBiomeColor()
+        potion_color = base.biomeTint()
                 ? BiomeColors.getAverageWaterColor((BlockAndTintGetter) level, getBlockPos())
-                : base.fluidColor();
+                : base.tintOrDefault();
     }
 
     public boolean shouldRenderFace(Direction face) {
@@ -1041,7 +1045,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
             return customPotion;
         }
         if (getEffectList().isEmpty()) {
-            ItemStack unbrewed = base.unbrewedResult();
+            ItemStack unbrewed = base.unbrewedStack();
             if (!unbrewed.isEmpty()) return unbrewed;
 
             customPotion.set(DataComponents.POTION_CONTENTS, new PotionContents(Potions.WATER));
@@ -1167,7 +1171,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         ParticleUtils.generateEvaporationParticles(level, pos, getPotionColor());
         waterLevel = 0;
         brewName = "";
-        base = BrewBase.WATER;
+        base = BrewBases.defaultBase();
         instability = 0;
         setDefaultResult();
         resetEffectList();

@@ -1,6 +1,7 @@
 package muddykat.alchemia.common.network;
 
 import muddykat.alchemia.Alchemia;
+import muddykat.alchemia.common.network.packets.PacketBrewBases;
 import muddykat.alchemia.common.network.packets.PacketPotionRecipe;
 import muddykat.alchemia.common.network.packets.PacketDiscover;
 import muddykat.alchemia.common.network.packets.PacketForgetRecipe;
@@ -16,6 +17,7 @@ public class NetworkHandler {
 
     public static void register(final RegisterPayloadHandlersEvent event) {
         event.registrar(PROTOCOL_VERSION)
+                .playToClient(PacketBrewBases.TYPE, PacketBrewBases.STREAM_CODEC, PacketBrewBases::handle)
                 .playToClient(PacketPotionRecipe.TYPE, PacketPotionRecipe.STREAM_CODEC, PacketPotionRecipe::handle)
                 .playToServer(PacketSelectRecipe.TYPE, PacketSelectRecipe.STREAM_CODEC, PacketSelectRecipe::handle)
                 .playToServer(PacketForgetRecipe.TYPE, PacketForgetRecipe.STREAM_CODEC, PacketForgetRecipe::handle)

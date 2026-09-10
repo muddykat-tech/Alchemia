@@ -1,17 +1,9 @@
 package muddykat.alchemia.common.config;
 
 import muddykat.alchemia.common.items.helper.Ingredients;
-import muddykat.alchemia.common.potion.BrewBase;
-import muddykat.alchemia.common.potion.PotionEnum;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
-import java.util.EnumMap;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 public class Configuration {
     public static final ModConfigSpec COMMON_CONFIG;
@@ -21,7 +13,6 @@ public class Configuration {
 
     public static final HashMap<Ingredients, ModConfigSpec.IntValue> INGREDIENT_CONFIG = new HashMap<>();
     public static final ModConfigSpec.IntValue MAX_POTENCY;
-    public static final Map<BrewBase, ModConfigSpec.ConfigValue<List<? extends String>>> BASE_EFFECTS = new EnumMap<>(BrewBase.class);
 
     public static final ModConfigSpec.DoubleValue NOISE_SCALE;
     public static final ModConfigSpec.DoubleValue MIN_THRESHOLD;
@@ -51,20 +42,10 @@ public class Configuration {
                 .defineInRange("max_potency", DEFAULT_MAX_POTENCY, 1, 10);
         serverBuilder.pop();
 
-        serverBuilder.comment("Which effects each brew base can reach on the potion map.",
-                        "An effect left out of a base's list never spawns for brews made on that base.")
-                .push("bases");
-        for (BrewBase base : BrewBase.values()) {
-            BASE_EFFECTS.put(base, serverBuilder
-                    .comment("Effects reachable on a " + base.getSerializedName() + " base.")
-                    .defineList(base.getSerializedName() + "_effects", Configuration::allEffectNames,
-                            () -> PotionEnum.values()[0].name(), Configuration::isEffectName));
-        }
-        serverBuilder.pop();
-
         serverBuilder.comment("Shape of the generated potion map.",
                         "Each brew base builds its own map from the world seed mixed with the base id,",
-                        "so effects and dead space sit in different places on every base.")
+                        "so effects and dead space sit in different places on every base.",
+                        "Which effects a base can reach is set per base in " + BrewBaseConfig.FILE_NAME + ".")
                 .push("map");
         NOISE_SCALE = serverBuilder
                 .comment("Scale of the dead space noise. Smaller values make larger, smoother blobs.")
@@ -136,34 +117,6 @@ public class Configuration {
 
     public static int maxCrystalGated() {
         return SERVER_CONFIG.isLoaded() ? MAX_CRYSTAL_GATED.get() : 3;
-    }
-
-    private static List<String> allEffectNames() {
-        return java.util.Arrays.stream(PotionEnum.values()).map(Enum::name).collect(Collectors.toList());
-    }
-
-    private static boolean isEffectName(Object value) {
-        if (!(value instanceof String name)) return false;
-        for (PotionEnum effect : PotionEnum.values()) {
-            if (effect.name().equalsIgnoreCase(name)) return true;
-        }
-        return false;
-    }
-
-    private static final Map<BrewBase, Set<String>> BASE_EFFECT_CACHE = new java.util.concurrent.ConcurrentHashMap<>();
-
-    public static boolean baseAllowsEffect(BrewBase base, PotionEnum effect) {
-        ModConfigSpec.ConfigValue<List<? extends String>> config = BASE_EFFECTS.get(base);
-        if (config == null || !SERVER_CONFIG.isLoaded()) return true;
-
-        Set<String> allowed = BASE_EFFECT_CACHE.computeIfAbsent(base, key -> config.get().stream()
-                .map(name -> name.toLowerCase(Locale.ROOT))
-                .collect(Collectors.toSet()));
-        return allowed.contains(effect.name().toLowerCase(Locale.ROOT));
-    }
-
-    public static void clearBaseEffectCache() {
-        BASE_EFFECT_CACHE.clear();
     }
 
     private static ModConfigSpec.IntValue commonConfigSetup(String name, ModConfigSpec.Builder builder) {

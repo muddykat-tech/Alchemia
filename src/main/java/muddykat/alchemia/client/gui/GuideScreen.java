@@ -186,7 +186,7 @@ public class GuideScreen extends Screen {
         return switch (section) {
             case RECIPES -> Component.translatable("alchemia.guide.recipe.entry",
                     recipes.get(index).displayName(),
-                    Component.translatable(recipes.get(index).brewBase().translationKey()));
+                    recipes.get(index).brewBase().displayName());
             case EFFECTS -> effects.get(index).getEffect().value().getDisplayName();
             case INGREDIENTS -> ingredientStack(ingredients.get(index)).getHoverName();
         };
@@ -666,7 +666,7 @@ public class GuideScreen extends Screen {
         }
 
         y = drawWrapped(graphics, Component.translatable("alchemia.guide.recipe.base",
-                Component.translatable(recipe.brewBase().translationKey())), x, y, RIGHT_PAGE_W, INK_FAINT) + 2;
+                recipe.brewBase().displayName()), x, y, RIGHT_PAGE_W, INK_FAINT) + 2;
 
         for (BrewRecipe.BrewEffect effect : recipe.effects()) {
             if (y + LINE_HEIGHT > contentBottom) break;

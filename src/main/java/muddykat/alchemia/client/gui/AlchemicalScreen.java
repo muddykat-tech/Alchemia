@@ -573,7 +573,7 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
         int spent = Math.min(cauldron.getInstability(), cap);
 
         drawCentredWrapped(graphics, Component.translatable("alchemia.gui.base.label",
-                        Component.translatable(cauldron.getBase().translationKey())),
+                        cauldron.getBase().displayName()),
                 panelX + EFFECTS_W / 2, panelY, EFFECTS_W - 8, INK_FAINT);
 
         int gridX = panelX + (EFFECTS_W - cap * POTENCY_CELL) / 2;
@@ -664,7 +664,7 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
     }
 
     private void slotBackdrop(GuiGraphicsExtractor graphics, int x, int y) {
-        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, AlchemiaSprites.SLOT,
+        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, AlchemiaSprites.PARCHMENT_SLOT,
                 x, y, AlchemiaSprites.SLOT_SIZE, AlchemiaSprites.SLOT_SIZE);
     }
 

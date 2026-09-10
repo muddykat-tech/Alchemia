@@ -18,7 +18,7 @@ import net.minecraft.world.item.alchemy.Potions;
 import java.util.*;
 
 public class PotionMap {
-    private static final EnumMap<BrewBase, PotionMap> MAPS = new EnumMap<>(BrewBase.class);
+    private static final Map<String, PotionMap> MAPS = new LinkedHashMap<>();
     private static long currentSeed;
     private static boolean seeded;
 
@@ -124,7 +124,7 @@ public class PotionMap {
 
         generateDeadzones(seed, rand);
         Alchemia.LOGGER.info("Potion map built for {}: {} effects, {} deadzone cells, {} effects need crystals",
-                base.getSerializedName(), effectHashMap.size(), deadzones.size(), crystalGated);
+                base.id(), effectHashMap.size(), deadzones.size(), crystalGated);
     }
 
     public static final int EFFECT_RADIUS = 2;
@@ -446,13 +446,13 @@ public class PotionMap {
     public static void rebuild() {
         if (!seeded) return;
         MAPS.clear();
-        for (BrewBase brewBase : BrewBase.values()) {
-            MAPS.put(brewBase, new PotionMap(seedFor(currentSeed, brewBase), brewBase));
+        for (BrewBase brewBase : BrewBases.values()) {
+            MAPS.put(brewBase.id(), new PotionMap(seedFor(currentSeed, brewBase), brewBase));
         }
     }
 
     public static long seedFor(long seed, BrewBase base) {
-        long mixed = seed ^ (base.getSerializedName().hashCode() * 0x9E3779B97F4A7C15L);
+        long mixed = seed ^ (base.id().hashCode() * 0x9E3779B97F4A7C15L);
         mixed ^= mixed >>> 33;
         mixed *= 0xFF51AFD7ED558CCDL;
         mixed ^= mixed >>> 33;
@@ -460,7 +460,8 @@ public class PotionMap {
     }
 
     public static PotionMap get(BrewBase base) {
-        return MAPS.get(base);
+        PotionMap map = MAPS.get(base.id());
+        return map != null ? map : MAPS.get(BrewBases.defaultBase().id());
     }
 
     public static boolean isReady() {

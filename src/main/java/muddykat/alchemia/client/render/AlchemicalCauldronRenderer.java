@@ -15,8 +15,6 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.sprite.SpriteGetter;
-import net.minecraft.client.resources.model.sprite.SpriteId;
-import net.minecraft.client.renderer.SpriteMapper;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
@@ -24,8 +22,6 @@ import org.jspecify.annotations.Nullable;
 public class AlchemicalCauldronRenderer implements BlockEntityRenderer<TileEntityAlchemyCauldron, AlchemicalCauldronRenderState> {
 
     private static final float[] FLUID_HEIGHT = {0.337f, 0.5625f, 0.75f, 0.9375f};
-    private static final SpriteMapper BLOCK_SPRITES = new SpriteMapper(TextureAtlas.LOCATION_BLOCKS, "block");
-    private static final SpriteId WATER_SPRITE = BLOCK_SPRITES.defaultNamespaceApply("water_still");
     private static final int ALPHA = 190;
 
     private final SpriteGetter sprites;
@@ -44,13 +40,15 @@ public class AlchemicalCauldronRenderer implements BlockEntityRenderer<TileEntit
                                    Vec3 cameraPosition, ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
         BlockEntityRenderer.super.extractRenderState(blockEntity, state, partialTicks, cameraPosition, breakProgress);
 
+        BrewBase base = blockEntity.getBase();
         state.waterLevel = blockEntity.getWaterLevel();
+        state.fluidSprite = BrewBaseTextures.stillSprite(base, sprites);
+
         int color = blockEntity.getPotionColor();
         if (color == 0) {
-            BrewBase base = blockEntity.getBase();
-            color = base.usesBiomeColor() && blockEntity.getLevel() != null
+            color = base.biomeTint() && blockEntity.getLevel() != null
                     ? BiomeColors.getAverageWaterColor((BlockAndTintGetter) blockEntity.getLevel(), blockEntity.getBlockPos())
-                    : base.fluidColor();
+                    : base.tintOrDefault();
         }
         state.potionColor = color;
     }
@@ -64,7 +62,7 @@ public class AlchemicalCauldronRenderer implements BlockEntityRenderer<TileEntit
         int blue = state.potionColor & 255;
         int packedColor = (ALPHA << 24) | (red << 16) | (green << 8) | blue;
 
-        TextureAtlasSprite water = sprites.get(WATER_SPRITE);
+        TextureAtlasSprite water = state.fluidSprite != null ? state.fluidSprite : sprites.get(BrewBaseTextures.WATER_SPRITE);
         int liquidLevel = Math.min(state.waterLevel, FLUID_HEIGHT.length) - 1;
         int lightCoords = state.lightCoords;
 

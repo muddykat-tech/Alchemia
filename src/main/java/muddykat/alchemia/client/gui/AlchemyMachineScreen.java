@@ -10,16 +10,16 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 
 public class AlchemyMachineScreen extends AbstractContainerScreen<AlchemyMachineMenu> {
 
-    private static final int IMAGE_WIDTH = 176;
-    private static final int IMAGE_HEIGHT = 202;
+    private static final int IMAGE_WIDTH = 190;
+    private static final int IMAGE_HEIGHT = 216;
 
     private static final int INK = 0xFF4A3A28;
     private static final int INK_FAINT = 0xFF7A6A52;
 
-    private static final int FLAME_X = 49;
+    private static final int FLAME_X = 56;
     private static final int FLAME_Y = 72;
 
-    private static final int COOK_X = 70;
+    private static final int COOK_X = 77;
     private static final int COOK_Y = 76;
 
     public AlchemyMachineScreen(AlchemyMachineMenu menu, Inventory playerInventory, Component title) {

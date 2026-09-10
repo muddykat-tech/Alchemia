@@ -6,7 +6,9 @@ import muddykat.alchemia.common.WorldEventHandler;
 import muddykat.alchemia.common.config.Configuration;
 import muddykat.alchemia.registration.registers.IngredientTypeRegistry;
 import muddykat.alchemia.common.network.NetworkHandler;
+import muddykat.alchemia.common.network.packets.PacketBrewBases;
 import muddykat.alchemia.common.network.packets.PacketPotionRecipe;
+import muddykat.alchemia.common.potion.BrewBases;
 import muddykat.alchemia.common.potion.PotionMap;
 import muddykat.alchemia.registration.AlchemiaRegistry;
 import net.minecraft.server.level.ServerPlayer;
@@ -56,7 +58,6 @@ public class Alchemia {
 
     private static void onConfigChanged(ModConfigEvent event) {
         if (event.getConfig().getSpec() != Configuration.SERVER_CONFIG) return;
-        Configuration.clearBaseEffectCache();
         PotionMap.rebuild();
     }
 
@@ -65,7 +66,8 @@ public class Alchemia {
         if (event.getEntity() instanceof ServerPlayer player) {
             Random rand = new Random(player.level().getSeed());
             long map_seed = rand.nextLong();
-            LOGGER.info("Player Joined - Sending Potion Map Seed");
+            LOGGER.info("Player Joined - Sending Brew Bases and Potion Map Seed");
+            NetworkHandler.sendToPlayer(new PacketBrewBases(BrewBases.definitions()), player);
             NetworkHandler.sendToPlayer(new PacketPotionRecipe(map_seed), player);
             PotionMap.scramble(map_seed);
         }

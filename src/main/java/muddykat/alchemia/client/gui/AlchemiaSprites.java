@@ -7,6 +7,7 @@ public final class AlchemiaSprites {
 
     public static final Identifier PANEL = sprite("container/panel");
     public static final Identifier SLOT = sprite("container/slot");
+    public static final Identifier PARCHMENT_SLOT = sprite("container/parchment_slot");
     public static final Identifier BUTTON = sprite("container/button");
     public static final Identifier BUTTON_HIGHLIGHTED = sprite("container/button_highlighted");
     public static final Identifier BUTTON_DISABLED = sprite("container/button_disabled");
