@@ -10,6 +10,7 @@ import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyMachineCore;
 import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyMachinePart;
 import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyMachineUpgrade;
 import muddykat.alchemia.common.blocks.helper.UpgradeSide;
+import muddykat.alchemia.common.items.BlockItemAlchemyMachineUpgrade;
 import muddykat.alchemia.common.items.BlockItemGeneric;
 import muddykat.alchemia.common.items.helper.IngredientType;
 import muddykat.alchemia.common.items.helper.Ingredients;
@@ -75,7 +76,7 @@ public class BlockRegistry {
             String id = side.registryName();
             DeferredBlock<Block> upgrade = registerBlock(id, properties -> new BlockAlchemyMachineUpgrade(side, properties),
                     () -> BlockBehaviour.Properties.ofFullCopy(Blocks.CAULDRON).noOcclusion());
-            ItemRegistry.registerItem(id, properties -> new BlockItemGeneric(upgrade.get(), properties));
+            ItemRegistry.registerItem(id, properties -> new BlockItemAlchemyMachineUpgrade(upgrade.get(), properties));
         }
 
         registerBlock(BlockAlchemyMachinePart.ID, BlockAlchemyMachinePart::new,
@@ -107,7 +108,7 @@ public class BlockRegistry {
 
     private static void registerClusterBlock(Ingredients ingredient, String id, int height, int aabbOffset, BudSize size) {
         DeferredBlock<Block> cluster = registerBlock(id, properties -> new BlockMineralClusterGeneric(ingredient, height, aabbOffset, size, properties),
-                () -> BlockBehaviour.Properties.ofFullCopy(Blocks.AMETHYST_CLUSTER));
+                () -> BlockBehaviour.Properties.ofFullCopy(Blocks.AMETHYST_CLUSTER).lightLevel(state -> size.lightEmission()));
         ItemRegistry.registerItem(id, properties -> new BlockItemGeneric(cluster.get(), properties));
     }
 
@@ -125,9 +126,19 @@ public class BlockRegistry {
     }
 
     public enum BudSize {
-        SMALL,
-        MEDIUM,
-        LARGE,
-        CLUSTER
+        SMALL(1),
+        MEDIUM(2),
+        LARGE(4),
+        CLUSTER(5);
+
+        private final int lightEmission;
+
+        BudSize(int lightEmission) {
+            this.lightEmission = lightEmission;
+        }
+
+        public int lightEmission() {
+            return lightEmission;
+        }
     }
 }

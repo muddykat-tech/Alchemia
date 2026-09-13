@@ -137,6 +137,8 @@
   "alchemia.gui.instability": "Instability %s/%s - a teleport into dead space costs one",
   "alchemia.gui.stranded": "Stranded in dead space - instability %s/%s, teleport out to recover",
   "alchemia.gui.machine.no_upgrade": "Attach an upgrade",
+  "alchemia.gui.machine.needs_core": "Use this on an Alchemy Machine Core",
+  "alchemia.gui.machine.needs_upgrade": "Attach the %s first",
   "alchemia.gui.recipes": "Recipes %s/%s",
   "alchemia.gui.zoom": "Zoom %s%%",
   "alchemia.gui.potency": "Potency %s · %ss",

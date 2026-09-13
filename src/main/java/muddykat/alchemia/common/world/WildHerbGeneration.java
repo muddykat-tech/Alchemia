@@ -38,6 +38,7 @@ import net.minecraft.world.level.levelgen.feature.stateproviders.BlockStateProvi
 import net.minecraft.world.level.levelgen.feature.stateproviders.RandomizedIntStateProvider;
 import net.minecraft.world.level.levelgen.feature.stateproviders.WeightedStateProvider;
 import net.minecraft.world.level.levelgen.placement.BiomeFilter;
+import net.minecraft.world.level.levelgen.placement.BlockPredicateFilter;
 import net.minecraft.world.level.levelgen.placement.CountPlacement;
 import net.minecraft.world.level.levelgen.placement.EnvironmentScanPlacement;
 import net.minecraft.world.level.levelgen.placement.RandomOffsetPlacement;
@@ -58,6 +59,12 @@ public class WildHerbGeneration {
 
     public static final Map<Ingredients, ResourceKey<ConfiguredFeature<?, ?>>> CONFIGURED_FEATURES = new EnumMap<>(Ingredients.class);
     public static final Map<Ingredients, ResourceKey<PlacedFeature>> PLACED_FEATURES = new EnumMap<>(Ingredients.class);
+
+    public static final String PEAK_CLUSTER_NAME = "peak_cloud_crystal";
+    public static final ResourceKey<ConfiguredFeature<?, ?>> PEAK_CLUSTER_CONFIGURED =
+            ResourceKey.create(Registries.CONFIGURED_FEATURE, Identifier.fromNamespaceAndPath(Alchemia.MODID, PEAK_CLUSTER_NAME));
+    public static final ResourceKey<PlacedFeature> PEAK_CLUSTER =
+            ResourceKey.create(Registries.PLACED_FEATURE, Identifier.fromNamespaceAndPath(Alchemia.MODID, PEAK_CLUSTER_NAME));
 
     static {
         for (Ingredients ingredient : Ingredients.values()) {
@@ -129,6 +136,10 @@ public class WildHerbGeneration {
             context.register(CONFIGURED_FEATURES.get(ingredient),
                     new ConfiguredFeature<>(BiomeFeatureRegistry.WILD_HERB.get(), config));
         }
+
+        context.register(PEAK_CLUSTER_CONFIGURED, new ConfiguredFeature<>(Feature.SIMPLE_BLOCK,
+                new SimpleBlockConfiguration(BlockStateProvider.simple(
+                        BlockRegistry.getGeodeCluster(Ingredients.Cloud_Crystal, BlockRegistry.BudSize.CLUSTER)))));
     }
 
     public static void bootstrapPlacedFeatures(BootstrapContext<PlacedFeature> context) {
@@ -164,6 +175,16 @@ public class WildHerbGeneration {
             context.register(PLACED_FEATURES.get(ingredient),
                     new PlacedFeature(configured.getOrThrow(CONFIGURED_FEATURES.get(ingredient)), modifiers));
         }
+
+        context.register(PEAK_CLUSTER, new PlacedFeature(configured.getOrThrow(PEAK_CLUSTER_CONFIGURED), List.of(
+                RarityFilter.onAverageOnceEvery(3),
+                CountPlacement.of(UniformInt.of(2, 5)),
+                InSquarePlacement.spread(),
+                PlacementUtils.HEIGHTMAP,
+                BlockPredicateFilter.forPredicate(BlockPredicate.allOf(
+                        BlockPredicate.ONLY_IN_AIR_PREDICATE,
+                        BlockPredicate.solid(BLOCK_BELOW))),
+                BiomeFilter.biome())));
     }
 
     private static PlacementModifier getHeightRangePlacement(Ingredients ingredient) {

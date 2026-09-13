@@ -95,6 +95,11 @@ public class AlchemiaBiomeModifiers {
             context.register(modifierKey(name), new BiomeModifiers.AddFeaturesBiomeModifier(
                     biomes.getOrThrow(groupTag.get(name)), HolderSet.direct(holders), groupStep.get(name)));
         });
+
+        context.register(modifierKey(WildHerbGeneration.PEAK_CLUSTER_NAME), new BiomeModifiers.AddFeaturesBiomeModifier(
+                biomes.getOrThrow(Tags.Biomes.IS_MOUNTAIN_PEAK),
+                HolderSet.direct(features.getOrThrow(WildHerbGeneration.PEAK_CLUSTER)),
+                GenerationStep.Decoration.VEGETAL_DECORATION));
     }
 
     private static ResourceKey<BiomeModifier> modifierKey(String name) {

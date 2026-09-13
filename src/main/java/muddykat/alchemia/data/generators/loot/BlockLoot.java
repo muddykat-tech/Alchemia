@@ -1,6 +1,9 @@
 package muddykat.alchemia.data.generators.loot;
 
 import muddykat.alchemia.common.blocks.BlockIngredient;
+import muddykat.alchemia.common.blocks.BlockMineralBuddingGeneric;
+import muddykat.alchemia.common.blocks.BlockMineralClusterGeneric;
+import muddykat.alchemia.common.blocks.BlockMineralGeneric;
 import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyCauldron;
 import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyMachineCore;
 import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyMachineUpgrade;
@@ -18,6 +21,7 @@ import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
 import net.minecraft.world.level.storage.loot.predicates.ExplosionCondition;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
+import net.minecraft.world.level.storage.loot.providers.number.NumberProvider;
 import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
 
 import java.util.ArrayList;
@@ -39,8 +43,24 @@ public class BlockLoot extends BlockLootSubProvider {
                 add(block, LootTable.lootTable().withPool(singleItem(Blocks.CAULDRON)).withPool(singleItem(Blocks.CAMPFIRE)));
             } else if (block instanceof BlockAlchemyMachineCore || block instanceof BlockAlchemyMachineUpgrade) {
                 add(block, LootTable.lootTable().withPool(singleItem(block)));
+            } else if (block instanceof BlockMineralBuddingGeneric) {
+                add(block, noDrop());
+            } else if (block instanceof BlockMineralGeneric) {
+                dropSelf(block);
+            } else if (block instanceof BlockMineralClusterGeneric cluster) {
+                add(block, createSilkTouchDispatchTable(block, applyExplosionDecay(block,
+                        LootItem.lootTableItem(ItemRegistry.getItemFromRegistry(cluster.getIngredient().getRegistryName()))
+                                .apply(SetItemCountFunction.setCount(mineralYield(cluster.getSize()))))));
             }
         }
+    }
+
+    private static NumberProvider mineralYield(BlockRegistry.BudSize size) {
+        return switch (size) {
+            case CLUSTER -> UniformGenerator.between(3, 4);
+            case LARGE -> ConstantValue.exactly(2);
+            default -> ConstantValue.exactly(1);
+        };
     }
 
     @Override
@@ -49,7 +69,9 @@ public class BlockLoot extends BlockLootSubProvider {
         for (var holder : BlockRegistry.BLOCK_REGISTRY.values()) {
             Block block = holder.get();
             if (block instanceof BlockIngredient || block instanceof BlockAlchemyCauldron
-                    || block instanceof BlockAlchemyMachineCore || block instanceof BlockAlchemyMachineUpgrade) {
+                    || block instanceof BlockAlchemyMachineCore || block instanceof BlockAlchemyMachineUpgrade
+                    || block instanceof BlockMineralGeneric || block instanceof BlockMineralBuddingGeneric
+                    || block instanceof BlockMineralClusterGeneric) {
                 blocks.add(block);
             }
         }

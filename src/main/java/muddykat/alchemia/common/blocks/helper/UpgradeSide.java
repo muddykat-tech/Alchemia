@@ -2,6 +2,7 @@ package muddykat.alchemia.common.blocks.helper;
 
 import net.minecraft.core.Direction;
 import net.minecraft.util.StringRepresentable;
+import org.jspecify.annotations.Nullable;
 
 public enum UpgradeSide implements StringRepresentable {
     RIGHT("right", 5),
@@ -18,6 +19,10 @@ public enum UpgradeSide implements StringRepresentable {
 
     public String registryName() {
         return "alchemy_machine_" + id + "_upgrade";
+    }
+
+    public @Nullable UpgradeSide requires() {
+        return this == TOP ? RIGHT : null;
     }
 
     public int potionSlots() {

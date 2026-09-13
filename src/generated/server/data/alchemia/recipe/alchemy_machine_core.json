@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "C": "minecraft:cauldron",
+    "G": "minecraft:glass",
+    "I": "minecraft:iron_ingot",
+    "S": "minecraft:brewing_stand"
+  },
+  "pattern": [
+    "ISI",
+    "GCG",
+    "III"
+  ],
+  "result": {
+    "id": "alchemia:alchemy_machine_core"
+  }
+}
