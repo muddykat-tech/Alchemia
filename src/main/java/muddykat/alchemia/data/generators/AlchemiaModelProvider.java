@@ -8,12 +8,14 @@ import muddykat.alchemia.common.blocks.BlockMineralClusterGeneric;
 import muddykat.alchemia.common.blocks.BlockMineralGeneric;
 import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyCauldron;
 import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyMachineCore;
+import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyMachinePart;
 import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyMachineUpgrade;
 import muddykat.alchemia.common.items.BlockItemGeneric;
 import muddykat.alchemia.common.items.ItemAlchemiaGuide;
 import muddykat.alchemia.common.items.ItemIngredient;
 import muddykat.alchemia.common.items.ItemIngredientSeed;
 import muddykat.alchemia.common.items.ItemMortarPestle;
+import muddykat.alchemia.common.items.ItemPathTool;
 import muddykat.alchemia.client.render.CrushProperty;
 import muddykat.alchemia.common.items.helper.Ingredients;
 import muddykat.alchemia.registration.registers.BlockRegistry;
@@ -27,6 +29,7 @@ import net.minecraft.client.data.models.model.ItemModelUtils;
 import net.minecraft.client.data.models.model.ItemModelUtils;
 import net.minecraft.client.data.models.model.ModelTemplates;
 import net.minecraft.client.renderer.item.RangeSelectItemModel;
+import net.minecraft.client.renderer.item.properties.numeric.Damage;
 import net.minecraft.client.data.models.model.TextureMapping;
 import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.data.PackOutput;
@@ -77,6 +80,8 @@ public class AlchemiaModelProvider extends ModelProvider {
                 flatItem(itemModels, item, Identifier.fromNamespaceAndPath(Alchemia.MODID, "item/book/guide"));
             } else if (item instanceof BlockItemGeneric blockItem && blockItem.getBlock() instanceof BlockMineralClusterGeneric cluster) {
                 flatItem(itemModels, item, clusterTexture(cluster));
+            } else if (item instanceof ItemPathTool) {
+                wearModel(itemModels, item, itemName(item));
             } else if (MAGNUM_OPUS.contains(itemName(item))) {
                 flatItem(itemModels, item, Identifier.fromNamespaceAndPath(Alchemia.MODID, "item/" + itemName(item)));
             }
@@ -87,7 +92,8 @@ public class AlchemiaModelProvider extends ModelProvider {
     protected java.util.stream.Stream<? extends net.minecraft.core.Holder<Block>> getKnownBlocks() {
         return super.getKnownBlocks().filter(holder -> !(holder.value() instanceof BlockAlchemyCauldron)
                 && !(holder.value() instanceof BlockAlchemyMachineCore)
-                && !(holder.value() instanceof BlockAlchemyMachineUpgrade));
+                && !(holder.value() instanceof BlockAlchemyMachineUpgrade)
+                && !(holder.value() instanceof BlockAlchemyMachinePart));
     }
 
     private void generateIngredientCrop(BlockModelGenerators blockModels, BlockIngredient block) {
@@ -145,6 +151,24 @@ public class AlchemiaModelProvider extends ModelProvider {
                 CrushProperty.INSTANCE,
                 ItemModelUtils.plainModel(whole),
                 new RangeSelectItemModel.Entry(1.0F, ItemModelUtils.plainModel(ground))));
+    }
+
+    private void wearModel(ItemModelGenerators itemModels, Item item, String name) {
+        Identifier fresh = flatModel(itemModels, name, itemTexture(name));
+        Identifier worn1 = flatModel(itemModels, name + "_worn_1", itemTexture(name + "_worn_1"));
+        Identifier worn2 = flatModel(itemModels, name + "_worn_2", itemTexture(name + "_worn_2"));
+        Identifier worn3 = flatModel(itemModels, name + "_worn_3", itemTexture(name + "_worn_3"));
+
+        itemModels.itemModelOutput.accept(item, ItemModelUtils.rangeSelect(
+                new Damage(true),
+                ItemModelUtils.plainModel(fresh),
+                new RangeSelectItemModel.Entry(0.25F, ItemModelUtils.plainModel(worn1)),
+                new RangeSelectItemModel.Entry(0.5F, ItemModelUtils.plainModel(worn2)),
+                new RangeSelectItemModel.Entry(0.75F, ItemModelUtils.plainModel(worn3))));
+    }
+
+    private static Identifier itemTexture(String name) {
+        return Identifier.fromNamespaceAndPath(Alchemia.MODID, "item/" + name);
     }
 
     private Identifier flatModel(ItemModelGenerators itemModels, String name, Identifier texture) {

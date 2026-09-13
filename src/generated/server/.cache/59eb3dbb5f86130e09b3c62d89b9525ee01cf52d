@@ -1,7 +1,9 @@
-// 26.2	2026-09-08T06:40:39.749160157	Loot Tables
+// 26.2	2026-09-12T05:51:04.497674622	Loot Tables
 d02236d45b4fb3066f4ef3fb4e2fccc9850c559f data/alchemia/loot_table/blocks/alchemical_cauldron.json
 3a0c0a1f8a291d0a052879e8853b0cea3015890d data/alchemia/loot_table/blocks/alchemy_machine_core.json
+b1a113410222d513ae957c82083a250a9b2bb85a data/alchemia/loot_table/blocks/alchemy_machine_left_upgrade.json
 f1dc8734f60479a5df540184d5d8046c2fe30751 data/alchemia/loot_table/blocks/alchemy_machine_right_upgrade.json
+af5facbcd4b4b931565e39406ebb2ee1fbf5506f data/alchemia/loot_table/blocks/alchemy_machine_top_upgrade.json
 01e1f7341803bcc1bec9fead6f0ba65709c62028 data/alchemia/loot_table/blocks/flower_boombloom_seed.json
 fcce8e05b20c6109cdb95d80fed5753e639e9013 data/alchemia/loot_table/blocks/flower_featherbloom_seed.json
 425c19a925e1e471d56a3476ae9e7c651133e4c1 data/alchemia/loot_table/blocks/flower_firebell_seed.json

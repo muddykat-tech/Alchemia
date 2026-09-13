@@ -2,6 +2,7 @@ package muddykat.alchemia.data.generators;
 
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.blocks.BlockIngredient;
+import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyMachinePart;
 import muddykat.alchemia.common.blocks.BlockMineralClusterGeneric;
 import muddykat.alchemia.registration.registers.BlockRegistry;
 import net.minecraft.core.HolderLookup;
@@ -26,6 +27,10 @@ public class AlchemiaBlockTagsProvider extends TagsProvider<Block> {
 
         BlockRegistry.BLOCK_REGISTRY.forEach((name, holder) -> {
             Block block = holder.get();
+
+            if (block instanceof BlockAlchemyMachinePart) {
+                return;
+            }
 
             if (block instanceof BlockIngredient) {
                 swords.add(block.builtInRegistryHolder().key());

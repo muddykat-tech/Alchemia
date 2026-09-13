@@ -2,6 +2,7 @@ package muddykat.alchemia.client.gui;
 
 import muddykat.alchemia.common.items.ItemIngredient;
 import muddykat.alchemia.common.items.ItemMortarPestle;
+import muddykat.alchemia.common.items.ItemPathTool;
 import muddykat.alchemia.common.items.helper.IngredientPath;
 import muddykat.alchemia.common.items.helper.Ingredients;
 import net.minecraft.client.DeltaTracker;
@@ -35,7 +36,12 @@ public class GrindOverlay {
     private static long lastFrame = 0L;
     private static Ingredients cached;
     private static int cachedCrush;
+    private static int cachedTrim;
     private static Component cachedName;
+    private static int cachedRotation;
+    private static String cachedProgressKey;
+    private static int cachedProgressValue;
+    private static int cachedUsesLeft;
 
     private static int shade(int rgb, float amount) {
         return ARGB.color((int) (255 * amount), rgb);
@@ -61,14 +67,27 @@ public class GrindOverlay {
         LocalPlayer player = minecraft.player;
         if (player == null || !player.isUsingItem()) return false;
 
-        ItemStack mortar = player.getUseItem();
-        if (!(mortar.getItem() instanceof ItemMortarPestle)) return false;
+        ItemStack using = player.getUseItem();
+        ItemStack target;
 
-        ItemStack target = ItemMortarPestle.findTarget(player, mortar);
+        if (using.getItem() instanceof ItemMortarPestle) {
+            target = ItemMortarPestle.findTarget(player, using);
+            cachedProgressKey = null;
+        } else if (using.getItem() instanceof ItemPathTool tool) {
+            target = ItemPathTool.findTarget(player, using);
+            cachedProgressKey = tool.progressKey();
+            cachedProgressValue = target.isEmpty() ? 0 : tool.progressValue(target);
+            cachedUsesLeft = using.getMaxDamage() - using.getDamageValue();
+        } else {
+            return false;
+        }
+
         if (target.isEmpty() || !(target.getItem() instanceof ItemIngredient item)) return false;
 
         cached = item.getIngredient();
         cachedCrush = ItemIngredient.crushOf(target);
+        cachedTrim = ItemIngredient.trimOf(target);
+        cachedRotation = ItemIngredient.rotationOf(target);
         cachedName = target.getHoverName();
         return true;
     }
@@ -85,8 +104,8 @@ public class GrindOverlay {
         double maxPotency = ingredient.getPotency(Ingredients.MAX_CRUSH);
         double nowPotency = ingredient.getPotencyForUnits(cachedCrush);
 
-        List<int[]> full = cellsFor(shape, ingredient, dx, dy, maxPotency);
-        List<int[]> current = cellsFor(shape, ingredient, dx, dy, nowPotency);
+        List<int[]> full = cellsFor(shape, ingredient, dx, dy, maxPotency, cachedTrim, cachedRotation);
+        List<int[]> current = cellsFor(shape, ingredient, dx, dy, nowPotency, cachedTrim, cachedRotation);
         if (full.isEmpty()) return;
 
         int lowX = 0, highX = 0, lowY = 0, highY = 0;
@@ -100,7 +119,9 @@ public class GrindOverlay {
         int columns = highX - lowX + 1;
         int rows = highY - lowY + 1;
 
-        Component progress = Component.translatable("alchemia.tooltip.grind", cachedCrush, Ingredients.MAX_CRUSH_UNITS);
+        Component progress = cachedProgressKey != null
+                ? Component.translatable(cachedProgressKey, cachedProgressValue, cachedUsesLeft)
+                : Component.translatable("alchemia.tooltip.grind", cachedCrush, Ingredients.MAX_CRUSH_UNITS);
 
         int gridW = columns * CELL;
         int textW = Math.max(minecraft.font.width(cachedName), minecraft.font.width(progress));
@@ -135,9 +156,11 @@ public class GrindOverlay {
         graphics.fill(originX, originY, originX + CELL - 1, originY + CELL - 1, shade(PATH_ORIGIN, fade));
     }
 
-    private static List<int[]> cellsFor(IngredientPath shape, Ingredients ingredient, int dx, int dy, double potency) {
-        return shape.teleports()
-                ? shape.teleportPreview(dx, dy, potency, PREVIEW_SCALE)
-                : IngredientPath.pathFor(ingredient, dx, dy, potency);
+    private static List<int[]> cellsFor(IngredientPath shape, Ingredients ingredient, int dx, int dy, double potency, int trim, int rotation) {
+        if (!shape.teleports()) return IngredientPath.pathFor(ingredient, dx, dy, potency, trim, rotation);
+
+        double reach = Math.max(1, IngredientPath.teleportDistance(potency));
+        double shrink = Math.max(1.0, reach - trim) / reach;
+        return IngredientPath.rotated(shape.teleportPreview(dx, dy, potency, PREVIEW_SCALE * shrink), rotation);
     }
 }

@@ -3,8 +3,6 @@ package muddykat.alchemia.data.generators;
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.items.helper.IngredientType;
 import muddykat.alchemia.common.items.helper.Ingredients;
-import muddykat.alchemia.common.crafting.MagnumOpus;
-import muddykat.alchemia.common.crafting.PotionEffectIngredient;
 import muddykat.alchemia.data.AlchemiaItemTags;
 import muddykat.alchemia.registration.registers.ItemRegistry;
 import net.minecraft.core.HolderLookup;
@@ -42,8 +40,6 @@ public class AlchemiaRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_ingredient", has(AlchemiaItemTags.INGREDIENTS))
                 .save(this.output, recipeKey("alchemia_guide"));
 
-        magnumOpus();
-
         for (Ingredients ingredient : Ingredients.values()) {
             if (ingredient.getType().equals(IngredientType.Mineral)) continue;
 
@@ -53,30 +49,6 @@ public class AlchemiaRecipeProvider extends RecipeProvider {
                     .unlockedBy("has_" + ingredient.name().toLowerCase() + "_ingredient", has(ItemRegistry.getItemFromRegistry(ingredient.getRegistryName())))
                     .save(this.output, recipeKey(ingredient.name().toLowerCase() + "_seeds_from_ingredient"));
         }
-    }
-
-    private void magnumOpus() {
-        for (MagnumOpus.Stage stage : MagnumOpus.STAGES) {
-            stage(stage);
-        }
-    }
-
-    private void stage(MagnumOpus.Stage stage) {
-        String result = stage.result();
-        String previous = stage.previous();
-        var builder = shapeless(RecipeCategory.BREWING, ItemRegistry.getItemFromRegistry(result));
-
-        if (previous != null) {
-            builder.requires(ItemRegistry.getItemFromRegistry(previous));
-            builder.unlockedBy("has_" + previous, has(ItemRegistry.getItemFromRegistry(previous)));
-        } else {
-            builder.unlockedBy("has_ingredient", has(AlchemiaItemTags.INGREDIENTS));
-        }
-
-        for (PotionEffectIngredient potion : stage.potions()) {
-            builder.requires(potion.toVanilla());
-        }
-        builder.save(this.output, recipeKey(result));
     }
 
     private static ResourceKey<Recipe<?>> recipeKey(String name) {

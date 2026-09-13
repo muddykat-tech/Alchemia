@@ -4,7 +4,9 @@ import net.minecraft.core.Direction;
 import net.minecraft.util.StringRepresentable;
 
 public enum UpgradeSide implements StringRepresentable {
-    RIGHT("right", 5);
+    RIGHT("right", 5),
+    LEFT("left", 4),
+    TOP("top", 3);
 
     private final String id;
     private final int potionSlots;
@@ -24,7 +26,9 @@ public enum UpgradeSide implements StringRepresentable {
 
     public Direction directionFrom(Direction facing) {
         return switch (this) {
-            case RIGHT -> facing.getClockWise();
+            case RIGHT -> facing.getCounterClockWise();
+            case LEFT -> facing.getClockWise();
+            case TOP -> Direction.UP;
         };
     }
 

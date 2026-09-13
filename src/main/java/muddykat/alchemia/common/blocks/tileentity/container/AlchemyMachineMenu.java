@@ -1,5 +1,6 @@
 package muddykat.alchemia.common.blocks.tileentity.container;
 
+import muddykat.alchemia.common.blocks.helper.UpgradeSide;
 import muddykat.alchemia.common.blocks.tileentity.TileEntityAlchemyMachineCore;
 import muddykat.alchemia.common.blocks.tileentity.TileEntityAlchemyMachineUpgrade;
 import muddykat.alchemia.registration.registers.BlockRegistry;
@@ -17,14 +18,18 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
 import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 public class AlchemyMachineMenu extends AbstractContainerMenu {
 
-    public static final int POTION_X = 50;
-    public static final int POTION_Y = 20;
+    public static final int GUI_WIDTH = 190;
+    public static final int GUI_HEIGHT = 216;
     public static final int SLOT_PITCH = 18;
+
+    public static final int PANEL_INSET = 7;
+    public static final int PANEL_CENTER_Y = 80;
 
     public static final int INPUT_X = 55;
     public static final int INPUT_Y = 54;
@@ -37,9 +42,24 @@ public class AlchemyMachineMenu extends AbstractContainerMenu {
     public static final int INVENTORY_Y = 119;
     public static final int HOTBAR_Y = 178;
 
+    public record UpgradePanel(UpgradeSide side, int x, int y, int width, int height) {
+        public int slotX(int index) {
+            return x + PANEL_INSET + 1 + (side == UpgradeSide.TOP ? index * SLOT_PITCH : 0);
+        }
+
+        public int slotY(int index) {
+            return y + PANEL_INSET + 1 + (side == UpgradeSide.TOP ? 0 : index * SLOT_PITCH);
+        }
+
+        public boolean contains(double px, double py) {
+            return px >= x && px < x + width && py >= y && py < y + height;
+        }
+    }
+
     private final TileEntityAlchemyMachineCore core;
     private final ContainerData machineData;
     private final ContainerLevelAccess containerAccess;
+    private final List<UpgradePanel> panels;
     private final int potionSlots;
 
     public AlchemyMachineMenu(final int windowId, final Inventory playerInventory, final TileEntityAlchemyMachineCore core, ContainerData machineData) {
@@ -66,12 +86,14 @@ public class AlchemyMachineMenu extends AbstractContainerMenu {
             }
         });
 
-        List<TileEntityAlchemyMachineUpgrade> upgrades = core.attachedUpgrades();
+        List<UpgradePanel> attached = new ArrayList<>();
         int added = 0;
-        for (TileEntityAlchemyMachineUpgrade upgrade : upgrades) {
+        for (TileEntityAlchemyMachineUpgrade upgrade : core.attachedUpgrades()) {
+            UpgradePanel panel = panelFor(upgrade.getSide());
+            attached.add(panel);
             ItemStacksResourceHandler potions = upgrade.getPotions();
             for (int slot = 0; slot < potions.size(); slot++) {
-                addSlot(new ResourceHandlerSlot(potions, potions::set, slot, POTION_X + added * SLOT_PITCH, POTION_Y) {
+                addSlot(new ResourceHandlerSlot(potions, potions::set, slot, panel.slotX(slot), panel.slotY(slot)) {
                     @Override
                     public boolean mayPlace(ItemStack stack) {
                         return TileEntityAlchemyMachineUpgrade.isPotion(stack);
@@ -80,6 +102,7 @@ public class AlchemyMachineMenu extends AbstractContainerMenu {
                 added++;
             }
         }
+        this.panels = List.copyOf(attached);
         this.potionSlots = added;
 
         for (int row = 0; row < 3; row++) {
@@ -108,6 +131,20 @@ public class AlchemyMachineMenu extends AbstractContainerMenu {
             return machine;
         }
         throw new IllegalStateException("Block entity is not correct! " + blockEntity);
+    }
+
+    public static UpgradePanel panelFor(UpgradeSide side) {
+        int length = side.potionSlots() * SLOT_PITCH + PANEL_INSET * 2;
+        int depth = SLOT_PITCH + PANEL_INSET * 2;
+        return switch (side) {
+            case RIGHT -> new UpgradePanel(side, GUI_WIDTH, PANEL_CENTER_Y - length / 2, depth, length);
+            case LEFT -> new UpgradePanel(side, -depth, PANEL_CENTER_Y - length / 2, depth, length);
+            case TOP -> new UpgradePanel(side, (GUI_WIDTH - length) / 2, -depth, length, depth);
+        };
+    }
+
+    public List<UpgradePanel> getPanels() {
+        return panels;
     }
 
     public int getPotionSlots() {

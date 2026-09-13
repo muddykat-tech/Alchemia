@@ -90,6 +90,52 @@ public enum IngredientPath {
         return shape.offsets(dx, dy, lengthFor(potency), potency);
     }
 
+    public static List<int[]> pathFor(Ingredients ingredient, int dx, int dy, double potency, int trim) {
+        return trimmed(pathFor(ingredient, dx, dy, potency), trim);
+    }
+
+    public static final int ROTATION_STEPS = 8;
+
+    public static double rotationRadians(int steps) {
+        return Math.floorMod(steps, ROTATION_STEPS) * (2 * Math.PI / ROTATION_STEPS);
+    }
+
+    public static List<int[]> rotated(List<int[]> cells, int steps) {
+        if (Math.floorMod(steps, ROTATION_STEPS) == 0 || cells.isEmpty()) return cells;
+
+        double angle = rotationRadians(steps);
+        double cos = Math.cos(angle);
+        double sin = Math.sin(angle);
+
+        List<int[]> waypoints = new ArrayList<>();
+        for (int[] cell : cells) {
+            waypoints.add(new int[]{
+                    (int) Math.round(cell[0] * cos - cell[1] * sin),
+                    (int) Math.round(cell[0] * sin + cell[1] * cos)});
+        }
+        return interpolate(waypoints);
+    }
+
+    public static int[] rotateDirection(int dx, int dy, int steps) {
+        if (Math.floorMod(steps, ROTATION_STEPS) == 0) return new int[]{dx, dy};
+
+        double angle = rotationRadians(steps);
+        double cos = Math.cos(angle);
+        double sin = Math.sin(angle);
+        return new int[]{
+                (int) Math.round(dx * cos - dy * sin),
+                (int) Math.round(dx * sin + dy * cos)};
+    }
+
+    public static List<int[]> pathFor(Ingredients ingredient, int dx, int dy, double potency, int trim, int rotation) {
+        return rotated(pathFor(ingredient, dx, dy, potency, trim), rotation);
+    }
+
+    public static List<int[]> trimmed(List<int[]> cells, int trim) {
+        if (trim <= 0 || cells.size() <= 1) return cells;
+        return List.copyOf(cells.subList(0, Math.max(1, cells.size() - trim)));
+    }
+
     public static int lengthFor(double potency) {
         return BASE_LENGTH + (int) Math.round(Math.max(0.0, potency - 1) * LENGTH_PER_POTENCY);
     }

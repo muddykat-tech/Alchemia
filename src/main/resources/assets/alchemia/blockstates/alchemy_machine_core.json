@@ -1,8 +1,12 @@
 {
   "variants": {
-    "facing=north": { "model": "alchemia:block/alchemy_machine_core" },
-    "facing=east": { "model": "alchemia:block/alchemy_machine_core", "y": 90 },
-    "facing=south": { "model": "alchemia:block/alchemy_machine_core", "y": 180 },
-    "facing=west": { "model": "alchemia:block/alchemy_machine_core", "y": 270 }
+    "facing=north,lit=false": { "model": "alchemia:block/alchemy_machine_core" },
+    "facing=east,lit=false": { "model": "alchemia:block/alchemy_machine_core", "y": 90 },
+    "facing=south,lit=false": { "model": "alchemia:block/alchemy_machine_core", "y": 180 },
+    "facing=west,lit=false": { "model": "alchemia:block/alchemy_machine_core", "y": 270 },
+    "facing=north,lit=true": { "model": "alchemia:block/alchemy_machine_core_lit" },
+    "facing=east,lit=true": { "model": "alchemia:block/alchemy_machine_core_lit", "y": 90 },
+    "facing=south,lit=true": { "model": "alchemia:block/alchemy_machine_core_lit", "y": 180 },
+    "facing=west,lit=true": { "model": "alchemia:block/alchemy_machine_core_lit", "y": 270 }
   }
 }

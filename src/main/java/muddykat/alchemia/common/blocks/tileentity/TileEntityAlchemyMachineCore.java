@@ -18,6 +18,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
@@ -162,7 +163,8 @@ public class TileEntityAlchemyMachineCore extends SyncedBlockEntity implements M
 
     private boolean inputMatches(MagnumOpus.Stage stage, ItemStack input) {
         if (stage.previous() == null) return input.isEmpty();
-        return !input.isEmpty() && input.is(ItemRegistry.getItemFromRegistry(stage.previous()).asItem());
+        return !input.isEmpty() && !input.isDamaged()
+                && input.is(ItemRegistry.getItemFromRegistry(stage.previous()).asItem());
     }
 
     private static int @Nullable [] matchPotions(List<PotionEffectIngredient> required, List<PotionRef> available) {
@@ -226,6 +228,9 @@ public class TileEntityAlchemyMachineCore extends SyncedBlockEntity implements M
         }
 
         if (wasLit != isLit()) changed = true;
+        if (getBlockState().getValue(BlockAlchemyMachineCore.LIT) != isLit()) {
+            level.setBlock(worldPosition, getBlockState().setValue(BlockAlchemyMachineCore.LIT, isLit()), Block.UPDATE_ALL);
+        }
         if (changed) setChanged();
     }
 

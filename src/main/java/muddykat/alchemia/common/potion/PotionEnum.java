@@ -39,7 +39,16 @@ public enum PotionEnum {
     Slow_Falling(MobEffects.SLOW_FALLING, 3, IngredientAlignment.Water, IngredientAlignment.Void, Rarity.RARE),
     Conduit_Power(MobEffects.CONDUIT_POWER, 3, IngredientAlignment.Water, IngredientAlignment.Void, Rarity.EPIC),
     Dolphins_Grace(MobEffects.DOLPHINS_GRACE, 3, IngredientAlignment.Water, IngredientAlignment.Air, Rarity.RARE),
-    Bad_Omen(MobEffects.BAD_OMEN, 3, IngredientAlignment.Fire, IngredientAlignment.Void, Rarity.EPIC);
+    Bad_Omen(MobEffects.BAD_OMEN, 3, IngredientAlignment.Fire, IngredientAlignment.Void, Rarity.EPIC),
+    Wind_Charged(MobEffects.WIND_CHARGED, 3, IngredientAlignment.Air, IngredientAlignment.Void, Rarity.UNCOMMON),
+    Weaving(MobEffects.WEAVING, 3, IngredientAlignment.Earth, IngredientAlignment.Void, Rarity.UNCOMMON),
+    Oozing(MobEffects.OOZING, 3, IngredientAlignment.Water, IngredientAlignment.Earth, Rarity.UNCOMMON),
+    Infested(MobEffects.INFESTED, 3, IngredientAlignment.Earth, IngredientAlignment.Fire, Rarity.UNCOMMON),
+    Darkness(MobEffects.DARKNESS, 3, IngredientAlignment.Void, IngredientAlignment.Air, Rarity.RARE),
+    Breath_Of_The_Nautilus(MobEffects.BREATH_OF_THE_NAUTILUS, 3, IngredientAlignment.Water, IngredientAlignment.Void, Rarity.RARE),
+    Hero_Of_The_Village(MobEffects.HERO_OF_THE_VILLAGE, 3, IngredientAlignment.Earth, IngredientAlignment.Air, Rarity.EPIC),
+    Raid_Omen(MobEffects.RAID_OMEN, 3, IngredientAlignment.Fire, IngredientAlignment.Earth, Rarity.EPIC),
+    Trial_Omen(MobEffects.TRIAL_OMEN, 3, IngredientAlignment.Fire, IngredientAlignment.Air, Rarity.EPIC);
 
     final Holder<MobEffect> effect;
     final int maxStrength;

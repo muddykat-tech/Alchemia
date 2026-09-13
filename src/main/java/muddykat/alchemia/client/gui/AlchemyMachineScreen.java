@@ -1,29 +1,32 @@
 package muddykat.alchemia.client.gui;
 
 import muddykat.alchemia.common.blocks.tileentity.container.AlchemyMachineMenu;
+import muddykat.alchemia.common.blocks.tileentity.container.AlchemyMachineMenu.UpgradePanel;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 
-public class AlchemyMachineScreen extends AbstractContainerScreen<AlchemyMachineMenu> {
+import java.util.List;
 
-    private static final int IMAGE_WIDTH = 190;
-    private static final int IMAGE_HEIGHT = 216;
+public class AlchemyMachineScreen extends AbstractContainerScreen<AlchemyMachineMenu> {
 
     private static final int INK = 0xFF4A3A28;
     private static final int INK_FAINT = 0xFF7A6A52;
 
+    private static final int HINT_Y = 24;
+
     private static final int FLAME_X = 56;
     private static final int FLAME_Y = 72;
 
-    private static final int COOK_X = 77;
-    private static final int COOK_Y = 76;
+    public static final int COOK_X = 77;
+    public static final int COOK_Y = 76;
 
     public AlchemyMachineScreen(AlchemyMachineMenu menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title, IMAGE_WIDTH, IMAGE_HEIGHT);
+        super(menu, playerInventory, title, AlchemyMachineMenu.GUI_WIDTH, AlchemyMachineMenu.GUI_HEIGHT);
         this.inventoryLabelY = AlchemyMachineMenu.INVENTORY_Y - 12;
     }
 
@@ -32,8 +35,13 @@ public class AlchemyMachineScreen extends AbstractContainerScreen<AlchemyMachine
         int left = this.leftPos;
         int top = this.topPos;
 
+        for (UpgradePanel panel : this.menu.getPanels()) {
+            graphics.blitSprite(RenderPipelines.GUI_TEXTURED, AlchemiaSprites.upgradePanel(panel.side()),
+                    left + panel.x(), top + panel.y(), panel.width(), panel.height());
+        }
+
         graphics.blitSprite(RenderPipelines.GUI_TEXTURED, AlchemiaSprites.ALCHEMY_MACHINE,
-                left, top, IMAGE_WIDTH, IMAGE_HEIGHT);
+                left, top, AlchemyMachineMenu.GUI_WIDTH, AlchemyMachineMenu.GUI_HEIGHT);
 
         for (Slot slot : this.menu.slots) {
             graphics.blitSprite(RenderPipelines.GUI_TEXTURED, AlchemiaSprites.SLOT,
@@ -42,8 +50,8 @@ public class AlchemyMachineScreen extends AbstractContainerScreen<AlchemyMachine
 
         if (this.menu.getPotionSlots() == 0) {
             Component hint = Component.translatable("alchemia.gui.machine.no_upgrade");
-            graphics.text(this.font, hint, left + (IMAGE_WIDTH - this.font.width(hint)) / 2,
-                    top + AlchemyMachineMenu.POTION_Y + 4, INK_FAINT, false);
+            graphics.text(this.font, hint, left + (AlchemyMachineMenu.GUI_WIDTH - this.font.width(hint)) / 2,
+                    top + HINT_Y, INK_FAINT, false);
         }
 
         drawBurn(graphics, left, top);
@@ -84,6 +92,21 @@ public class AlchemyMachineScreen extends AbstractContainerScreen<AlchemyMachine
         graphics.blitSprite(RenderPipelines.GUI_TEXTURED, AlchemiaSprites.COOK_PROGRESS,
                 AlchemiaSprites.COOK_W, AlchemiaSprites.COOK_H, 0, 0,
                 x, y, filled, AlchemiaSprites.COOK_H);
+    }
+
+    public List<Rect2i> getPanelAreas() {
+        return this.menu.getPanels().stream()
+                .map(panel -> new Rect2i(this.leftPos + panel.x(), this.topPos + panel.y(), panel.width(), panel.height()))
+                .toList();
+    }
+
+    @Override
+    protected boolean hasClickedOutside(double mx, double my, int xo, int yo) {
+        if (!super.hasClickedOutside(mx, my, xo, yo)) return false;
+        for (UpgradePanel panel : this.menu.getPanels()) {
+            if (panel.contains(mx - xo, my - yo)) return false;
+        }
+        return true;
     }
 
     @Override
