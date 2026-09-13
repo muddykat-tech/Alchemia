@@ -23,6 +23,7 @@ public class PotionMap {
     private static boolean seeded;
 
     public static final int HARD_MARGIN = 3;
+    private static final double BASE_RADIUS_FRACTION = 15.0 / 68.0;
 
     private final BrewBase base;
     private final int size;
@@ -69,7 +70,7 @@ public class PotionMap {
                 }
 
                 int rarityOrdinal = e.getRarity().ordinal();
-                double baseRadius = 15.0;
+                double baseRadius = size * BASE_RADIUS_FRACTION;
 
                 double randomRadius;
                 if (rarityOrdinal == 0) {
@@ -177,7 +178,7 @@ public class PotionMap {
 
     public static int teleportDistance(ItemStack stack) {
         if (!(stack.getItem() instanceof ItemIngredient ingredient)) return IngredientPath.teleportDistance(1);
-        return teleportDistance(ingredient.getPotency(stack));
+        return Math.max(1, teleportDistance(ingredient.getPotency(stack)) - ItemIngredient.trimOf(stack));
     }
 
     public static int teleportDistance(double potency) {
@@ -295,10 +296,14 @@ public class PotionMap {
         double potency = ingredient.getPotency(stack);
         IngredientPath shape = IngredientPath.of(ingredient.getIngredient());
 
+        int[] aimed = IngredientPath.rotateDirection(dx, dy, ItemIngredient.rotationOf(stack));
+
         if (shape.teleports()) {
             int[] landing = shape == IngredientPath.SPIRAL_TELEPORT
-                    ? teleportPolar(x, y, IngredientPath.spiralAngle(potency), IngredientPath.teleportRadius(potency))
-                    : teleport(x, y, dx, dy, teleportDistance(stack));
+                    ? teleportPolar(x, y,
+                            IngredientPath.spiralAngle(potency) + IngredientPath.rotationRadians(ItemIngredient.rotationOf(stack)),
+                            Math.max(1.0, IngredientPath.teleportRadius(potency) - ItemIngredient.trimOf(stack)))
+                    : teleport(x, y, aimed[0], aimed[1], teleportDistance(stack));
 
             if (isDeadzone(landing[0], landing[1])) {
                 return new PotionPath(List.of(landing), true, false, true);
@@ -312,7 +317,8 @@ public class PotionMap {
 
         List<int[]> cells = new ArrayList<>();
 
-        for (int[] offset : IngredientPath.pathFor(ingredient.getIngredient(), dx, dy, potency)) {
+        for (int[] offset : IngredientPath.pathFor(ingredient.getIngredient(), dx, dy, potency,
+                ItemIngredient.trimOf(stack), ItemIngredient.rotationOf(stack))) {
             int nx = x + offset[0];
             int ny = y + offset[1];
             if (!inBounds(nx, ny) || isDeadzone(nx, ny)) break;

@@ -40,6 +40,18 @@ public class DataComponentRegistry {
                     .networkSynchronized(ByteBufCodecs.VAR_INT)
                     .build());
 
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> PATH_TRIM = DATA_COMPONENTS.register("path_trim",
+            () -> DataComponentType.<Integer>builder()
+                    .persistent(Codec.intRange(0, 64))
+                    .networkSynchronized(ByteBufCodecs.VAR_INT)
+                    .build());
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> PATH_ROTATION = DATA_COMPONENTS.register("path_rotation",
+            () -> DataComponentType.<Integer>builder()
+                    .persistent(Codec.intRange(0, 7))
+                    .networkSynchronized(ByteBufCodecs.VAR_INT)
+                    .build());
+
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> CHARGES = DATA_COMPONENTS.register("charges",
             () -> DataComponentType.<Integer>builder()
                     .persistent(Codec.intRange(0, 64))

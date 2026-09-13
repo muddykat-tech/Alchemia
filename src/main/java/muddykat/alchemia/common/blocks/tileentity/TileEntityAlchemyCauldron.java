@@ -2,6 +2,7 @@ package muddykat.alchemia.common.blocks.tileentity;
 
 import muddykat.alchemia.common.blocks.tileentity.container.AlchemicalCauldronMenu;
 import muddykat.alchemia.common.items.ItemIngredient;
+import muddykat.alchemia.common.items.ItemRubedo;
 import muddykat.alchemia.common.items.ItemMortarPestle;
 import muddykat.alchemia.common.items.helper.Ingredients;
 import muddykat.alchemia.common.potion.BrewBase;
@@ -115,6 +116,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
     private boolean spoiled = false;
     private BrewBase base = BrewBases.defaultBase();
     private int instability = 0;
+    private int bonusInstability = 0;
     private int durationBonus = 0;
     private boolean lingeringRequested = false;
     private int potion_color = 0xffffff;
@@ -160,6 +162,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         spoiled = input.getBooleanOr("spoiled", false);
         base = BrewBases.byId(input.getString("base").orElse(BrewBases.DEFAULT_ID));
         instability = input.getIntOr("instability", 0);
+        bonusInstability = input.getIntOr("bonusInstability", 0);
         durationBonus = input.getIntOr("durationBonus", 0);
         updateWaterColor();
     }
@@ -179,6 +182,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         output.putBoolean("spoiled", spoiled);
         output.putString("base", base.id());
         output.putInt("instability", instability);
+        output.putInt("bonusInstability", bonusInstability);
         output.putInt("durationBonus", durationBonus);
     }
 
@@ -200,6 +204,14 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
 
         InteractionResult filled = tryFill(player, hand, heldStack, pos, level);
         if (filled != null) return filled;
+
+        if (heldItem instanceof ItemRubedo) {
+            if (!addRubedo(player)) return InteractionResult.FAIL;
+
+            heldStack.shrink(1);
+            player.setItemInHand(hand, heldStack);
+            return InteractionResult.CONSUME;
+        }
 
         if (heldItem instanceof ItemIngredient) {
             if (getWaterLevel() > 0) {
@@ -781,7 +793,28 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
     }
 
     public int getInstabilityCap() {
-        return base.instabilityCap();
+        return base.instabilityCap() + bonusInstability;
+    }
+
+    public boolean hasBonusInstability() {
+        return bonusInstability > 0;
+    }
+
+    public boolean addRubedo(Player player) {
+        if (spoiled || getWaterLevel() <= 0) return false;
+
+        if (bonusInstability > 0) {
+            message(player, "alchemia.brew.rubedo_already");
+            return false;
+        }
+
+        bonusInstability = 1;
+        if (level != null && !level.isClientSide()) {
+            level.playSound(null, getBlockPos(), SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.BLOCKS, 0.9F, 1.2F);
+            message(player, "alchemia.brew.rubedo_added");
+        }
+        sync();
+        return true;
     }
 
     public Map<Holder<MobEffect>, Integer> previewPotencies(List<ItemStack> queued) {
@@ -801,7 +834,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
             PotionMap.PotionPath path = map().walk(x, y, stack);
             if (path.dead()) {
                 simulated++;
-                if (simulated >= base.instabilityCap()) return null;
+                if (simulated >= getInstabilityCap()) return null;
 
                 int[] stranded = path.cells().get(0);
                 x = stranded[0];
@@ -841,7 +874,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
 
     private boolean destabilise() {
         instability++;
-        if (instability >= base.instabilityCap()) {
+        if (instability >= getInstabilityCap()) {
             spoil();
             return false;
         }
@@ -859,7 +892,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
 
     private void spoil() {
         spoiled = true;
-        instability = base.instabilityCap();
+        instability = getInstabilityCap();
         effectList.clear();
         updateWaterColor();
 
@@ -995,6 +1028,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         addedIngredients.clear();
         spoiled = false;
         instability = 0;
+        bonusInstability = 0;
         durationBonus = 0;
         effectList.clear();
         effectList = new HashSet<>();

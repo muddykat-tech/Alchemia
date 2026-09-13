@@ -1,6 +1,7 @@
 package muddykat.alchemia.client.gui;
 
 import muddykat.alchemia.Alchemia;
+import muddykat.alchemia.common.blocks.helper.UpgradeSide;
 import net.minecraft.resources.Identifier;
 
 public final class AlchemiaSprites {
@@ -14,6 +15,9 @@ public final class AlchemiaSprites {
     public static final Identifier NAME_FIELD = sprite("container/name_field");
     public static final Identifier POTION_SWATCH = sprite("container/potion_swatch");
     public static final Identifier ALCHEMY_MACHINE = sprite("container/alchemy_machine");
+    public static final Identifier UPGRADE_PANEL_RIGHT = sprite("container/upgrade_panel_right");
+    public static final Identifier UPGRADE_PANEL_LEFT = sprite("container/upgrade_panel_left");
+    public static final Identifier UPGRADE_PANEL_TOP = sprite("container/upgrade_panel_top");
     public static final Identifier BURN_TRACK = sprite("container/burn_track");
     public static final Identifier BURN_PROGRESS = sprite("container/burn_progress");
     public static final Identifier COOK_TRACK = sprite("container/cook_track");
@@ -31,6 +35,14 @@ public final class AlchemiaSprites {
     public static final int COOK_H = 8;
 
     private AlchemiaSprites() {
+    }
+
+    public static Identifier upgradePanel(UpgradeSide side) {
+        return switch (side) {
+            case RIGHT -> UPGRADE_PANEL_RIGHT;
+            case LEFT -> UPGRADE_PANEL_LEFT;
+            case TOP -> UPGRADE_PANEL_TOP;
+        };
     }
 
     private static Identifier sprite(String path) {

@@ -21,6 +21,14 @@ public final class BrewBases {
 
     private static final Map<String, BrewBase> BASES = new LinkedHashMap<>();
 
+    private static final java.util.Set<String> WATER_ONLY = java.util.Set.of(
+            "Water_Breathing", "Conduit_Power", "Dolphins_Grace", "Breath_Of_The_Nautilus", "Oozing",
+            "Levitation", "Dig_Speed", "Darkness", "Fire_Protection", "Slow_Falling");
+
+    private static final java.util.Set<String> HONEY_ONLY = java.util.Set.of(
+            "Hunger", "Unluck", "Bad_Omen", "Raid_Omen", "Trial_Omen",
+            "Hero_Of_The_Village", "Weaving", "Infested", "Wind_Charged", "Jump");
+
     private BrewBases() {
     }
 
@@ -31,20 +39,26 @@ public final class BrewBases {
     public record Match(BrewBase base, BrewBase.Fill fill) {
     }
 
+    public static List<String> effectsExcept(java.util.Set<String> excluded) {
+        return java.util.Arrays.stream(PotionEnum.values())
+                .map(Enum::name)
+                .filter(name -> !excluded.contains(name))
+                .collect(Collectors.toList());
+    }
+
     public static List<BrewBase> defaults() {
-        List<String> everything = allEffectNames();
 
         BrewBase water = new BrewBase(DEFAULT_ID,
                 List.of(new BrewBase.Fill(id("minecraft:water_bucket"), Optional.empty(), 4, id("minecraft:bucket"), Optional.empty()),
                         new BrewBase.Fill(Optional.empty(), id("minecraft:water"), 4, Optional.empty(), Optional.empty())),
                 1, Optional.of(0x3F76E4), true, id("minecraft:block/water_still"), id("minecraft:water"),
-                Optional.empty(), Optional.of(everything));
+                Optional.empty(), Optional.of(effectsExcept(HONEY_ONLY)));
 
         BrewBase honey = new BrewBase("honey",
                 List.of(new BrewBase.Fill(id("minecraft:honey_block"), Optional.empty(), 4, Optional.empty(), Optional.empty()),
                         new BrewBase.Fill(id("minecraft:honey_bottle"), Optional.empty(), 1, id("minecraft:glass_bottle"), Optional.empty())),
                 2, Optional.of(0xD9871F), false, Optional.empty(), Optional.empty(),
-                id("minecraft:honey_bottle"), Optional.of(everything));
+                id("minecraft:honey_bottle"), Optional.of(effectsExcept(WATER_ONLY)));
 
         return List.of(water, honey);
     }

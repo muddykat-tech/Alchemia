@@ -106,7 +106,7 @@ public class TileEntityAlchemyMachineUpgrade extends SyncedBlockEntity {
 
         if (level != null && !level.isClientSide()) {
             potions.set(slot, ItemResource.of(held), 1);
-            if (!player.getAbilities().instabuild) held.shrink(1);
+            held.shrink(1);
         }
         return InteractionResult.SUCCESS;
     }

@@ -7,6 +7,7 @@ import muddykat.alchemia.common.blocks.BlockMineralClusterGeneric;
 import muddykat.alchemia.common.blocks.BlockMineralGeneric;
 import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyCauldron;
 import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyMachineCore;
+import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyMachinePart;
 import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyMachineUpgrade;
 import muddykat.alchemia.common.blocks.helper.UpgradeSide;
 import muddykat.alchemia.common.items.BlockItemGeneric;
@@ -76,6 +77,9 @@ public class BlockRegistry {
                     () -> BlockBehaviour.Properties.ofFullCopy(Blocks.CAULDRON).noOcclusion());
             ItemRegistry.registerItem(id, properties -> new BlockItemGeneric(upgrade.get(), properties));
         }
+
+        registerBlock(BlockAlchemyMachinePart.ID, BlockAlchemyMachinePart::new,
+                () -> BlockBehaviour.Properties.ofFullCopy(Blocks.CAULDRON).noOcclusion().noLootTable());
     }
 
     public static void createMineralGeodeBlocks(Ingredients ingredient) {

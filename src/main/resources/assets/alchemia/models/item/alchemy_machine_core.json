@@ -1,16 +1,15 @@
 {
   "loader": "neoforge:obj",
   "model": "alchemia:models/alchemy_machine_core.obj",
-  "mtl_override": "alchemia:models/alchemy_machine.mtl",
   "flip_v": true,
   "automatic_culling": false,
   "gui_light": "side",
   "transform": {
-    "translation": [0.5, -0.34375, 0.4609375]
+    "translation": [0.5390625, -0.34375, 0.5]
   },
   "textures": {
-    "body": "alchemia:block/alchemy/alchemy_machine",
-    "glass": "alchemia:block/alchemy/glass",
+    "alchemy_machine": "alchemia:block/alchemy/alchemy_machine",
+    "alchemy_machine_lit": "alchemia:block/alchemy/alchemy_machine_lit",
     "particle": "alchemia:block/alchemy/alchemy_machine"
   },
   "display": {

@@ -3,6 +3,7 @@ package muddykat.alchemia.client;
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.client.gui.AlchemicalScreen;
 import muddykat.alchemia.client.gui.AlchemyMachineScreen;
+import muddykat.alchemia.client.render.AlchemyMachineUpgradeRenderer;
 import muddykat.alchemia.client.gui.ClientIngredientPathTooltip;
 import muddykat.alchemia.client.gui.GrindOverlay;
 import muddykat.alchemia.common.items.helper.IngredientPathTooltip;
@@ -50,5 +51,6 @@ public class ClientSetup {
     @SubscribeEvent
     public static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(BlockEntityTypeRegistry.ALCHEMICAL_CAULDRON.get(), AlchemicalCauldronRenderer::new);
+        event.registerBlockEntityRenderer(BlockEntityTypeRegistry.ALCHEMY_MACHINE_UPGRADE.get(), AlchemyMachineUpgradeRenderer::new);
     }
 }

@@ -2,15 +2,19 @@ package muddykat.alchemia.common.blocks.blockentity;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import muddykat.alchemia.common.blocks.helper.AlchemyMachineParts;
+import muddykat.alchemia.common.blocks.helper.MachineOwner;
 import muddykat.alchemia.common.blocks.helper.UpgradeSide;
 import muddykat.alchemia.common.blocks.tileentity.TileEntityAlchemyMachineCore;
 import muddykat.alchemia.common.blocks.tileentity.TileEntityAlchemyMachineUpgrade;
 import muddykat.alchemia.registration.registers.BlockEntityTypeRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -102,11 +106,27 @@ public class BlockAlchemyMachineUpgrade extends EntityBlockGeneric {
 
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return Shapes.block();
+        return AlchemyMachineParts.ownShape(MachineOwner.of(side), state.getValue(FACING));
+    }
+
+    @Override
+    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
+        super.setPlacedBy(level, pos, state, placer, stack);
+        AlchemyMachineParts.place(level, pos, state.getValue(FACING), MachineOwner.of(side));
+    }
+
+    @Override
+    protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
+        Direction facing = state.getValue(FACING);
+        AlchemyMachineParts.remove(level, pos, facing, MachineOwner.of(side));
+        AlchemyMachineParts.refresh(level, pos.relative(side.directionFrom(facing).getOpposite()), facing);
+        super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
     }
 
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+        if (AlchemyMachineParts.isMachineItem(stack)) return InteractionResult.PASS;
+
         if (level.getBlockEntity(pos) instanceof TileEntityAlchemyMachineUpgrade upgrade) {
             InteractionResult inserted = upgrade.insertPotion(player, hand, hitResult);
             if (inserted != InteractionResult.PASS) return inserted;
