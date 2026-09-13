@@ -6,14 +6,22 @@ import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyMachineUpgrade;
 import muddykat.alchemia.registration.registers.BlockRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -84,6 +92,43 @@ public final class AlchemyMachineParts {
         return stack.getItem() instanceof BlockItem item
                 && (item.getBlock() instanceof BlockAlchemyMachineCore
                 || item.getBlock() instanceof BlockAlchemyMachineUpgrade);
+    }
+
+    public static @Nullable UpgradeSide upgradeSide(ItemStack stack) {
+        return stack.getItem() instanceof BlockItem item
+                && item.getBlock() instanceof BlockAlchemyMachineUpgrade upgrade ? upgrade.getSide() : null;
+    }
+
+    public static boolean hasUpgrade(LevelReader level, BlockPos corePos, Direction facing, UpgradeSide side) {
+        BlockState state = level.getBlockState(corePos.relative(side.directionFrom(facing)));
+        return state.getBlock() instanceof BlockAlchemyMachineUpgrade upgrade
+                && upgrade.getSide() == side
+                && state.getValue(BlockAlchemyMachineUpgrade.FACING) == facing;
+    }
+
+    public static void dropDependents(Level level, BlockPos corePos, Direction facing, UpgradeSide removed) {
+        for (UpgradeSide side : UpgradeSide.values()) {
+            if (side.requires() != removed) continue;
+            if (hasUpgrade(level, corePos, facing, side)) {
+                level.destroyBlock(corePos.relative(side.directionFrom(facing)), true);
+            }
+        }
+    }
+
+    public static InteractionResult placeUpgrade(Level level, BlockPos corePos, Direction facing, ItemStack stack, Player player, InteractionHand hand) {
+        UpgradeSide side = upgradeSide(stack);
+        if (side == null || !player.mayBuild()) return InteractionResult.PASS;
+
+        Direction offset = side.directionFrom(facing);
+        BlockPos target = corePos.relative(offset);
+        if (level.getBlockState(target).getBlock() instanceof BlockAlchemyMachineUpgrade) return InteractionResult.FAIL;
+
+        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(target), offset, target, false);
+        BlockPlaceContext context = new BlockPlaceContext(level, player, hand, stack, hit);
+        if (!context.replacingClickedOnBlock()) return InteractionResult.FAIL;
+        if (level.isClientSide()) return InteractionResult.SUCCESS;
+
+        return ((BlockItem) stack.getItem()).place(context);
     }
 
     public static void refresh(Level level, BlockPos corePos, Direction facing) {

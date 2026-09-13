@@ -111,7 +111,9 @@ public class BlockAlchemyMachinePart extends Block {
 
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-        if (AlchemyMachineParts.isMachineItem(stack)) return InteractionResult.PASS;
+        if (AlchemyMachineParts.isMachineItem(stack) && AlchemyMachineParts.upgradeSide(stack) == null) {
+            return InteractionResult.PASS;
+        }
 
         BlockPos owner = ownerPos(state, pos);
         BlockState ownerState = level.getBlockState(owner);

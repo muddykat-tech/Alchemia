@@ -82,10 +82,13 @@ public class BlockAlchemyMachineUpgrade extends EntityBlockGeneric {
         return this.defaultBlockState().setValue(FACING, facing);
     }
 
-    private @Nullable Direction findCoreFacing(LevelReader level, BlockPos pos) {
+    public BlockPos corePos(BlockPos pos, Direction facing) {
+        return pos.relative(side.directionFrom(facing).getOpposite());
+    }
+
+    public @Nullable Direction findCoreFacing(LevelReader level, BlockPos pos) {
         for (Direction candidate : Direction.Plane.HORIZONTAL) {
-            BlockPos corePos = pos.relative(side.directionFrom(candidate).getOpposite());
-            BlockState coreState = level.getBlockState(corePos);
+            BlockState coreState = level.getBlockState(corePos(pos, candidate));
             if (coreState.getBlock() instanceof BlockAlchemyMachineCore
                     && coreState.getValue(BlockAlchemyMachineCore.FACING) == candidate) {
                 return candidate;
@@ -118,13 +121,25 @@ public class BlockAlchemyMachineUpgrade extends EntityBlockGeneric {
     @Override
     protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
         Direction facing = state.getValue(FACING);
+        BlockPos corePos = corePos(pos, facing);
         AlchemyMachineParts.remove(level, pos, facing, MachineOwner.of(side));
-        AlchemyMachineParts.refresh(level, pos.relative(side.directionFrom(facing).getOpposite()), facing);
+        AlchemyMachineParts.dropDependents(level, corePos, facing, side);
+        AlchemyMachineParts.refresh(level, corePos, facing);
         super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
     }
 
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+        if (AlchemyMachineParts.upgradeSide(stack) != null) {
+            BlockPos corePos = corePos(pos, state.getValue(FACING));
+            BlockState coreState = level.getBlockState(corePos);
+            if (!(coreState.getBlock() instanceof BlockAlchemyMachineCore)
+                    || coreState.getValue(BlockAlchemyMachineCore.FACING) != state.getValue(FACING)) {
+                return InteractionResult.PASS;
+            }
+            InteractionResult placed = AlchemyMachineParts.placeUpgrade(level, corePos, state.getValue(FACING), stack, player, hand);
+            return placed.consumesAction() ? placed : BlockAlchemyMachineCore.openMenu(level, corePos, player);
+        }
         if (AlchemyMachineParts.isMachineItem(stack)) return InteractionResult.PASS;
 
         if (level.getBlockEntity(pos) instanceof TileEntityAlchemyMachineUpgrade upgrade) {

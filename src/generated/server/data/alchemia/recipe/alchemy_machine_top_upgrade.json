@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "B": "minecraft:glass_bottle",
+    "C": "minecraft:copper_ingot",
+    "G": "minecraft:glass",
+    "M": "alchemia:mineral_cloud_crystal"
+  },
+  "pattern": [
+    "GBG",
+    "CMC",
+    "CCC"
+  ],
+  "result": {
+    "id": "alchemia:alchemy_machine_top_upgrade"
+  }
+}

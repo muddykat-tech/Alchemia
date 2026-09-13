@@ -1,5 +1,6 @@
 package muddykat.alchemia.common.config;
 
+import muddykat.alchemia.common.items.helper.IngredientType;
 import muddykat.alchemia.common.items.helper.Ingredients;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
@@ -28,7 +29,7 @@ public class Configuration {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
 
         for (Ingredients ingredient : Ingredients.values()) {
-            INGREDIENT_CONFIG.put(ingredient, commonConfigSetup(ingredient.name(), builder));
+            INGREDIENT_CONFIG.put(ingredient, commonConfigSetup(ingredient, builder));
         }
 
         COMMON_CONFIG = builder.build();
@@ -119,12 +120,24 @@ public class Configuration {
         return SERVER_CONFIG.isLoaded() ? MAX_CRYSTAL_GATED.get() : 3;
     }
 
-    private static ModConfigSpec.IntValue commonConfigSetup(String name, ModConfigSpec.Builder builder) {
-        builder.comment("Wild " + name + " generation").push("wild_" + name.toLowerCase());
-        ModConfigSpec.IntValue chance = builder.comment("Chance of generating clusters. Smaller value = more frequent.")
-                .defineInRange("chance", 60, 0, Integer.MAX_VALUE);
+    private static ModConfigSpec.IntValue commonConfigSetup(Ingredients ingredient, ModConfigSpec.Builder builder) {
+        builder.comment("Wild " + ingredient.name() + " generation").push("wild_" + ingredient.name().toLowerCase());
+        ModConfigSpec.IntValue chance = builder.comment("Chance of generating clusters. Smaller value = more frequent.",
+                        "Minerals generate as geodes and are confined to a handful of biomes,",
+                        "so the rarer a mineral's biome is, the denser its geodes are within it.")
+                .defineInRange("chance", defaultChance(ingredient), 0, Integer.MAX_VALUE);
         builder.pop();
 
         return chance;
+    }
+
+    private static int defaultChance(Ingredients ingredient) {
+        if (ingredient.getType() != IngredientType.Mineral) return 60;
+
+        return switch (ingredient.getRarity()) {
+            case EPIC -> 8;
+            case RARE -> 16;
+            default -> 24;
+        };
     }
 }

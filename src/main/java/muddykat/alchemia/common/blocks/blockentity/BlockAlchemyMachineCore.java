@@ -103,6 +103,10 @@ public class BlockAlchemyMachineCore extends EntityBlockGeneric {
 
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, net.minecraft.world.phys.BlockHitResult hitResult) {
+        if (AlchemyMachineParts.upgradeSide(stack) != null) {
+            InteractionResult placed = AlchemyMachineParts.placeUpgrade(level, pos, state.getValue(FACING), stack, player, hand);
+            return placed.consumesAction() ? placed : openMenu(level, pos, player);
+        }
         if (AlchemyMachineParts.isMachineItem(stack)) return InteractionResult.PASS;
         return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
     }
