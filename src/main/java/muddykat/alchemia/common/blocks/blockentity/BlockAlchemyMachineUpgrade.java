@@ -119,13 +119,18 @@ public class BlockAlchemyMachineUpgrade extends EntityBlockGeneric {
     }
 
     @Override
-    protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
-        Direction facing = state.getValue(FACING);
-        BlockPos corePos = corePos(pos, facing);
-        AlchemyMachineParts.remove(level, pos, facing, MachineOwner.of(side));
-        AlchemyMachineParts.dropDependents(level, corePos, facing, side);
-        AlchemyMachineParts.refresh(level, corePos, facing);
-        super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
+        if (!state.is(newState.getBlock())) {
+            if (level.getBlockEntity(pos) instanceof TileEntityAlchemyMachineUpgrade upgrade) {
+                upgrade.dropContents(pos);
+            }
+            Direction facing = state.getValue(FACING);
+            BlockPos corePos = corePos(pos, facing);
+            AlchemyMachineParts.remove(level, pos, facing, MachineOwner.of(side));
+            AlchemyMachineParts.dropDependents(level, corePos, facing, side);
+            AlchemyMachineParts.refresh(level, corePos, facing);
+        }
+        super.onRemove(state, level, pos, newState, isMoving);
     }
 
     @Override

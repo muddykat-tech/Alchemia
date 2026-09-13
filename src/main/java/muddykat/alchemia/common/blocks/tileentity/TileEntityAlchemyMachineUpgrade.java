@@ -13,29 +13,28 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.core.NonNullList;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.phys.BlockHitResult;
-import net.neoforged.neoforge.transfer.item.ItemResource;
-import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
-import org.jspecify.annotations.Nullable;
+import net.minecraftforge.items.ItemStackHandler;
+import javax.annotation.Nullable;
 
 public class TileEntityAlchemyMachineUpgrade extends SyncedBlockEntity {
 
     private final UpgradeSide side;
-    private final ItemStacksResourceHandler potions;
+    private final ItemStackHandler potions;
 
     public TileEntityAlchemyMachineUpgrade(BlockPos pos, BlockState state) {
         super(BlockEntityTypeRegistry.ALCHEMY_MACHINE_UPGRADE.get(), pos, state);
         this.side = state.getBlock() instanceof BlockAlchemyMachineUpgrade upgrade ? upgrade.getSide() : UpgradeSide.RIGHT;
-        this.potions = new ItemStacksResourceHandler(this.side.potionSlots()) {
+        this.potions = new ItemStackHandler(this.side.potionSlots()) {
             @Override
-            protected int getCapacity(int index, ItemResource resource) {
+            public int getSlotLimit(int slot) {
                 return 1;
             }
 
             @Override
-            protected void onContentsChanged(int index, ItemStack previousContents) {
+            protected void onContentsChanged(int slot) {
                 setChanged();
                 sync();
             }
@@ -43,27 +42,27 @@ public class TileEntityAlchemyMachineUpgrade extends SyncedBlockEntity {
     }
 
     @Override
-    protected void loadAdditional(ValueInput input) {
-        super.loadAdditional(input);
-        input.child("Potions").ifPresent(potions::deserialize);
+    public void load(CompoundTag tag) {
+        super.load(tag);
+        if (tag.contains("Potions")) potions.deserializeNBT(tag.getCompound("Potions"));
     }
 
     @Override
-    protected void saveAdditional(ValueOutput output) {
-        super.saveAdditional(output);
-        potions.serialize(output.child("Potions"));
+    protected void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
+        tag.put("Potions", potions.serializeNBT());
     }
 
     public UpgradeSide getSide() {
         return side;
     }
 
-    public ItemStacksResourceHandler getPotions() {
+    public ItemStackHandler getPotions() {
         return potions;
     }
 
     public int slotCount() {
-        return potions.size();
+        return potions.getSlots();
     }
 
     public Direction facing() {
@@ -71,11 +70,11 @@ public class TileEntityAlchemyMachineUpgrade extends SyncedBlockEntity {
     }
 
     public ItemStack getStack(int slot) {
-        return potions.getResource(slot).toStack(potions.getAmountAsInt(slot));
+        return potions.getStackInSlot(slot);
     }
 
     public void clearSlot(int slot) {
-        potions.set(slot, ItemResource.EMPTY, 0);
+        potions.setStackInSlot(slot, ItemStack.EMPTY);
     }
 
     public @Nullable TileEntityAlchemyMachineCore getCore() {
@@ -91,8 +90,8 @@ public class TileEntityAlchemyMachineUpgrade extends SyncedBlockEntity {
     }
 
     public int slotForHit(BlockHitResult hit) {
-        for (int slot = 0; slot < potions.size(); slot++) {
-            if (potions.getAmountAsInt(slot) == 0) return slot;
+        for (int slot = 0; slot < potions.getSlots(); slot++) {
+            if (potions.getStackInSlot(slot).isEmpty()) return slot;
         }
         return -1;
     }
@@ -105,16 +104,17 @@ public class TileEntityAlchemyMachineUpgrade extends SyncedBlockEntity {
         if (slot < 0) return InteractionResult.PASS;
 
         if (level != null && !level.isClientSide()) {
-            potions.set(slot, ItemResource.of(held), 1);
+            potions.setStackInSlot(slot, held.copyWithCount(1));
             held.shrink(1);
         }
         return InteractionResult.SUCCESS;
     }
 
-    @Override
-    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
-        super.preRemoveSideEffects(pos, state);
-        if (level != null) Containers.dropContents(level, pos, potions.copyToList());
+    public void dropContents(BlockPos pos) {
+        if (level == null) return;
+        NonNullList<ItemStack> contents = NonNullList.withSize(potions.getSlots(), ItemStack.EMPTY);
+        for (int slot = 0; slot < potions.getSlots(); slot++) contents.set(slot, potions.getStackInSlot(slot));
+        Containers.dropContents(level, pos, contents);
     }
 
     @Override

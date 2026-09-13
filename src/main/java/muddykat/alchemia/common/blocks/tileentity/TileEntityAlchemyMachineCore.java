@@ -21,11 +21,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
-import net.neoforged.neoforge.transfer.item.ItemResource;
-import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
-import org.jspecify.annotations.Nullable;
+import net.minecraft.core.NonNullList;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraftforge.items.ItemStackHandler;
+import javax.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,7 +40,7 @@ public class TileEntityAlchemyMachineCore extends SyncedBlockEntity implements M
     public static final int COOK_DURATION = 200;
     public static final int DATA_COUNT = 4;
 
-    private ItemStacksResourceHandler inventory;
+    private ItemStackHandler inventory;
     private int litTime;
     private int litDuration;
     private int cookTime;
@@ -62,34 +61,34 @@ public class TileEntityAlchemyMachineCore extends SyncedBlockEntity implements M
         machineData = createIntArray();
     }
 
-    private ItemStacksResourceHandler createHandler() {
-        return new ItemStacksResourceHandler(CORE_SLOT_COUNT) {
+    private ItemStackHandler createHandler() {
+        return new ItemStackHandler(CORE_SLOT_COUNT) {
             @Override
-            protected void onContentsChanged(int index, ItemStack previousContents) {
+            protected void onContentsChanged(int slot) {
                 setChanged();
             }
         };
     }
 
     @Override
-    protected void loadAdditional(ValueInput input) {
-        super.loadAdditional(input);
-        input.child("Inventory").ifPresent(saved -> inventory.deserialize(saved));
-        litTime = input.getIntOr("litTime", 0);
-        litDuration = input.getIntOr("litDuration", 0);
-        cookTime = input.getIntOr("cookTime", 0);
+    public void load(CompoundTag tag) {
+        super.load(tag);
+        if (tag.contains("Inventory")) inventory.deserializeNBT(tag.getCompound("Inventory"));
+        litTime = tag.getInt("litTime");
+        litDuration = tag.getInt("litDuration");
+        cookTime = tag.getInt("cookTime");
     }
 
     @Override
-    protected void saveAdditional(ValueOutput output) {
-        super.saveAdditional(output);
-        inventory.serialize(output.child("Inventory"));
-        output.putInt("litTime", litTime);
-        output.putInt("litDuration", litDuration);
-        output.putInt("cookTime", cookTime);
+    protected void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
+        tag.put("Inventory", inventory.serializeNBT());
+        tag.putInt("litTime", litTime);
+        tag.putInt("litDuration", litDuration);
+        tag.putInt("cookTime", cookTime);
     }
 
-    public ItemStacksResourceHandler getInventory() {
+    public ItemStackHandler getInventory() {
         return inventory;
     }
 
@@ -102,7 +101,7 @@ public class TileEntityAlchemyMachineCore extends SyncedBlockEntity implements M
     }
 
     public ItemStack getStack(int slot) {
-        return inventory.getResource(slot).toStack(inventory.getAmountAsInt(slot));
+        return inventory.getStackInSlot(slot);
     }
 
     public @Nullable TileEntityAlchemyMachineUpgrade getUpgrade(UpgradeSide side) {
@@ -242,7 +241,7 @@ public class TileEntityAlchemyMachineCore extends SyncedBlockEntity implements M
         int duration = level.fuelValues().burnDuration(fuel);
         if (duration <= 0) return false;
 
-        setSlotAmount(FUEL_SLOT, inventory.getAmountAsInt(FUEL_SLOT) - 1);
+        setSlotAmount(FUEL_SLOT, inventory.getStackInSlot(FUEL_SLOT).getCount() - 1);
         litTime = duration;
         litDuration = duration;
         return true;
@@ -255,14 +254,14 @@ public class TileEntityAlchemyMachineCore extends SyncedBlockEntity implements M
         }
 
         if (match.stage().previous() != null) {
-            setSlotAmount(INPUT_SLOT, inventory.getAmountAsInt(INPUT_SLOT) - 1);
+            setSlotAmount(INPUT_SLOT, inventory.getStackInSlot(INPUT_SLOT).getCount() - 1);
         }
 
         ItemStack existing = getStack(OUTPUT_SLOT);
         if (existing.isEmpty()) {
-            inventory.set(OUTPUT_SLOT, ItemResource.of(match.result()), match.result().getCount());
+            inventory.setStackInSlot(OUTPUT_SLOT, match.result().copy());
         } else {
-            inventory.set(OUTPUT_SLOT, inventory.getResource(OUTPUT_SLOT), existing.getCount() + match.result().getCount());
+            inventory.setStackInSlot(OUTPUT_SLOT, existing.copyWithCount(existing.getCount() + match.result().getCount()));
         }
 
         sync();
@@ -270,9 +269,9 @@ public class TileEntityAlchemyMachineCore extends SyncedBlockEntity implements M
 
     private void setSlotAmount(int slot, int amount) {
         if (amount <= 0) {
-            inventory.set(slot, ItemResource.EMPTY, 0);
+            inventory.setStackInSlot(slot, ItemStack.EMPTY);
         } else {
-            inventory.set(slot, inventory.getResource(slot), amount);
+            inventory.setStackInSlot(slot, inventory.getStackInSlot(slot).copyWithCount(amount));
         }
     }
 
@@ -305,10 +304,11 @@ public class TileEntityAlchemyMachineCore extends SyncedBlockEntity implements M
         };
     }
 
-    @Override
-    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
-        super.preRemoveSideEffects(pos, state);
-        if (level != null) Containers.dropContents(level, pos, inventory.copyToList());
+    public void dropContents(BlockPos pos) {
+        if (level == null) return;
+        NonNullList<ItemStack> contents = NonNullList.withSize(inventory.getSlots(), ItemStack.EMPTY);
+        for (int slot = 0; slot < inventory.getSlots(); slot++) contents.set(slot, inventory.getStackInSlot(slot));
+        Containers.dropContents(level, pos, contents);
     }
 
     @Override

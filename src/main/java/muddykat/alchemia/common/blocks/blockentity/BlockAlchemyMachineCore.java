@@ -89,10 +89,15 @@ public class BlockAlchemyMachineCore extends EntityBlockGeneric {
     }
 
     @Override
-    protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
-        AlchemyMachineParts.remove(level, pos, state.getValue(FACING), MachineOwner.CORE);
-        AlchemyMachineParts.refresh(level, pos, state.getValue(FACING));
-        super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
+        if (!state.is(newState.getBlock())) {
+            if (level.getBlockEntity(pos) instanceof TileEntityAlchemyMachineCore core) {
+                core.dropContents(pos);
+            }
+            AlchemyMachineParts.remove(level, pos, state.getValue(FACING), MachineOwner.CORE);
+            AlchemyMachineParts.refresh(level, pos, state.getValue(FACING));
+        }
+        super.onRemove(state, level, pos, newState, isMoving);
     }
 
     @Override

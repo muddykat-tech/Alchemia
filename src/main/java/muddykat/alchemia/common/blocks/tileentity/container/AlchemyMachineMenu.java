@@ -15,8 +15,8 @@ import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
-import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
+import net.minecraftforge.items.ItemStackHandler;
+import net.minecraftforge.items.SlotItemHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,18 +68,18 @@ public class AlchemyMachineMenu extends AbstractContainerMenu {
         this.machineData = machineData;
         this.containerAccess = ContainerLevelAccess.create(core.getLevel(), core.getBlockPos());
 
-        ItemStacksResourceHandler handler = core.getInventory();
+        ItemStackHandler handler = core.getInventory();
 
-        addSlot(new ResourceHandlerSlot(handler, handler::set, TileEntityAlchemyMachineCore.INPUT_SLOT, INPUT_X, INPUT_Y));
+        addSlot(new SlotItemHandler(handler, TileEntityAlchemyMachineCore.INPUT_SLOT, INPUT_X, INPUT_Y));
 
-        addSlot(new ResourceHandlerSlot(handler, handler::set, TileEntityAlchemyMachineCore.FUEL_SLOT, FUEL_X, FUEL_Y) {
+        addSlot(new SlotItemHandler(handler, TileEntityAlchemyMachineCore.FUEL_SLOT, FUEL_X, FUEL_Y) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return core.getLevel() != null && core.getLevel().fuelValues().isFuel(stack);
             }
         });
 
-        addSlot(new ResourceHandlerSlot(handler, handler::set, TileEntityAlchemyMachineCore.OUTPUT_SLOT, OUTPUT_X, OUTPUT_Y) {
+        addSlot(new SlotItemHandler(handler, TileEntityAlchemyMachineCore.OUTPUT_SLOT, OUTPUT_X, OUTPUT_Y) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return false;
@@ -91,9 +91,9 @@ public class AlchemyMachineMenu extends AbstractContainerMenu {
         for (TileEntityAlchemyMachineUpgrade upgrade : core.attachedUpgrades()) {
             UpgradePanel panel = panelFor(upgrade.getSide());
             attached.add(panel);
-            ItemStacksResourceHandler potions = upgrade.getPotions();
+            ItemStackHandler potions = upgrade.getPotions();
             for (int slot = 0; slot < potions.size(); slot++) {
-                addSlot(new ResourceHandlerSlot(potions, potions::set, slot, panel.slotX(slot), panel.slotY(slot)) {
+                addSlot(new SlotItemHandler(potions, slot, panel.slotX(slot), panel.slotY(slot)) {
                     @Override
                     public boolean mayPlace(ItemStack stack) {
                         return TileEntityAlchemyMachineUpgrade.isPotion(stack);

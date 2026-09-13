@@ -15,8 +15,8 @@ import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
-import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
+import net.minecraftforge.items.SlotItemHandler;
+import net.minecraftforge.items.ItemStackHandler;
 
 import java.util.Objects;
 
@@ -44,9 +44,9 @@ public class AlchemicalCauldronMenu extends AbstractContainerMenu {
         this.cauldronData = cauldronData;
         this.containerAccess = ContainerLevelAccess.create(cauldron.getLevel(), cauldron.getBlockPos());
 
-        ItemStacksResourceHandler handler = cauldron.getInventory();
+        ItemStackHandler handler = cauldron.getInventory();
         for (int slot = 0; slot < INGREDIENT_SLOTS; slot++) {
-            addSlot(new ResourceHandlerSlot(handler, handler::set, slot, SLOT_ROW_X + slot * 18 + 1, SLOT_ROW_Y + 1) {
+            addSlot(new SlotItemHandler(handler, slot, SLOT_ROW_X + slot * 18 + 1, SLOT_ROW_Y + 1) {
                 @Override
                 public boolean mayPlace(ItemStack stack) {
                     return TileEntityAlchemyCauldron.isBrewingInput(stack);
@@ -54,7 +54,7 @@ public class AlchemicalCauldronMenu extends AbstractContainerMenu {
             });
         }
 
-        addSlot(new ResourceHandlerSlot(handler, handler::set, TileEntityAlchemyCauldron.REDSTONE_SLOT,
+        addSlot(new SlotItemHandler(handler, TileEntityAlchemyCauldron.REDSTONE_SLOT,
                 SPECIAL_SLOT_X + 1, SLOT_ROW_Y + 1) {
             @Override
             public boolean mayPlace(ItemStack stack) {
@@ -62,7 +62,7 @@ public class AlchemicalCauldronMenu extends AbstractContainerMenu {
             }
         });
 
-        addSlot(new ResourceHandlerSlot(handler, handler::set, TileEntityAlchemyCauldron.GUNPOWDER_SLOT,
+        addSlot(new SlotItemHandler(handler, TileEntityAlchemyCauldron.GUNPOWDER_SLOT,
                 SPECIAL_SLOT_X + SPECIAL_SLOT_GAP + 1, SLOT_ROW_Y + 1) {
             @Override
             public boolean mayPlace(ItemStack stack) {
