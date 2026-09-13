@@ -1,5 +1,5 @@
 modLoader="javafml"
-loaderVersion="[1,)"
+loaderVersion="${loader_version_range}"
 license="${mod_license}"
 issueTrackerURL="https://github.com/Muddykat/alchemia/issues"
 
@@ -10,19 +10,19 @@ displayName="${mod_name}"
 description='''${mod_description}'''
 authors="${mod_authors}"
 displayURL="https://minecraft.curseforge.com/projects/alchemia/"
-iconFile="logo.png"
+logoFile="logo.png"
 credits="All the great other Git Contributors, and the nerds on IRC!"
 
 [[dependencies.${mod_id}]]
-    modId="neoforge"
-    type="required"
-    versionRange="${neo_version_range}"
+    modId="forge"
+    mandatory=true
+    versionRange="${forge_version_range}"
     ordering="NONE"
     side="BOTH"
 
 [[dependencies.${mod_id}]]
     modId="minecraft"
-    type="required"
+    mandatory=true
     versionRange="${minecraft_version_range}"
     ordering="NONE"
     side="BOTH"
