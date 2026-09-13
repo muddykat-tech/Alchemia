@@ -1,38 +1,34 @@
 package muddykat.alchemia.common.network.packets;
 
-import io.netty.buffer.ByteBuf;
-import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.items.ItemAlchemiaGuide;
 import muddykat.alchemia.common.potion.BrewRecipeBook;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.network.NetworkEvent;
 
-public record PacketForgetRecipe(String recipe, boolean mainHand) implements CustomPacketPayload {
+import java.util.function.Supplier;
 
-    public static final Type<PacketForgetRecipe> TYPE = new Type<>(new ResourceLocation(Alchemia.MODID, "forget_recipe"));
+public record PacketForgetRecipe(String recipe, boolean mainHand) {
 
-    public static final StreamCodec<ByteBuf, PacketForgetRecipe> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.STRING_UTF8, PacketForgetRecipe::recipe,
-            ByteBufCodecs.BOOL, PacketForgetRecipe::mainHand,
-            PacketForgetRecipe::new);
-
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
+    public static void encode(PacketForgetRecipe msg, FriendlyByteBuf buf) {
+        buf.writeUtf(msg.recipe());
+        buf.writeBoolean(msg.mainHand());
     }
 
-    public static void handle(PacketForgetRecipe payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            InteractionHand hand = payload.mainHand() ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
-            ItemStack stack = context.player().getItemInHand(hand);
-            if (stack.getItem() instanceof ItemAlchemiaGuide) {
-                BrewRecipeBook.forget(stack, payload.recipe());
-            }
-        });
+    public static PacketForgetRecipe decode(FriendlyByteBuf buf) {
+        return new PacketForgetRecipe(buf.readUtf(), buf.readBoolean());
+    }
+
+    public static void handle(PacketForgetRecipe msg, Supplier<NetworkEvent.Context> ctx) {
+        ServerPlayer player = ctx.get().getSender();
+        if (player == null) return;
+
+        InteractionHand hand = msg.mainHand() ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
+        ItemStack stack = player.getItemInHand(hand);
+        if (stack.getItem() instanceof ItemAlchemiaGuide) {
+            BrewRecipeBook.forget(stack, msg.recipe());
+        }
     }
 }

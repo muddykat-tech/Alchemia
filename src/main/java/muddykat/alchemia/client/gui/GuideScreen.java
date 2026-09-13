@@ -30,7 +30,7 @@ import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import muddykat.alchemia.common.network.NetworkHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -236,7 +236,7 @@ public class GuideScreen extends Screen {
         known.add(name);
         known.sort(null);
         component.set(guide, List.copyOf(known));
-        ClientPacketDistributor.sendToServer(new PacketDiscover(ingredient, name, hand == InteractionHand.MAIN_HAND));
+        NetworkHandler.sendToServer(new PacketDiscover(ingredient, name, hand == InteractionHand.MAIN_HAND));
     }
 
     private int tabY(int index) {
@@ -340,7 +340,7 @@ public class GuideScreen extends Screen {
                 String name = recipes.get(index).id();
                 selected = name.equals(selected) ? null : name;
                 BrewRecipeBook.select(guide, selected);
-                ClientPacketDistributor.sendToServer(new PacketSelectRecipe(selected == null ? "" : selected, hand == InteractionHand.MAIN_HAND));
+                NetworkHandler.sendToServer(new PacketSelectRecipe(selected == null ? "" : selected, hand == InteractionHand.MAIN_HAND));
             }
             case EFFECTS -> selectedEffect = effects.get(index) == selectedEffect ? null : effects.get(index);
             case INGREDIENTS -> selectedIngredient = ingredients.get(index) == selectedIngredient ? null : ingredients.get(index);
@@ -421,7 +421,7 @@ public class GuideScreen extends Screen {
             String removed = selected;
             BrewRecipeBook.forget(guide, removed);
             selected = null;
-            ClientPacketDistributor.sendToServer(new PacketForgetRecipe(removed, hand == InteractionHand.MAIN_HAND));
+            NetworkHandler.sendToServer(new PacketForgetRecipe(removed, hand == InteractionHand.MAIN_HAND));
             refresh();
             return true;
         }

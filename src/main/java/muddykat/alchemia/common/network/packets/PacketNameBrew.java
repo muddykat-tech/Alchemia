@@ -1,34 +1,30 @@
 package muddykat.alchemia.common.network.packets;
 
-import io.netty.buffer.ByteBuf;
-import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.blocks.tileentity.container.AlchemicalCauldronMenu;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraftforge.network.NetworkEvent;
 
-public record PacketNameBrew(String name) implements CustomPacketPayload {
+import java.util.function.Supplier;
+
+public record PacketNameBrew(String name) {
 
     public static final int MAX_LENGTH = 32;
 
-    public static final Type<PacketNameBrew> TYPE = new Type<>(new ResourceLocation(Alchemia.MODID, "name_brew"));
-
-    public static final StreamCodec<ByteBuf, PacketNameBrew> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.stringUtf8(MAX_LENGTH), PacketNameBrew::name,
-            PacketNameBrew::new);
-
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
+    public static void encode(PacketNameBrew msg, FriendlyByteBuf buf) {
+        buf.writeUtf(msg.name(), MAX_LENGTH);
     }
 
-    public static void handle(PacketNameBrew payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            if (context.player().containerMenu instanceof AlchemicalCauldronMenu menu) {
-                menu.getCauldron().setBrewName(payload.name());
-            }
-        });
+    public static PacketNameBrew decode(FriendlyByteBuf buf) {
+        return new PacketNameBrew(buf.readUtf(MAX_LENGTH));
+    }
+
+    public static void handle(PacketNameBrew msg, Supplier<NetworkEvent.Context> ctx) {
+        ServerPlayer player = ctx.get().getSender();
+        if (player == null) return;
+
+        if (player.containerMenu instanceof AlchemicalCauldronMenu menu) {
+            menu.getCauldron().setBrewName(msg.name());
+        }
     }
 }

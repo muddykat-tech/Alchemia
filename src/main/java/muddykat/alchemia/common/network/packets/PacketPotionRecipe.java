@@ -1,27 +1,22 @@
 package muddykat.alchemia.common.network.packets;
 
-import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.potion.PotionMap;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.network.NetworkEvent;
 
-public record PacketPotionRecipe(long seed) implements CustomPacketPayload {
+import java.util.function.Supplier;
 
-    public static final Type<PacketPotionRecipe> TYPE = new Type<>(new ResourceLocation(Alchemia.MODID, "potion_recipe"));
+public record PacketPotionRecipe(long seed) {
 
-    public static final StreamCodec<FriendlyByteBuf, PacketPotionRecipe> STREAM_CODEC = StreamCodec.of(
-            (buffer, payload) -> buffer.writeLong(payload.seed()),
-            buffer -> new PacketPotionRecipe(buffer.readLong()));
-
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
+    public static void encode(PacketPotionRecipe msg, FriendlyByteBuf buf) {
+        buf.writeLong(msg.seed());
     }
 
-    public static void handle(PacketPotionRecipe payload, IPayloadContext context) {
-        context.enqueueWork(() -> PotionMap.scramble(payload.seed()));
+    public static PacketPotionRecipe decode(FriendlyByteBuf buf) {
+        return new PacketPotionRecipe(buf.readLong());
+    }
+
+    public static void handle(PacketPotionRecipe msg, Supplier<NetworkEvent.Context> ctx) {
+        PotionMap.scramble(msg.seed());
     }
 }

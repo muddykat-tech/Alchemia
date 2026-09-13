@@ -1,52 +1,47 @@
 package muddykat.alchemia.common.network.packets;
 
-import io.netty.buffer.ByteBuf;
-import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.items.ItemAlchemiaGuide;
-import muddykat.alchemia.common.utility.StackData;
 import muddykat.alchemia.common.utility.StackComponent;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import muddykat.alchemia.common.utility.StackData;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
-public record PacketDiscover(boolean ingredient, String name, boolean mainHand) implements CustomPacketPayload {
+public record PacketDiscover(boolean ingredient, String name, boolean mainHand) {
 
-    public static final Type<PacketDiscover> TYPE = new Type<>(new ResourceLocation(Alchemia.MODID, "discover"));
-
-    public static final StreamCodec<ByteBuf, PacketDiscover> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.BOOL, PacketDiscover::ingredient,
-            ByteBufCodecs.STRING_UTF8, PacketDiscover::name,
-            ByteBufCodecs.BOOL, PacketDiscover::mainHand,
-            PacketDiscover::new);
-
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
+    public static void encode(PacketDiscover msg, FriendlyByteBuf buf) {
+        buf.writeBoolean(msg.ingredient());
+        buf.writeUtf(msg.name());
+        buf.writeBoolean(msg.mainHand());
     }
 
-    public static void handle(PacketDiscover payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            InteractionHand hand = payload.mainHand() ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
-            ItemStack stack = context.player().getItemInHand(hand);
-            if (!(stack.getItem() instanceof ItemAlchemiaGuide)) return;
+    public static PacketDiscover decode(FriendlyByteBuf buf) {
+        return new PacketDiscover(buf.readBoolean(), buf.readUtf(), buf.readBoolean());
+    }
 
-            StackComponent<List<String>> component = payload.ingredient()
-                    ? StackData.DISCOVERED_INGREDIENTS
-                    : StackData.DISCOVERED_RECIPES;
+    public static void handle(PacketDiscover msg, Supplier<NetworkEvent.Context> ctx) {
+        ServerPlayer player = ctx.get().getSender();
+        if (player == null) return;
 
-            List<String> names = new ArrayList<>(component.getOrDefault(stack, List.of()));
-            if (names.contains(payload.name())) return;
+        InteractionHand hand = msg.mainHand() ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
+        ItemStack stack = player.getItemInHand(hand);
+        if (!(stack.getItem() instanceof ItemAlchemiaGuide)) return;
 
-            names.add(payload.name());
-            names.sort(null);
-            component.set(stack, List.copyOf(names));
-        });
+        StackComponent<List<String>> component = msg.ingredient()
+                ? StackData.DISCOVERED_INGREDIENTS
+                : StackData.DISCOVERED_RECIPES;
+
+        List<String> names = new ArrayList<>(component.getOrDefault(stack, List.of()));
+        if (names.contains(msg.name())) return;
+
+        names.add(msg.name());
+        names.sort(null);
+        component.set(stack, List.copyOf(names));
     }
 }

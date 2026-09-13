@@ -14,7 +14,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import org.joml.Matrix3x2fStack;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.input.KeyEvent;
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import muddykat.alchemia.common.network.NetworkHandler;
 import net.minecraft.client.gui.Hud;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -162,7 +162,7 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
         this.nameField.setTextColor(INK);
         this.nameField.setValue(existing);
         this.nameField.setHint(Component.translatable("alchemia.gui.name.hint"));
-        this.nameField.setResponder(value -> ClientPacketDistributor.sendToServer(new PacketNameBrew(value)));
+        this.nameField.setResponder(value -> NetworkHandler.sendToServer(new PacketNameBrew(value)));
         addRenderableWidget(this.nameField);
     }
 

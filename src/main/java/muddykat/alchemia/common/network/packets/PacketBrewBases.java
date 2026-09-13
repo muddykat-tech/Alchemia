@@ -1,31 +1,34 @@
 package muddykat.alchemia.common.network.packets;
 
-import muddykat.alchemia.Alchemia;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import com.mojang.serialization.JsonOps;
 import muddykat.alchemia.common.potion.BrewBase;
 import muddykat.alchemia.common.potion.BrewBases;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.util.List;
+import java.util.function.Supplier;
 
-public record PacketBrewBases(List<BrewBase> bases) implements CustomPacketPayload {
+public record PacketBrewBases(List<BrewBase> bases) {
 
-    public static final Type<PacketBrewBases> TYPE = new Type<>(new ResourceLocation(Alchemia.MODID, "brew_bases"));
+    public static final int MAX_LENGTH = 1 << 20;
 
-    public static final StreamCodec<FriendlyByteBuf, PacketBrewBases> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.fromCodecTrusted(BrewBase.LIST_CODEC), PacketBrewBases::bases,
-            PacketBrewBases::new);
-
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
+    public static void encode(PacketBrewBases msg, FriendlyByteBuf buf) {
+        JsonElement json = BrewBase.LIST_CODEC.encodeStart(JsonOps.INSTANCE, msg.bases())
+                .result().orElseGet(JsonArray::new);
+        buf.writeUtf(json.toString(), MAX_LENGTH);
     }
 
-    public static void handle(PacketBrewBases payload, IPayloadContext context) {
-        context.enqueueWork(() -> BrewBases.install(payload.bases()));
+    public static PacketBrewBases decode(FriendlyByteBuf buf) {
+        JsonElement json = JsonParser.parseString(buf.readUtf(MAX_LENGTH));
+        return new PacketBrewBases(BrewBase.LIST_CODEC.parse(JsonOps.INSTANCE, json)
+                .result().orElseGet(List::of));
+    }
+
+    public static void handle(PacketBrewBases msg, Supplier<NetworkEvent.Context> ctx) {
+        BrewBases.install(msg.bases());
     }
 }
