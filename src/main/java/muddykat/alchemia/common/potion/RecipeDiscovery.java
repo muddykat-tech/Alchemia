@@ -1,7 +1,7 @@
 package muddykat.alchemia.common.potion;
 
 import muddykat.alchemia.common.items.ItemAlchemiaGuide;
-import muddykat.alchemia.registration.registers.DataComponentRegistry;
+import muddykat.alchemia.common.utility.StackData;
 import net.minecraft.core.Holder;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -17,7 +17,7 @@ import java.util.Set;
 public class RecipeDiscovery {
 
     public static List<String> stored(ItemStack guide) {
-        return guide.getOrDefault(DataComponentRegistry.DISCOVERED_RECIPES.get(), List.of());
+        return StackData.DISCOVERED_RECIPES.getOrDefault(guide, List.of());
     }
 
     public static Set<PotionEnum> knownTo(ItemStack guide) {
@@ -56,7 +56,7 @@ public class RecipeDiscovery {
             }
             if (names.size() != before) {
                 names.sort(null);
-                stack.set(DataComponentRegistry.DISCOVERED_RECIPES.get(), List.copyOf(names));
+                StackData.DISCOVERED_RECIPES.set(stack, List.copyOf(names));
                 discovered = Math.max(discovered, names.size() - before);
             }
         }

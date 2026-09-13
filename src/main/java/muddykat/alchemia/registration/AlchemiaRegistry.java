@@ -17,12 +17,12 @@ public class AlchemiaRegistry {
         Alchemia.LOGGER.info(MOD_NAME + " Registration Phase");
         BlockRegistry.BLOCKS.register(modEventBus);
         ItemRegistry.ITEMS.register(modEventBus);
-        DataComponentRegistry.DATA_COMPONENTS.register(modEventBus);
         BiomeFeatureRegistry.FEATURES.register(modEventBus);
         PlacementModifierRegistry.PLACEMENT_MODIFIERS.register(modEventBus);
         BlockEntityTypeRegistry.TILES.register(modEventBus);
         MenuTypeRegistry.MENU_TYPES.register(modEventBus);
         CreativeTabRegistry.CREATIVE_MODE_TABS.register(modEventBus);
+        PotionRegistry.POTIONS.register(modEventBus);
         IngredientTypeRegistry.INGREDIENT_TYPES.register(modEventBus);
         Alchemia.LOGGER.info(MOD_NAME + " Registration Complete");
     }

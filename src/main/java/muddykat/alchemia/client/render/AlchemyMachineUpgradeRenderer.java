@@ -17,9 +17,8 @@ import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.sprite.SpriteGetter;
 import net.minecraft.core.Direction;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.alchemy.PotionContents;
+import muddykat.alchemia.common.utility.PotionStacks;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
@@ -59,8 +58,7 @@ public class AlchemyMachineUpgradeRenderer implements BlockEntityRenderer<TileEn
 
         for (int slot = 0; slot < slots; slot++) {
             ItemStack stack = blockEntity.getStack(slot);
-            PotionContents contents = stack.isEmpty() ? null : stack.get(DataComponents.POTION_CONTENTS);
-            state.potionColors[slot] = contents == null ? 0 : contents.getColor();
+            state.potionColors[slot] = PotionStacks.isPotion(stack) ? PotionStacks.colorOf(stack) : 0;
         }
     }
 

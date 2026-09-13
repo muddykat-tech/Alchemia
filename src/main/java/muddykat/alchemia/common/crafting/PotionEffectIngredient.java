@@ -5,7 +5,6 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import muddykat.alchemia.registration.registers.IngredientTypeRegistry;
 import net.minecraft.core.Holder;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -17,7 +16,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.display.SlotDisplay;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.alchemy.PotionContents;
+import muddykat.alchemia.common.utility.PotionStacks;
+import muddykat.alchemia.registration.registers.PotionRegistry;
 import net.neoforged.neoforge.common.crafting.ICustomIngredient;
 import net.neoforged.neoforge.common.crafting.IngredientType;
 
@@ -61,16 +61,14 @@ public record PotionEffectIngredient(List<Requirement> required) implements ICus
 
     @Override
     public boolean test(ItemStack stack) {
-        PotionContents contents = stack.get(DataComponents.POTION_CONTENTS);
-        if (contents == null) return false;
+        if (!PotionStacks.isPotion(stack)) return false;
+        List<MobEffectInstance> contents = PotionStacks.effectsOf(stack);
 
-        int held = 0;
-        for (MobEffectInstance ignored : contents.getAllEffects()) held++;
-        if (held != required.size()) return false;
+        if (contents.size() != required.size()) return false;
 
         for (Requirement requirement : required) {
             boolean found = false;
-            for (MobEffectInstance instance : contents.getAllEffects()) {
+            for (MobEffectInstance instance : contents) {
                 if (instance.getEffect().equals(requirement.effect())
                         && instance.getAmplifier() == requirement.amplifier()) {
                     found = true;
@@ -88,8 +86,7 @@ public record PotionEffectIngredient(List<Requirement> required) implements ICus
                 .map(requirement -> new MobEffectInstance(requirement.effect(), 3600, requirement.amplifier()))
                 .toList();
 
-        sample.set(DataComponents.POTION_CONTENTS,
-                new PotionContents(Optional.empty(), Optional.empty(), effects, Optional.of("alchemical")));
+        PotionStacks.apply(sample, PotionRegistry.ALCHEMICAL.get(), effects, null);
         return sample;
     }
 

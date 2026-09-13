@@ -8,7 +8,7 @@ import muddykat.alchemia.common.potion.PotionMap;
 import muddykat.alchemia.common.utility.TextUtils;
 import muddykat.alchemia.common.items.helper.IngredientType;
 import muddykat.alchemia.common.items.helper.Ingredients;
-import muddykat.alchemia.registration.registers.DataComponentRegistry;
+import muddykat.alchemia.common.utility.StackData;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -39,7 +39,7 @@ public class ItemIngredient extends Item {
     }
 
     public static int crushOf(ItemStack stack) {
-        Integer crush = stack.get(DataComponentRegistry.CRUSH.get());
+        Integer crush = StackData.CRUSH.get(stack);
         return crush == null ? 0 : Math.max(0, Math.min(Ingredients.MAX_CRUSH_UNITS, crush));
     }
 
@@ -52,7 +52,7 @@ public class ItemIngredient extends Item {
     }
 
     public static int trimOf(ItemStack stack) {
-        Integer trim = stack.get(DataComponentRegistry.PATH_TRIM.get());
+        Integer trim = StackData.PATH_TRIM.get(stack);
         return trim == null ? 0 : Math.max(0, trim);
     }
 
@@ -64,7 +64,7 @@ public class ItemIngredient extends Item {
     }
 
     public static int rotationOf(ItemStack stack) {
-        Integer rotation = stack.get(DataComponentRegistry.PATH_ROTATION.get());
+        Integer rotation = StackData.PATH_ROTATION.get(stack);
         return rotation == null ? 0 : Math.floorMod(rotation, IngredientPath.ROTATION_STEPS);
     }
 
@@ -75,18 +75,17 @@ public class ItemIngredient extends Item {
 
     public static void rotate(ItemStack stack, int steps) {
         if (!canRotate(stack)) return;
-        stack.set(DataComponentRegistry.PATH_ROTATION.get(),
-                Math.floorMod(rotationOf(stack) + steps, IngredientPath.ROTATION_STEPS));
+        StackData.PATH_ROTATION.set(stack, Math.floorMod(rotationOf(stack) + steps, IngredientPath.ROTATION_STEPS));
     }
 
     public static void trim(ItemStack stack) {
         if (!canTrim(stack)) return;
-        stack.set(DataComponentRegistry.PATH_TRIM.get(), trimOf(stack) + 1);
+        StackData.PATH_TRIM.set(stack, trimOf(stack) + 1);
     }
 
     public static void crush(ItemStack stack) {
         if (!canCrush(stack)) return;
-        stack.set(DataComponentRegistry.CRUSH.get(), crushOf(stack) + 1);
+        StackData.CRUSH.set(stack, crushOf(stack) + 1);
     }
 
     public double getPotency(ItemStack stack) {

@@ -9,7 +9,7 @@ import muddykat.alchemia.registration.registers.ItemRegistry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import muddykat.alchemia.registration.registers.DataComponentRegistry;
+import muddykat.alchemia.common.utility.StackData;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
@@ -155,7 +155,7 @@ public record BrewRecipe(String id, String name, String base, List<BrewRecipe.Br
         ItemStack stack = new ItemStack(item);
         if (!(item instanceof ItemIngredient)) return stack;
         int crush = crushOf(entry);
-        if (crush > 0) stack.set(DataComponentRegistry.CRUSH.get(), crush);
+        if (crush > 0) StackData.CRUSH.set(stack, crush);
         return stack;
     }
 

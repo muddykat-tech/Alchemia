@@ -19,7 +19,6 @@ import net.minecraft.client.gui.Hud;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ARGB;
@@ -31,7 +30,8 @@ import net.minecraft.world.item.Items;
 import net.minecraft.core.Holder;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.item.alchemy.Potions;
+import muddykat.alchemia.common.utility.PotionStacks;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -1055,8 +1055,7 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
         graphics.outline(-radius, -radius, radius * 2, radius * 2, ARGB.color(alpha, 0x2A1F14));
         graphics.outline(-radius - 1, -radius - 1, radius * 2 + 2, radius * 2 + 2, ARGB.color(alpha / 3, 0x2A1F14));
         ItemStack marker = new ItemStack(cauldron.hasGunpowder() ? Items.SPLASH_POTION : Items.POTION);
-        marker.set(DataComponents.POTION_CONTENTS,
-                new PotionContents(Optional.empty(), Optional.of(cauldron.getPotionColor()), List.of(), Optional.empty()));
+        PotionStacks.apply(marker, Potions.WATER, List.of(), cauldron.getPotionColor());
         graphics.item(marker, -8, -8);
 
         pose.popMatrix();

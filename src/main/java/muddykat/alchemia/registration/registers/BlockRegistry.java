@@ -20,6 +20,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraftforge.registries.RegistryObject;
 import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -28,10 +29,10 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class BlockRegistry {
-    public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(Alchemia.MODID);
+    public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, Alchemia.MODID);
     public static final Map<String, RegistryObject<Block>> BLOCK_REGISTRY = new LinkedHashMap<>();
 
-    public static DeferredRegister.Blocks getRegistry() {
+    public static DeferredRegister<Block> getRegistry() {
         return BLOCKS;
     }
 
@@ -52,35 +53,35 @@ public class BlockRegistry {
     }
 
     public static RegistryObject<Block> registerBlock(String registry_name, Function<BlockBehaviour.Properties, ? extends Block> factory, Supplier<BlockBehaviour.Properties> properties) {
-        RegistryObject<Block> block = BLOCKS.registerBlock(registry_name, factory, properties);
+        RegistryObject<Block> block = BLOCKS.register(registry_name, () -> factory.apply(properties.get()));
         BLOCK_REGISTRY.put(registry_name, block);
         return block;
     }
 
     public static void createBasicBlock(String id) {
-        RegistryObject<Block> block = registerBlock(id, BlockGeneric::new, () -> BlockBehaviour.Properties.ofFullCopy(Blocks.CAULDRON));
+        RegistryObject<Block> block = registerBlock(id, BlockGeneric::new, () -> BlockBehaviour.Properties.copy(Blocks.CAULDRON));
         ItemRegistry.registerItem(id, properties -> new BlockItemGeneric(block.get(), properties));
     }
 
     public static void createCauldronBlock(String id) {
-        RegistryObject<Block> block = registerBlock(id, BlockAlchemyCauldron::new, () -> BlockBehaviour.Properties.ofFullCopy(Blocks.CAULDRON).noOcclusion());
+        RegistryObject<Block> block = registerBlock(id, BlockAlchemyCauldron::new, () -> BlockBehaviour.Properties.copy(Blocks.CAULDRON).noOcclusion());
         ItemRegistry.registerItem(id, properties -> new BlockItemGeneric(block.get(), properties));
     }
 
     public static void createMachineBlocks() {
         RegistryObject<Block> core = registerBlock("alchemy_machine_core", BlockAlchemyMachineCore::new,
-                () -> BlockBehaviour.Properties.ofFullCopy(Blocks.CAULDRON).noOcclusion());
+                () -> BlockBehaviour.Properties.copy(Blocks.CAULDRON).noOcclusion());
         ItemRegistry.registerItem("alchemy_machine_core", properties -> new BlockItemGeneric(core.get(), properties));
 
         for (UpgradeSide side : UpgradeSide.values()) {
             String id = side.registryName();
             RegistryObject<Block> upgrade = registerBlock(id, properties -> new BlockAlchemyMachineUpgrade(side, properties),
-                    () -> BlockBehaviour.Properties.ofFullCopy(Blocks.CAULDRON).noOcclusion());
+                    () -> BlockBehaviour.Properties.copy(Blocks.CAULDRON).noOcclusion());
             ItemRegistry.registerItem(id, properties -> new BlockItemAlchemyMachineUpgrade(upgrade.get(), properties));
         }
 
         registerBlock(BlockAlchemyMachinePart.ID, BlockAlchemyMachinePart::new,
-                () -> BlockBehaviour.Properties.ofFullCopy(Blocks.CAULDRON).noOcclusion().noLootTable());
+                () -> BlockBehaviour.Properties.copy(Blocks.CAULDRON).noOcclusion().noLootTable());
     }
 
     public static void createMineralGeodeBlocks(Ingredients ingredient) {
@@ -92,7 +93,7 @@ public class BlockRegistry {
         registerClusterBlock(ingredient, base + "_bud_small", 4, 4, BudSize.SMALL);
 
         RegistryObject<Block> geode = registerBlock(base + "_geode", properties -> new BlockMineralGeneric(ingredient, properties),
-                () -> BlockBehaviour.Properties.ofFullCopy(Blocks.AMETHYST_BLOCK));
+                () -> BlockBehaviour.Properties.copy(Blocks.AMETHYST_BLOCK));
         ItemRegistry.registerItem(base + "_geode", properties -> new BlockItemGeneric(geode.get(), properties));
 
         List<Supplier<? extends AmethystClusterBlock>> clusters = List.of(
@@ -102,13 +103,13 @@ public class BlockRegistry {
                 () -> getGeodeCluster(ingredient, BudSize.CLUSTER));
 
         RegistryObject<Block> budding = registerBlock(base + "_budding_geode", properties -> new BlockMineralBuddingGeneric(ingredient, clusters, properties),
-                () -> BlockBehaviour.Properties.ofFullCopy(Blocks.BUDDING_AMETHYST));
+                () -> BlockBehaviour.Properties.copy(Blocks.BUDDING_AMETHYST));
         ItemRegistry.registerItem(base + "_budding_geode", properties -> new BlockItemGeneric(budding.get(), properties));
     }
 
     private static void registerClusterBlock(Ingredients ingredient, String id, int height, int aabbOffset, BudSize size) {
         RegistryObject<Block> cluster = registerBlock(id, properties -> new BlockMineralClusterGeneric(ingredient, height, aabbOffset, size, properties),
-                () -> BlockBehaviour.Properties.ofFullCopy(Blocks.AMETHYST_CLUSTER).lightLevel(state -> size.lightEmission()));
+                () -> BlockBehaviour.Properties.copy(Blocks.AMETHYST_CLUSTER).lightLevel(state -> size.lightEmission()));
         ItemRegistry.registerItem(id, properties -> new BlockItemGeneric(cluster.get(), properties));
     }
 

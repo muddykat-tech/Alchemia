@@ -15,7 +15,6 @@ import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.ISubtypeRegistration;
 import net.minecraft.client.renderer.Rect2i;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
@@ -33,9 +32,7 @@ public class AlchemiaJeiPlugin implements IModPlugin {
 
     @Override
     public void registerItemSubtypes(ISubtypeRegistration registration) {
-        registration.registerFromDataComponentTypes(Items.POTION, DataComponents.POTION_CONTENTS);
-        registration.registerFromDataComponentTypes(Items.SPLASH_POTION, DataComponents.POTION_CONTENTS);
-        registration.registerFromDataComponentTypes(Items.LINGERING_POTION, DataComponents.POTION_CONTENTS);
+        registration.useNbtForSubtypes(Items.POTION, Items.SPLASH_POTION, Items.LINGERING_POTION);
     }
 
     @Override

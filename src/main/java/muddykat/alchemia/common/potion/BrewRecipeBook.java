@@ -1,7 +1,7 @@
 package muddykat.alchemia.common.potion;
 
 import muddykat.alchemia.common.items.ItemAlchemiaGuide;
-import muddykat.alchemia.registration.registers.DataComponentRegistry;
+import muddykat.alchemia.common.utility.StackData;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -13,7 +13,7 @@ import java.util.List;
 public class BrewRecipeBook {
 
     public static List<BrewRecipe> recipes(ItemStack guide) {
-        return guide.getOrDefault(DataComponentRegistry.BREW_RECIPES.get(), List.of());
+        return StackData.BREW_RECIPES.getOrDefault(guide, List.of());
     }
 
     public static BrewRecipe find(ItemStack guide, String id) {
@@ -24,7 +24,7 @@ public class BrewRecipeBook {
     }
 
     public static String selected(ItemStack guide) {
-        return guide.get(DataComponentRegistry.SELECTED_RECIPE.get());
+        return StackData.SELECTED_RECIPE.get(guide);
     }
 
     public static BrewRecipe selectedRecipe(ItemStack guide) {
@@ -34,9 +34,9 @@ public class BrewRecipeBook {
 
     public static void select(ItemStack guide, String key) {
         if (key == null || find(guide, key) == null) {
-            guide.remove(DataComponentRegistry.SELECTED_RECIPE.get());
+            StackData.SELECTED_RECIPE.remove(guide);
         } else {
-            guide.set(DataComponentRegistry.SELECTED_RECIPE.get(), key);
+            StackData.SELECTED_RECIPE.set(guide, key);
         }
     }
 
@@ -45,13 +45,13 @@ public class BrewRecipeBook {
         if (!stored.removeIf(recipe -> recipe.id().equals(id))) return;
 
         if (stored.isEmpty()) {
-            guide.remove(DataComponentRegistry.BREW_RECIPES.get());
+            StackData.BREW_RECIPES.remove(guide);
         } else {
-            guide.set(DataComponentRegistry.BREW_RECIPES.get(), List.copyOf(stored));
+            StackData.BREW_RECIPES.set(guide, List.copyOf(stored));
         }
 
         if (id.equals(selected(guide))) {
-            guide.remove(DataComponentRegistry.SELECTED_RECIPE.get());
+            StackData.SELECTED_RECIPE.remove(guide);
         }
     }
 
@@ -73,7 +73,7 @@ public class BrewRecipeBook {
 
             List<BrewRecipe> stored = new ArrayList<>(recipes(stack));
             stored.add(BrewRecipe.create(brewName, base, List.copyOf(produced), List.copyOf(ingredients)));
-            stack.set(DataComponentRegistry.BREW_RECIPES.get(), List.copyOf(stored));
+            StackData.BREW_RECIPES.set(stack, List.copyOf(stored));
             recorded++;
         }
         return recorded;

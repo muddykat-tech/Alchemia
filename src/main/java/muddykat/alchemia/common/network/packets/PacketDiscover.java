@@ -3,8 +3,8 @@ package muddykat.alchemia.common.network.packets;
 import io.netty.buffer.ByteBuf;
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.items.ItemAlchemiaGuide;
-import muddykat.alchemia.registration.registers.DataComponentRegistry;
-import net.minecraft.core.component.DataComponentType;
+import muddykat.alchemia.common.utility.StackData;
+import muddykat.alchemia.common.utility.StackComponent;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -37,16 +37,16 @@ public record PacketDiscover(boolean ingredient, String name, boolean mainHand) 
             ItemStack stack = context.player().getItemInHand(hand);
             if (!(stack.getItem() instanceof ItemAlchemiaGuide)) return;
 
-            DataComponentType<List<String>> component = payload.ingredient()
-                    ? DataComponentRegistry.DISCOVERED_INGREDIENTS.get()
-                    : DataComponentRegistry.DISCOVERED_RECIPES.get();
+            StackComponent<List<String>> component = payload.ingredient()
+                    ? StackData.DISCOVERED_INGREDIENTS
+                    : StackData.DISCOVERED_RECIPES;
 
-            List<String> names = new ArrayList<>(stack.getOrDefault(component, List.of()));
+            List<String> names = new ArrayList<>(component.getOrDefault(stack, List.of()));
             if (names.contains(payload.name())) return;
 
             names.add(payload.name());
             names.sort(null);
-            stack.set(component, List.copyOf(names));
+            component.set(stack, List.copyOf(names));
         });
     }
 }

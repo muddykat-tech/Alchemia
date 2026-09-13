@@ -8,8 +8,8 @@ import muddykat.alchemia.common.potion.BrewRecipe;
 import muddykat.alchemia.common.potion.BrewRecipeBook;
 import muddykat.alchemia.common.potion.PotionEnum;
 import muddykat.alchemia.common.potion.RecipeDiscovery;
-import net.minecraft.core.component.DataComponentType;
-import muddykat.alchemia.registration.registers.DataComponentRegistry;
+import muddykat.alchemia.common.utility.StackComponent;
+import muddykat.alchemia.common.utility.StackData;
 import muddykat.alchemia.common.network.packets.PacketDiscover;
 import muddykat.alchemia.common.items.ItemIngredient;
 import java.util.Comparator;
@@ -216,12 +216,12 @@ public class GuideScreen extends Screen {
         if (toIngredient) {
             Ingredients ingredient = IngredientDiscovery.byName(link.name());
             if (ingredient == null) return;
-            discover(true, link.name(), DataComponentRegistry.DISCOVERED_INGREDIENTS.get());
+            discover(true, link.name(), StackData.DISCOVERED_INGREDIENTS);
             selectedIngredient = ingredient;
         } else {
             PotionEnum effect = RecipeDiscovery.byName(link.name());
             if (effect == null) return;
-            discover(false, link.name(), DataComponentRegistry.DISCOVERED_RECIPES.get());
+            discover(false, link.name(), StackData.DISCOVERED_RECIPES);
             selectedEffect = effect;
         }
 
@@ -229,13 +229,13 @@ public class GuideScreen extends Screen {
         refresh();
     }
 
-    private void discover(boolean ingredient, String name, DataComponentType<List<String>> component) {
-        List<String> known = new ArrayList<>(guide.getOrDefault(component, List.of()));
+    private void discover(boolean ingredient, String name, StackComponent<List<String>> component) {
+        List<String> known = new ArrayList<>(component.getOrDefault(guide, List.of()));
         if (known.contains(name)) return;
 
         known.add(name);
         known.sort(null);
-        guide.set(component, List.copyOf(known));
+        component.set(guide, List.copyOf(known));
         ClientPacketDistributor.sendToServer(new PacketDiscover(ingredient, name, hand == InteractionHand.MAIN_HAND));
     }
 

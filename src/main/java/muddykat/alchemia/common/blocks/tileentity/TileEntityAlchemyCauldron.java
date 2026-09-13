@@ -23,7 +23,6 @@ import net.minecraft.client.renderer.BiomeColors;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
@@ -49,7 +48,9 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemUtils;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.item.alchemy.PotionUtils;
+import muddykat.alchemia.common.utility.PotionStacks;
+import muddykat.alchemia.registration.registers.PotionRegistry;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.world.level.Level;
@@ -1074,15 +1075,14 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
     public ItemStack getPotion() {
         ItemStack customPotion = new ItemStack(resultType());
         if (spoiled) {
-            customPotion.set(DataComponents.POTION_CONTENTS,
-                    new PotionContents(Optional.empty(), Optional.of(SPOILED_COLOR), List.of(), Optional.of("ruined")));
+            PotionStacks.apply(customPotion, PotionRegistry.RUINED.get(), List.of(), SPOILED_COLOR);
             return customPotion;
         }
         if (getEffectList().isEmpty()) {
             ItemStack unbrewed = base.unbrewedStack();
             if (!unbrewed.isEmpty()) return unbrewed;
 
-            customPotion.set(DataComponents.POTION_CONTENTS, new PotionContents(Potions.WATER));
+            PotionUtils.setPotion(customPotion, Potions.WATER);
             return customPotion;
         }
 
@@ -1092,11 +1092,9 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
                     instance.getDuration() + durationBonus, instance.getAmplifier()));
         }
 
-        customPotion.set(DataComponents.POTION_CONTENTS,
-                new PotionContents(Optional.empty(), Optional.of(getPotionColor()), brewed, Optional.of("alchemical")));
+        PotionStacks.apply(customPotion, PotionRegistry.ALCHEMICAL.get(), brewed, getPotionColor());
         if (!brewName.isEmpty()) {
-            customPotion.set(DataComponents.CUSTOM_NAME,
-                    Component.literal(brewName).withStyle(style -> style.withItalic(false)));
+            customPotion.setHoverName(Component.literal(brewName).withStyle(style -> style.withItalic(false)));
         }
         if (level != null && !level.isClientSide()) sync();
         return customPotion;

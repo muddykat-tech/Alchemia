@@ -1,7 +1,7 @@
 package muddykat.alchemia.common.items;
 
 import muddykat.alchemia.common.utility.TextUtils;
-import muddykat.alchemia.registration.registers.DataComponentRegistry;
+import muddykat.alchemia.common.utility.StackData;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
@@ -20,7 +20,7 @@ public class ItemPhilosopherStone extends Item {
     }
 
     public static int chargesOf(ItemStack stack) {
-        Integer charges = stack.get(DataComponentRegistry.CHARGES.get());
+        Integer charges = StackData.CHARGES.get(stack);
         return charges == null ? MAX_CHARGES : Math.max(0, Math.min(MAX_CHARGES, charges));
     }
 
@@ -28,7 +28,7 @@ public class ItemPhilosopherStone extends Item {
         int charges = chargesOf(stack);
         if (charges <= 0) return false;
 
-        stack.set(DataComponentRegistry.CHARGES.get(), charges - 1);
+        StackData.CHARGES.set(stack, charges - 1);
         return true;
     }
 
