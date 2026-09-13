@@ -21,7 +21,7 @@ import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
@@ -42,8 +42,8 @@ import java.util.Optional;
 import java.util.Set;
 
 public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldronMenu> {
-    private static final Identifier BACKGROUND_TEXTURE = Identifier.fromNamespaceAndPath(Alchemia.MODID, "textures/book/images/book.png");
-    private static final Identifier FRAME_TEXTURE = Identifier.fromNamespaceAndPath(Alchemia.MODID, "textures/book/images/book_frame.png");
+    private static final ResourceLocation BACKGROUND_TEXTURE = new ResourceLocation(Alchemia.MODID, "textures/book/images/book.png");
+    private static final ResourceLocation FRAME_TEXTURE = new ResourceLocation(Alchemia.MODID, "textures/book/images/book_frame.png");
 
     private static final int IMAGE_WIDTH = 310;
     private static final int BOOK_HEIGHT = 218;
@@ -58,7 +58,7 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
     private static final int VIEW_WIDTH = 265;
     private static final int VIEW_HEIGHT = 160;
 
-    private static final Identifier SYMBOLS_TEXTURE = Identifier.fromNamespaceAndPath(Alchemia.MODID, "textures/book/images/symbols.png");
+    private static final ResourceLocation SYMBOLS_TEXTURE = new ResourceLocation(Alchemia.MODID, "textures/book/images/symbols.png");
     private static final int SYMBOLS_W = 21;
     private static final int SYMBOLS_H = 45;
     private static final int DUST_U = 0;
@@ -601,7 +601,7 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
         int x = this.leftPos + BUTTON_X;
         int y = this.topPos + BUTTON_Y;
 
-        Identifier sprite = !ready
+        ResourceLocation sprite = !ready
                 ? AlchemiaSprites.BUTTON_DISABLED
                 : (overButton(mouseX, mouseY) ? AlchemiaSprites.BUTTON_HIGHLIGHTED : AlchemiaSprites.BUTTON);
         graphics.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, x, y, BUTTON_W, BUTTON_H);

@@ -15,7 +15,7 @@ import net.minecraft.core.Vec3i;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.data.worldgen.placement.PlacementUtils;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.random.WeightedList;
@@ -62,16 +62,16 @@ public class WildHerbGeneration {
 
     public static final String PEAK_CLUSTER_NAME = "peak_cloud_crystal";
     public static final ResourceKey<ConfiguredFeature<?, ?>> PEAK_CLUSTER_CONFIGURED =
-            ResourceKey.create(Registries.CONFIGURED_FEATURE, Identifier.fromNamespaceAndPath(Alchemia.MODID, PEAK_CLUSTER_NAME));
+            ResourceKey.create(Registries.CONFIGURED_FEATURE, new ResourceLocation(Alchemia.MODID, PEAK_CLUSTER_NAME));
     public static final ResourceKey<PlacedFeature> PEAK_CLUSTER =
-            ResourceKey.create(Registries.PLACED_FEATURE, Identifier.fromNamespaceAndPath(Alchemia.MODID, PEAK_CLUSTER_NAME));
+            ResourceKey.create(Registries.PLACED_FEATURE, new ResourceLocation(Alchemia.MODID, PEAK_CLUSTER_NAME));
 
     static {
         for (Ingredients ingredient : Ingredients.values()) {
             if (!generates(ingredient)) continue;
             String name = featureName(ingredient);
-            CONFIGURED_FEATURES.put(ingredient, ResourceKey.create(Registries.CONFIGURED_FEATURE, Identifier.fromNamespaceAndPath(Alchemia.MODID, name)));
-            PLACED_FEATURES.put(ingredient, ResourceKey.create(Registries.PLACED_FEATURE, Identifier.fromNamespaceAndPath(Alchemia.MODID, name)));
+            CONFIGURED_FEATURES.put(ingredient, ResourceKey.create(Registries.CONFIGURED_FEATURE, new ResourceLocation(Alchemia.MODID, name)));
+            PLACED_FEATURES.put(ingredient, ResourceKey.create(Registries.PLACED_FEATURE, new ResourceLocation(Alchemia.MODID, name)));
         }
     }
 

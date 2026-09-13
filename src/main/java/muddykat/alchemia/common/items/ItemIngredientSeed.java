@@ -5,7 +5,7 @@ import muddykat.alchemia.common.items.helper.IngredientAlignment;
 import muddykat.alchemia.common.items.helper.IngredientType;
 import muddykat.alchemia.common.items.helper.Ingredients;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
@@ -36,8 +36,8 @@ public class ItemIngredientSeed extends BlockItem {
         return this.primaryAlignment;
     }
 
-    public Identifier getTextureLocation() {
-        return Identifier.fromNamespaceAndPath(Alchemia.MODID, "item/" + this.ingredientType.name().toLowerCase() + "s/" + ingredient.name().toLowerCase() + "_seed");
+    public ResourceLocation getTextureLocation() {
+        return new ResourceLocation(Alchemia.MODID, "item/" + this.ingredientType.name().toLowerCase() + "s/" + ingredient.name().toLowerCase() + "_seed");
     }
 
     public Ingredients getIngredient() {

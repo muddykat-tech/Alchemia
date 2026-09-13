@@ -12,7 +12,7 @@ import muddykat.alchemia.registration.registers.DataComponentRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -249,12 +249,12 @@ public class ItemIngredient extends Item {
         return this.primaryAlignment;
     }
 
-    public Identifier getTextureLocation() {
-        return Identifier.fromNamespaceAndPath(Alchemia.MODID, "item/" + this.ingredientType.name().toLowerCase() + "s/" + ingredient.name().toLowerCase());
+    public ResourceLocation getTextureLocation() {
+        return new ResourceLocation(Alchemia.MODID, "item/" + this.ingredientType.name().toLowerCase() + "s/" + ingredient.name().toLowerCase());
     }
 
-    public Identifier getCrushedTextureLocation() {
-        return Identifier.fromNamespaceAndPath(Alchemia.MODID, "item/" + this.ingredientType.name().toLowerCase() + "s/" + ingredient.name().toLowerCase() + "_crushed");
+    public ResourceLocation getCrushedTextureLocation() {
+        return new ResourceLocation(Alchemia.MODID, "item/" + this.ingredientType.name().toLowerCase() + "s/" + ingredient.name().toLowerCase() + "_crushed");
     }
 
     public Ingredients getIngredient() {

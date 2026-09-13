@@ -7,14 +7,14 @@ import muddykat.alchemia.common.potion.BrewRecipeBook;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public record PacketForgetRecipe(String recipe, boolean mainHand) implements CustomPacketPayload {
 
-    public static final Type<PacketForgetRecipe> TYPE = new Type<>(Identifier.fromNamespaceAndPath(Alchemia.MODID, "forget_recipe"));
+    public static final Type<PacketForgetRecipe> TYPE = new Type<>(new ResourceLocation(Alchemia.MODID, "forget_recipe"));
 
     public static final StreamCodec<ByteBuf, PacketForgetRecipe> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.STRING_UTF8, PacketForgetRecipe::recipe,

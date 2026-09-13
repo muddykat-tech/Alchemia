@@ -6,12 +6,12 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
-import net.neoforged.neoforge.fluids.FluidType;
+import net.minecraftforge.fluids.FluidType;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import org.jspecify.annotations.Nullable;
 
@@ -30,14 +30,14 @@ public final class BrewBase {
             .comapFlatMap(either -> either.map(BrewBase::parseColor, DataResult::success),
                     color -> Either.left(String.format("#%06X", color & 0xFFFFFF)));
 
-    public record Fill(Optional<Identifier> item, Optional<Identifier> fluid, int levels,
-                       Optional<Identifier> remainder, Optional<Integer> amount) {
+    public record Fill(Optional<ResourceLocation> item, Optional<ResourceLocation> fluid, int levels,
+                       Optional<ResourceLocation> remainder, Optional<Integer> amount) {
 
         public static final Codec<Fill> CODEC = RecordCodecBuilder.<Fill>create(instance -> instance.group(
-                Identifier.CODEC.optionalFieldOf("item").forGetter(Fill::item),
-                Identifier.CODEC.optionalFieldOf("fluid").forGetter(Fill::fluid),
+                ResourceLocation.CODEC.optionalFieldOf("item").forGetter(Fill::item),
+                ResourceLocation.CODEC.optionalFieldOf("fluid").forGetter(Fill::fluid),
                 Codec.intRange(1, MAX_FILL_LEVEL).optionalFieldOf("levels", 1).forGetter(Fill::levels),
-                Identifier.CODEC.optionalFieldOf("remainder").forGetter(Fill::remainder),
+                ResourceLocation.CODEC.optionalFieldOf("remainder").forGetter(Fill::remainder),
                 Codec.intRange(1, Integer.MAX_VALUE).optionalFieldOf("amount").forGetter(Fill::amount)
         ).apply(instance, Fill::new)).validate(Fill::verify);
 
@@ -91,9 +91,9 @@ public final class BrewBase {
             Codec.intRange(1, 64).optionalFieldOf("instability_cap", 1).forGetter(BrewBase::instabilityCap),
             COLOR_CODEC.optionalFieldOf("tint").forGetter(BrewBase::tint),
             Codec.BOOL.optionalFieldOf("biome_tint", false).forGetter(BrewBase::biomeTint),
-            Identifier.CODEC.optionalFieldOf("texture").forGetter(BrewBase::texture),
-            Identifier.CODEC.optionalFieldOf("fluid").forGetter(BrewBase::fluid),
-            Identifier.CODEC.optionalFieldOf("unbrewed_result").forGetter(BrewBase::unbrewedResult),
+            ResourceLocation.CODEC.optionalFieldOf("texture").forGetter(BrewBase::texture),
+            ResourceLocation.CODEC.optionalFieldOf("fluid").forGetter(BrewBase::fluid),
+            ResourceLocation.CODEC.optionalFieldOf("unbrewed_result").forGetter(BrewBase::unbrewedResult),
             Codec.STRING.listOf().optionalFieldOf("effects").forGetter(BrewBase::effects)
     ).apply(instance, BrewBase::new)).validate(BrewBase::verify);
 
@@ -104,14 +104,14 @@ public final class BrewBase {
     private final int instabilityCap;
     private final Optional<Integer> tint;
     private final boolean biomeTint;
-    private final Optional<Identifier> texture;
-    private final Optional<Identifier> fluid;
-    private final Optional<Identifier> unbrewedResult;
+    private final Optional<ResourceLocation> texture;
+    private final Optional<ResourceLocation> fluid;
+    private final Optional<ResourceLocation> unbrewedResult;
     private final Optional<List<String>> effects;
     private final @Nullable Set<String> allowedEffects;
 
     public BrewBase(String id, List<Fill> fills, int instabilityCap, Optional<Integer> tint, boolean biomeTint,
-                    Optional<Identifier> texture, Optional<Identifier> fluid, Optional<Identifier> unbrewedResult,
+                    Optional<ResourceLocation> texture, Optional<ResourceLocation> fluid, Optional<ResourceLocation> unbrewedResult,
                     Optional<List<String>> effects) {
         this.id = id;
         this.fills = List.copyOf(fills);
@@ -159,11 +159,11 @@ public final class BrewBase {
         return biomeTint;
     }
 
-    public Optional<Identifier> texture() {
+    public Optional<ResourceLocation> texture() {
         return texture;
     }
 
-    public Optional<Identifier> fluid() {
+    public Optional<ResourceLocation> fluid() {
         return fluid;
     }
 
@@ -171,7 +171,7 @@ public final class BrewBase {
         return resolveFluid(fluid);
     }
 
-    public Optional<Identifier> unbrewedResult() {
+    public Optional<ResourceLocation> unbrewedResult() {
         return unbrewedResult;
     }
 
@@ -216,11 +216,11 @@ public final class BrewBase {
         return cleaned.isEmpty() ? cleaned : Character.toUpperCase(cleaned.charAt(0)) + cleaned.substring(1);
     }
 
-    private static @Nullable Item resolveItem(Optional<Identifier> id) {
+    private static @Nullable Item resolveItem(Optional<ResourceLocation> id) {
         return id.map(name -> BuiltInRegistries.ITEM.getValue(name)).orElse(null);
     }
 
-    private static Fluid resolveFluid(Optional<Identifier> id) {
+    private static Fluid resolveFluid(Optional<ResourceLocation> id) {
         Fluid resolved = id.map(name -> BuiltInRegistries.FLUID.getValue(name)).orElse(null);
         return resolved == null ? Fluids.EMPTY : resolved;
     }

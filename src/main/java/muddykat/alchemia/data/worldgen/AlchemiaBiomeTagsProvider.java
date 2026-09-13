@@ -3,13 +3,13 @@ package muddykat.alchemia.data.worldgen;
 import muddykat.alchemia.Alchemia;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.BiomeTagsProvider;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.biome.Biome;
-import net.neoforged.neoforge.common.Tags;
+import net.minecraftforge.common.Tags;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -47,7 +47,7 @@ public class AlchemiaBiomeTagsProvider extends BiomeTagsProvider {
                 .addTag(Tags.Biomes.IS_COLD_OVERWORLD);
 
         tag(AlchemiaBiomeTags.HAS_SULPHUR_SHELF)
-                .add(ResourceKey.create(Registries.BIOME, Identifier.withDefaultNamespace("sulfur_caves")));
+                .add(ResourceKey.create(Registries.BIOME, new ResourceLocation("sulfur_caves")));
     }
 
     private net.minecraft.data.tags.TagAppender<Biome> wildPlantTag(TagKey<Biome> tag) {

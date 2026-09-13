@@ -24,7 +24,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
@@ -38,7 +38,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class GuideScreen extends Screen {
-    private static final Identifier PAGES_TEXTURE = Identifier.fromNamespaceAndPath(Alchemia.MODID, "textures/book/images/alchemical_guide_pages.png");
+    private static final ResourceLocation PAGES_TEXTURE = new ResourceLocation(Alchemia.MODID, "textures/book/images/alchemical_guide_pages.png");
 
     private static final int SHEET = 512;
 
@@ -202,7 +202,7 @@ public class GuideScreen extends Screen {
 
     private static ItemStack ingredientStack(Ingredients ingredient) {
         return new ItemStack(BuiltInRegistries.ITEM.getValue(
-                Identifier.fromNamespaceAndPath(Alchemia.MODID, ingredient.getRegistryName())));
+                new ResourceLocation(Alchemia.MODID, ingredient.getRegistryName())));
     }
 
     private void setSection(Section next) {

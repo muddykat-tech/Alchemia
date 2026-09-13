@@ -33,13 +33,13 @@ import net.minecraft.client.renderer.item.properties.numeric.Damage;
 import net.minecraft.client.data.models.model.TextureMapping;
 import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 
 public class AlchemiaModelProvider extends ModelProvider {
 
-    private final java.util.Set<Identifier> emittedModels = new java.util.HashSet<>();
+    private final java.util.Set<ResourceLocation> emittedModels = new java.util.HashSet<>();
 
     public AlchemiaModelProvider(PackOutput output) {
         super(output, Alchemia.MODID);
@@ -75,15 +75,15 @@ public class AlchemiaModelProvider extends ModelProvider {
             } else if (item instanceof ItemIngredient ingredient) {
                 crushableItem(itemModels, item, ingredient);
             } else if (item instanceof ItemMortarPestle) {
-                flatItem(itemModels, item, Identifier.fromNamespaceAndPath(Alchemia.MODID, "item/mortar_and_pestle"));
+                flatItem(itemModels, item, new ResourceLocation(Alchemia.MODID, "item/mortar_and_pestle"));
             } else if (item instanceof ItemAlchemiaGuide) {
-                flatItem(itemModels, item, Identifier.fromNamespaceAndPath(Alchemia.MODID, "item/book/guide"));
+                flatItem(itemModels, item, new ResourceLocation(Alchemia.MODID, "item/book/guide"));
             } else if (item instanceof BlockItemGeneric blockItem && blockItem.getBlock() instanceof BlockMineralClusterGeneric cluster) {
                 flatItem(itemModels, item, clusterTexture(cluster));
             } else if (item instanceof ItemPathTool) {
                 wearModel(itemModels, item, itemName(item));
             } else if (MAGNUM_OPUS.contains(itemName(item))) {
-                flatItem(itemModels, item, Identifier.fromNamespaceAndPath(Alchemia.MODID, "item/" + itemName(item)));
+                flatItem(itemModels, item, new ResourceLocation(Alchemia.MODID, "item/" + itemName(item)));
             }
         }
     }
@@ -102,7 +102,7 @@ public class AlchemiaModelProvider extends ModelProvider {
 
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block)
                 .with(PropertyDispatch.initial(block.getAgeProperty()).generate(age -> {
-                    Identifier modelLocation;
+                    ResourceLocation modelLocation;
                     if (age == block.getMaxAge()) {
                         modelLocation = crossModelOnce(blockModels, blockModel(name), blockTexture(type + "s/" + name));
                     } else {
@@ -114,13 +114,13 @@ public class AlchemiaModelProvider extends ModelProvider {
     }
 
     private void generateCluster(BlockModelGenerators blockModels, BlockMineralClusterGeneric cluster) {
-        Identifier modelLocation = crossModelOnce(blockModels, blockModel(clusterName(cluster)), clusterTexture(cluster));
+        ResourceLocation modelLocation = crossModelOnce(blockModels, blockModel(clusterName(cluster)), clusterTexture(cluster));
 
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(cluster, BlockModelGenerators.plainVariant(modelLocation))
                 .with(BlockModelGenerators.ROTATIONS_COLUMN_WITH_FACING));
     }
 
-    private Identifier crossModelOnce(BlockModelGenerators blockModels, Identifier modelLocation, Identifier texture) {
+    private ResourceLocation crossModelOnce(BlockModelGenerators blockModels, ResourceLocation modelLocation, ResourceLocation texture) {
         if (emittedModels.add(modelLocation)) {
             ModelTemplates.CROSS.create(modelLocation, TextureMapping.cross(new Material(texture)), blockModels.modelOutput);
         }
@@ -135,8 +135,8 @@ public class AlchemiaModelProvider extends ModelProvider {
         cubeAll(blockModels, block, blockTexture("alchemy/" + blockName(block)));
     }
 
-    private void cubeAll(BlockModelGenerators blockModels, Block block, Identifier texture) {
-        Identifier modelLocation = ModelTemplates.CUBE_ALL.create(blockModel(blockName(block)),
+    private void cubeAll(BlockModelGenerators blockModels, Block block, ResourceLocation texture) {
+        ResourceLocation modelLocation = ModelTemplates.CUBE_ALL.create(blockModel(blockName(block)),
                 TextureMapping.cube(new Material(texture)), blockModels.modelOutput);
 
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block, BlockModelGenerators.plainVariant(modelLocation)));
@@ -144,8 +144,8 @@ public class AlchemiaModelProvider extends ModelProvider {
     }
 
     private void crushableItem(ItemModelGenerators itemModels, Item item, ItemIngredient ingredient) {
-        Identifier whole = flatModel(itemModels, itemName(item), ingredient.getTextureLocation());
-        Identifier ground = flatModel(itemModels, itemName(item) + "_crushed", ingredient.getCrushedTextureLocation());
+        ResourceLocation whole = flatModel(itemModels, itemName(item), ingredient.getTextureLocation());
+        ResourceLocation ground = flatModel(itemModels, itemName(item) + "_crushed", ingredient.getCrushedTextureLocation());
 
         itemModels.itemModelOutput.accept(item, ItemModelUtils.rangeSelect(
                 CrushProperty.INSTANCE,
@@ -154,10 +154,10 @@ public class AlchemiaModelProvider extends ModelProvider {
     }
 
     private void wearModel(ItemModelGenerators itemModels, Item item, String name) {
-        Identifier fresh = flatModel(itemModels, name, itemTexture(name));
-        Identifier worn1 = flatModel(itemModels, name + "_worn_1", itemTexture(name + "_worn_1"));
-        Identifier worn2 = flatModel(itemModels, name + "_worn_2", itemTexture(name + "_worn_2"));
-        Identifier worn3 = flatModel(itemModels, name + "_worn_3", itemTexture(name + "_worn_3"));
+        ResourceLocation fresh = flatModel(itemModels, name, itemTexture(name));
+        ResourceLocation worn1 = flatModel(itemModels, name + "_worn_1", itemTexture(name + "_worn_1"));
+        ResourceLocation worn2 = flatModel(itemModels, name + "_worn_2", itemTexture(name + "_worn_2"));
+        ResourceLocation worn3 = flatModel(itemModels, name + "_worn_3", itemTexture(name + "_worn_3"));
 
         itemModels.itemModelOutput.accept(item, ItemModelUtils.rangeSelect(
                 new Damage(true),
@@ -167,19 +167,19 @@ public class AlchemiaModelProvider extends ModelProvider {
                 new RangeSelectItemModel.Entry(0.75F, ItemModelUtils.plainModel(worn3))));
     }
 
-    private static Identifier itemTexture(String name) {
-        return Identifier.fromNamespaceAndPath(Alchemia.MODID, "item/" + name);
+    private static ResourceLocation itemTexture(String name) {
+        return new ResourceLocation(Alchemia.MODID, "item/" + name);
     }
 
-    private Identifier flatModel(ItemModelGenerators itemModels, String name, Identifier texture) {
+    private ResourceLocation flatModel(ItemModelGenerators itemModels, String name, ResourceLocation texture) {
         return ModelTemplates.FLAT_ITEM.create(itemModel(name), TextureMapping.layer0(new Material(texture)), itemModels.modelOutput);
     }
 
     private static final java.util.Set<String> MAGNUM_OPUS =
             java.util.Set.of("nigredo", "albedo", "citrinitas", "rubedo", "philosopher_stone");
 
-    private void flatItem(ItemModelGenerators itemModels, Item item, Identifier texture) {
-        Identifier modelLocation = ModelTemplates.FLAT_ITEM.create(itemModel(itemName(item)),
+    private void flatItem(ItemModelGenerators itemModels, Item item, ResourceLocation texture) {
+        ResourceLocation modelLocation = ModelTemplates.FLAT_ITEM.create(itemModel(itemName(item)),
                 TextureMapping.layer0(new Material(texture)), itemModels.modelOutput);
         itemModels.itemModelOutput.accept(item, ItemModelUtils.plainModel(modelLocation));
     }
@@ -189,7 +189,7 @@ public class AlchemiaModelProvider extends ModelProvider {
         return cluster.getIngredient().name().toLowerCase() + suffix;
     }
 
-    private static Identifier clusterTexture(BlockMineralClusterGeneric cluster) {
+    private static ResourceLocation clusterTexture(BlockMineralClusterGeneric cluster) {
         Ingredients ingredient = cluster.getIngredient();
         return blockTexture(ingredient.getType().name().toLowerCase() + "s/" + ingredient.name().toLowerCase() + "/growth_stage_" + cluster.getSize().ordinal());
     }
@@ -210,15 +210,15 @@ public class AlchemiaModelProvider extends ModelProvider {
                 .orElseThrow(() -> new IllegalStateException("Unregistered item " + item));
     }
 
-    private static Identifier blockTexture(String path) {
-        return Identifier.fromNamespaceAndPath(Alchemia.MODID, "block/" + path);
+    private static ResourceLocation blockTexture(String path) {
+        return new ResourceLocation(Alchemia.MODID, "block/" + path);
     }
 
-    private static Identifier blockModel(String path) {
-        return Identifier.fromNamespaceAndPath(Alchemia.MODID, "block/" + path);
+    private static ResourceLocation blockModel(String path) {
+        return new ResourceLocation(Alchemia.MODID, "block/" + path);
     }
 
-    private static Identifier itemModel(String path) {
-        return Identifier.fromNamespaceAndPath(Alchemia.MODID, "item/" + path);
+    private static ResourceLocation itemModel(String path) {
+        return new ResourceLocation(Alchemia.MODID, "item/" + path);
     }
 }

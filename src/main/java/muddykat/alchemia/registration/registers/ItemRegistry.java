@@ -12,8 +12,8 @@ import muddykat.alchemia.common.items.ItemPhilosopherStone;
 import muddykat.alchemia.common.items.helper.Ingredients;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.ItemLike;
-import net.neoforged.neoforge.registries.DeferredItem;
-import net.neoforged.neoforge.registries.DeferredRegister;
+import net.minecraftforge.registries.RegistryObject;
+import net.minecraftforge.registries.DeferredRegister;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -22,10 +22,10 @@ import java.util.function.Function;
 public class ItemRegistry {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(Alchemia.MODID);
 
-    public static final Map<String, DeferredItem<Item>> ITEM_REGISTRY = new LinkedHashMap<>();
+    public static final Map<String, RegistryObject<Item>> ITEM_REGISTRY = new LinkedHashMap<>();
 
-    public static DeferredItem<Item> registerItem(String registry_name, Function<Item.Properties, ? extends Item> factory) {
-        DeferredItem<Item> item = ITEMS.registerItem(registry_name, factory);
+    public static RegistryObject<Item> registerItem(String registry_name, Function<Item.Properties, ? extends Item> factory) {
+        RegistryObject<Item> item = ITEMS.registerItem(registry_name, factory);
         ITEM_REGISTRY.put(registry_name, item);
         return item;
     }

@@ -12,7 +12,7 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Recipe;
@@ -87,7 +87,7 @@ public class AlchemiaRecipeProvider extends RecipeProvider {
             UpgradeSide.RIGHT, Ingredients.Fire_Citrine);
 
     private static ResourceKey<Recipe<?>> recipeKey(String name) {
-        return ResourceKey.create(Registries.RECIPE, Identifier.fromNamespaceAndPath(Alchemia.MODID, name));
+        return ResourceKey.create(Registries.RECIPE, new ResourceLocation(Alchemia.MODID, name));
     }
 
     public static class Runner extends RecipeProvider.Runner {

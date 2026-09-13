@@ -7,14 +7,14 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.List;
 
 public record PacketBrewBases(List<BrewBase> bases) implements CustomPacketPayload {
 
-    public static final Type<PacketBrewBases> TYPE = new Type<>(Identifier.fromNamespaceAndPath(Alchemia.MODID, "brew_bases"));
+    public static final Type<PacketBrewBases> TYPE = new Type<>(new ResourceLocation(Alchemia.MODID, "brew_bases"));
 
     public static final StreamCodec<FriendlyByteBuf, PacketBrewBases> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.fromCodecTrusted(BrewBase.LIST_CODEC), PacketBrewBases::bases,

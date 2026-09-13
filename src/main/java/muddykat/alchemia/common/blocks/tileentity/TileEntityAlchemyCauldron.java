@@ -71,7 +71,7 @@ import org.jspecify.annotations.Nullable;
 
 import com.mojang.serialization.Codec;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -657,7 +657,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
     }
 
     private static String encodeOf(ItemStack stack) {
-        Identifier id = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.getItem());
         if (id == null) return null;
 
         String name = stack.getItem() instanceof ItemIngredient ? id.getPath() : id.toString();

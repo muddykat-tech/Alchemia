@@ -2,7 +2,7 @@ package muddykat.alchemia.common;
 
 import muddykat.alchemia.Alchemia;
 import net.minecraft.advancements.AdvancementHolder;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import muddykat.alchemia.registration.registers.BlockRegistry;
 import net.minecraft.core.BlockPos;
@@ -13,14 +13,14 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CauldronBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.event.level.BlockEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.level.BlockEvent;
 
 public class WorldEventHandler {
 
-    private static final Identifier CAULDRON_ADVANCEMENT =
-            Identifier.fromNamespaceAndPath(Alchemia.MODID, "cauldron");
+    private static final ResourceLocation CAULDRON_ADVANCEMENT =
+            new ResourceLocation(Alchemia.MODID, "cauldron");
 
     private static void awardCauldronAdvancement(Player player) {
         if (!(player instanceof ServerPlayer serverPlayer)) return;

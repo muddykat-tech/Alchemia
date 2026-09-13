@@ -3,7 +3,7 @@ package muddykat.alchemia.data.worldgen;
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.items.helper.IngredientAlignment;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.biome.Biome;
 
@@ -27,6 +27,6 @@ public class AlchemiaBiomeTags {
     }
 
     private static TagKey<Biome> tag(String name) {
-        return TagKey.create(Registries.BIOME, Identifier.fromNamespaceAndPath(Alchemia.MODID, name));
+        return TagKey.create(Registries.BIOME, new ResourceLocation(Alchemia.MODID, name));
     }
 }

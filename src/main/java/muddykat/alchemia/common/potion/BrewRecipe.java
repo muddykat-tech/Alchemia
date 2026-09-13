@@ -11,7 +11,7 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import muddykat.alchemia.registration.registers.DataComponentRegistry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
@@ -161,7 +161,7 @@ public record BrewRecipe(String id, String name, String base, List<BrewRecipe.Br
 
     public static Item itemFor(String registryName) {
         if (registryName.indexOf(':') >= 0) {
-            return BuiltInRegistries.ITEM.getValue(Identifier.parse(registryName));
+            return BuiltInRegistries.ITEM.getValue(new ResourceLocation(registryName));
         }
 
         var holder = ItemRegistry.ITEM_REGISTRY.get(registryName);

@@ -16,7 +16,7 @@ import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.ISubtypeRegistration;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 
@@ -27,8 +27,8 @@ import java.util.List;
 public class AlchemiaJeiPlugin implements IModPlugin {
 
     @Override
-    public Identifier getPluginUid() {
-        return Identifier.fromNamespaceAndPath(Alchemia.MODID, "jei");
+    public ResourceLocation getPluginUid() {
+        return new ResourceLocation(Alchemia.MODID, "jei");
     }
 
     @Override

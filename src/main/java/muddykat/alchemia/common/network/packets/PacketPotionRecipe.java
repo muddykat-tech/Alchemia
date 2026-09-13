@@ -5,12 +5,12 @@ import muddykat.alchemia.common.potion.PotionMap;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public record PacketPotionRecipe(long seed) implements CustomPacketPayload {
 
-    public static final Type<PacketPotionRecipe> TYPE = new Type<>(Identifier.fromNamespaceAndPath(Alchemia.MODID, "potion_recipe"));
+    public static final Type<PacketPotionRecipe> TYPE = new Type<>(new ResourceLocation(Alchemia.MODID, "potion_recipe"));
 
     public static final StreamCodec<FriendlyByteBuf, PacketPotionRecipe> STREAM_CODEC = StreamCodec.of(
             (buffer, payload) -> buffer.writeLong(payload.seed()),

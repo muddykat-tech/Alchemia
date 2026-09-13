@@ -16,12 +16,12 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.RegistrySetBuilder;
 import net.minecraft.core.registries.Registries;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.data.event.GatherDataEvent;
-import net.neoforged.neoforge.registries.NeoForgeRegistries;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.data.event.GatherDataEvent;
+import net.minecraftforge.registries.ForgeRegistries;
 
-@EventBusSubscriber(modid = Alchemia.MODID)
+@Mod.EventBusSubscriber(modid = Alchemia.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class DataProvider {
 
     @SubscribeEvent

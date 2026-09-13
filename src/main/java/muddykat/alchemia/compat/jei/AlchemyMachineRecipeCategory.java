@@ -14,7 +14,7 @@ import muddykat.alchemia.common.crafting.MagnumOpus;
 import muddykat.alchemia.common.crafting.PotionEffectIngredient;
 import muddykat.alchemia.registration.registers.ItemRegistry;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
 
@@ -115,7 +115,7 @@ public class AlchemyMachineRecipeCategory implements IRecipeCategory<MagnumOpus.
     }
 
     @Override
-    public @Nullable Identifier getIdentifier(MagnumOpus.Stage stage) {
-        return Identifier.fromNamespaceAndPath(Alchemia.MODID, stage.result());
+    public @Nullable ResourceLocation getIdentifier(MagnumOpus.Stage stage) {
+        return new ResourceLocation(Alchemia.MODID, stage.result());
     }
 }

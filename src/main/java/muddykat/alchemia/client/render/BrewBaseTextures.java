@@ -6,14 +6,14 @@ import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.sprite.SpriteGetter;
 import net.minecraft.client.resources.model.sprite.SpriteId;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 
 public final class BrewBaseTextures {
 
     public static final SpriteId WATER_SPRITE = new SpriteId(TextureAtlas.LOCATION_BLOCKS,
-            Identifier.withDefaultNamespace("block/water_still"));
+            new ResourceLocation("block/water_still"));
 
     private BrewBaseTextures() {
     }

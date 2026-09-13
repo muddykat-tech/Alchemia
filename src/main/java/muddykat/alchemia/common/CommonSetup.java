@@ -3,7 +3,7 @@ package muddykat.alchemia.common;
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.config.BrewBaseConfig;
 import muddykat.alchemia.common.potion.PotionMap;
-import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 
 import static muddykat.alchemia.Alchemia.MOD_NAME;
 

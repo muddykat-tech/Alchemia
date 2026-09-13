@@ -2,7 +2,7 @@ package muddykat.alchemia.registration;
 
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.registration.registers.*;
-import net.neoforged.bus.api.IEventBus;
+import net.minecraftforge.eventbus.api.IEventBus;
 
 import static muddykat.alchemia.Alchemia.MOD_NAME;
 

@@ -11,7 +11,7 @@ import com.mojang.serialization.JsonOps;
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.potion.BrewBase;
 import muddykat.alchemia.common.potion.BrewBases;
-import net.neoforged.fml.loading.FMLPaths;
+import net.minecraftforge.fml.loading.FMLPaths;
 
 import java.io.IOException;
 import java.io.Reader;

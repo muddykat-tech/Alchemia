@@ -11,19 +11,19 @@ import muddykat.alchemia.client.render.AlchemicalCauldronRenderer;
 import muddykat.alchemia.client.render.CrushProperty;
 import muddykat.alchemia.registration.registers.BlockEntityTypeRegistry;
 import muddykat.alchemia.registration.registers.MenuTypeRegistry;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.EntityRenderersEvent;
-import net.minecraft.resources.Identifier;
-import net.neoforged.neoforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
-import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
-import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
-import net.neoforged.neoforge.client.event.RegisterRangeSelectItemModelPropertyEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.client.event.EntityRenderersEvent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
+import net.minecraftforge.client.event.RegisterGuiLayersEvent;
+import net.minecraftforge.client.event.RegisterMenuScreensEvent;
+import net.minecraftforge.client.event.RegisterRangeSelectItemModelPropertyEvent;
 
 import static muddykat.alchemia.Alchemia.MOD_NAME;
 
-@EventBusSubscriber(modid = Alchemia.MODID, value = Dist.CLIENT)
+@Mod.EventBusSubscriber(modid = Alchemia.MODID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ClientSetup {
 
     @SubscribeEvent
@@ -35,7 +35,7 @@ public class ClientSetup {
 
     @SubscribeEvent
     public static void onRegisterItemModelProperties(RegisterRangeSelectItemModelPropertyEvent event) {
-        event.register(Identifier.fromNamespaceAndPath(Alchemia.MODID, "crush"), CrushProperty.MAP_CODEC);
+        event.register(new ResourceLocation(Alchemia.MODID, "crush"), CrushProperty.MAP_CODEC);
     }
 
     @SubscribeEvent
@@ -45,7 +45,7 @@ public class ClientSetup {
 
     @SubscribeEvent
     public static void onRegisterGuiLayers(RegisterGuiLayersEvent event) {
-        event.registerAboveAll(Identifier.fromNamespaceAndPath(Alchemia.MODID, "grind_path"), GrindOverlay::render);
+        event.registerAboveAll(new ResourceLocation(Alchemia.MODID, "grind_path"), GrindOverlay::render);
     }
 
     @SubscribeEvent

@@ -14,7 +14,7 @@ import net.minecraft.advancements.triggers.InventoryChangeTrigger;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.advancements.AdvancementSubProvider;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.ItemLike;
 
@@ -32,7 +32,7 @@ public class AlchemiaAdvancementProvider implements AdvancementSubProvider {
 
         AdvancementHolder root = Advancement.Builder.advancement()
                 .display(guide, title("root"), description("root"),
-                        Identifier.withDefaultNamespace("block/dark_oak_log"),
+                        new ResourceLocation("block/dark_oak_log"),
                         AdvancementType.TASK, true, true, false)
                 .addCriterion("has_ingredient", InventoryChangeTrigger.TriggerInstance.hasItems(anyIngredient(registries)))
                 .save(output, id("root"));

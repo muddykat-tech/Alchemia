@@ -2,7 +2,7 @@ package muddykat.alchemia.common.config;
 
 import muddykat.alchemia.common.items.helper.IngredientType;
 import muddykat.alchemia.common.items.helper.Ingredients;
-import net.neoforged.neoforge.common.ModConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec;
 
 import java.util.HashMap;
 

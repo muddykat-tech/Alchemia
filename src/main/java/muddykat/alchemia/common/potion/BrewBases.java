@@ -1,7 +1,7 @@
 package muddykat.alchemia.common.potion;
 
 import muddykat.alchemia.Alchemia;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import org.jspecify.annotations.Nullable;
@@ -138,7 +138,7 @@ public final class BrewBases {
         return null;
     }
 
-    private static Optional<Identifier> id(String value) {
-        return Optional.of(Identifier.parse(value));
+    private static Optional<ResourceLocation> id(String value) {
+        return Optional.of(new ResourceLocation(value));
     }
 }
