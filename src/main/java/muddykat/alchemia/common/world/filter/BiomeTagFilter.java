@@ -1,6 +1,6 @@
 package muddykat.alchemia.common.world.filter;
 
-import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import muddykat.alchemia.registration.registers.PlacementModifierRegistry;
 import net.minecraft.core.BlockPos;
@@ -14,7 +14,7 @@ import net.minecraft.world.level.levelgen.placement.PlacementFilter;
 import net.minecraft.world.level.levelgen.placement.PlacementModifierType;
 
 public class BiomeTagFilter extends PlacementFilter {
-    public static final MapCodec<BiomeTagFilter> CODEC = RecordCodecBuilder.mapCodec(builder ->
+    public static final Codec<BiomeTagFilter> CODEC = RecordCodecBuilder.create(builder ->
             builder.group(
                     TagKey.codec(Registries.BIOME).fieldOf("biome_tag").forGetter(instance -> instance.biomeTag)
             ).apply(builder, BiomeTagFilter::new));

@@ -1,6 +1,6 @@
 package muddykat.alchemia.registration.registers;
 
-import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.Codec;
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.world.filter.BiomeTagFilter;
 import net.minecraft.core.registries.Registries;
@@ -15,7 +15,7 @@ public class PlacementModifierRegistry {
     public static final RegistryObject<PlacementModifierType<BiomeTagFilter>> BIOME_TAG =
             PLACEMENT_MODIFIERS.register("biome_tag", () -> typeConvert(BiomeTagFilter.CODEC));
 
-    private static <P extends PlacementModifier> PlacementModifierType<P> typeConvert(MapCodec<P> codec) {
+    private static <P extends PlacementModifier> PlacementModifierType<P> typeConvert(Codec<P> codec) {
         return () -> codec;
     }
 }

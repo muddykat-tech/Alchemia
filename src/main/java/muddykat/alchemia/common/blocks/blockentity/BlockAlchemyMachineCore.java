@@ -1,6 +1,5 @@
 package muddykat.alchemia.common.blocks.blockentity;
 
-import com.mojang.serialization.MapCodec;
 import muddykat.alchemia.common.blocks.helper.AlchemyMachineParts;
 import muddykat.alchemia.common.blocks.helper.MachineOwner;
 import muddykat.alchemia.common.blocks.tileentity.TileEntityAlchemyMachineCore;
@@ -36,19 +35,12 @@ import javax.annotation.Nullable;
 
 public class BlockAlchemyMachineCore extends EntityBlockGeneric {
 
-    public static final MapCodec<BlockAlchemyMachineCore> CODEC = simpleCodec(BlockAlchemyMachineCore::new);
-
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
 
     public BlockAlchemyMachineCore(Properties properties) {
         super(properties);
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(LIT, false));
-    }
-
-    @Override
-    protected MapCodec<? extends BaseEntityBlock> codec() {
-        return CODEC;
     }
 
     @Override

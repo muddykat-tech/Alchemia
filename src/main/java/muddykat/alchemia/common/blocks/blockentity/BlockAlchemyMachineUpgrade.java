@@ -1,7 +1,5 @@
 package muddykat.alchemia.common.blocks.blockentity;
 
-import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import muddykat.alchemia.common.blocks.helper.AlchemyMachineParts;
 import muddykat.alchemia.common.blocks.helper.MachineOwner;
 import muddykat.alchemia.common.blocks.helper.UpgradeSide;
@@ -38,12 +36,6 @@ import javax.annotation.Nullable;
 
 public class BlockAlchemyMachineUpgrade extends EntityBlockGeneric {
 
-    public static final StringRepresentable.EnumCodec<UpgradeSide> SIDE_CODEC = StringRepresentable.fromEnum(UpgradeSide::values);
-
-    public static final MapCodec<BlockAlchemyMachineUpgrade> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            SIDE_CODEC.fieldOf("side").forGetter(BlockAlchemyMachineUpgrade::getSide),
-            propertiesCodec()
-    ).apply(instance, BlockAlchemyMachineUpgrade::new));
 
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
 
@@ -57,11 +49,6 @@ public class BlockAlchemyMachineUpgrade extends EntityBlockGeneric {
 
     public UpgradeSide getSide() {
         return side;
-    }
-
-    @Override
-    protected MapCodec<? extends BaseEntityBlock> codec() {
-        return CODEC;
     }
 
     @Override

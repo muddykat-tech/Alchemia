@@ -1,6 +1,5 @@
 package muddykat.alchemia.common.blocks;
 
-import com.mojang.serialization.MapCodec;
 import muddykat.alchemia.common.items.helper.IngredientAlignment;
 import muddykat.alchemia.common.items.helper.IngredientType;
 import muddykat.alchemia.common.items.helper.Ingredients;
@@ -29,8 +28,6 @@ import net.minecraft.world.level.material.Fluids;
 
 public class BlockIngredient extends CropBlock {
 
-    public static final MapCodec<BlockIngredient> CODEC = simpleCodec(properties -> new BlockIngredient(Ingredients.Firebell, IngredientType.Flower, properties));
-
     public static final IntegerProperty AGE = BlockStateProperties.AGE_3;
 
     protected final Ingredients ingredientData;
@@ -41,11 +38,6 @@ public class BlockIngredient extends CropBlock {
         this.registerDefaultState(this.defaultBlockState().setValue(AGE, 0));
         this.ingredientData = ingredient;
         this.type = iType;
-    }
-
-    @Override
-    public MapCodec<? extends CropBlock> codec() {
-        return CODEC;
     }
 
     @Override

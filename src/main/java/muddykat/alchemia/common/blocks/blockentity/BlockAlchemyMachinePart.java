@@ -1,6 +1,5 @@
 package muddykat.alchemia.common.blocks.blockentity;
 
-import com.mojang.serialization.MapCodec;
 import muddykat.alchemia.common.blocks.helper.AlchemyMachineParts;
 import muddykat.alchemia.common.blocks.helper.MachineOwner;
 import muddykat.alchemia.registration.registers.BlockRegistry;
@@ -34,8 +33,6 @@ public class BlockAlchemyMachinePart extends Block {
     public static final String ID = "alchemy_machine_part";
     public static final int MAX_INDEX = 15;
 
-    public static final MapCodec<BlockAlchemyMachinePart> CODEC = simpleCodec(BlockAlchemyMachinePart::new);
-
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final EnumProperty<MachineOwner> OWNER = EnumProperty.create("owner", MachineOwner.class);
     public static final IntegerProperty INDEX = IntegerProperty.create("index", 0, MAX_INDEX);
@@ -46,11 +43,6 @@ public class BlockAlchemyMachinePart extends Block {
                 .setValue(FACING, Direction.NORTH)
                 .setValue(OWNER, MachineOwner.CORE)
                 .setValue(INDEX, 0));
-    }
-
-    @Override
-    protected MapCodec<? extends Block> codec() {
-        return CODEC;
     }
 
     @Override

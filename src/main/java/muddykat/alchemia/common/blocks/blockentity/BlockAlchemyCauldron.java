@@ -1,6 +1,5 @@
 package muddykat.alchemia.common.blocks.blockentity;
 
-import com.mojang.serialization.MapCodec;
 import muddykat.alchemia.common.blocks.tileentity.TileEntityAlchemyCauldron;
 import muddykat.alchemia.registration.registers.BlockEntityTypeRegistry;
 import net.minecraft.core.BlockPos;
@@ -30,8 +29,6 @@ import javax.annotation.Nullable;
 
 public class BlockAlchemyCauldron extends EntityBlockGeneric {
 
-    public static final MapCodec<BlockAlchemyCauldron> CODEC = simpleCodec(BlockAlchemyCauldron::new);
-
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
 
     private static final VoxelShape SHAPE = buildShape();
@@ -39,11 +36,6 @@ public class BlockAlchemyCauldron extends EntityBlockGeneric {
     public BlockAlchemyCauldron(Properties properties) {
         super(properties);
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
-    }
-
-    @Override
-    protected MapCodec<? extends BaseEntityBlock> codec() {
-        return CODEC;
     }
 
     @Override
