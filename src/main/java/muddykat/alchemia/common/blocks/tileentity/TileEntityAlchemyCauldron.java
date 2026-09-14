@@ -53,7 +53,7 @@ import net.minecraft.world.item.alchemy.PotionUtils;
 import muddykat.alchemia.common.utility.PotionStacks;
 import muddykat.alchemia.registration.registers.PotionRegistry;
 import net.minecraft.world.item.alchemy.Potions;
-import net.minecraft.client.renderer.block.BlockAndTintGetter;
+import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;

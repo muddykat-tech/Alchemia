@@ -23,6 +23,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.items.ItemStackHandler;
 import javax.annotation.Nullable;
 
@@ -166,7 +167,8 @@ public class TileEntityAlchemyMachineCore extends SyncedBlockEntity implements M
                 && input.is(ItemRegistry.getItemFromRegistry(stage.previous()).asItem());
     }
 
-    private static int @Nullable [] matchPotions(List<PotionEffectIngredient> required, List<PotionRef> available) {
+    @Nullable
+    private static int[] matchPotions(List<PotionEffectIngredient> required, List<PotionRef> available) {
         int[] assignment = new int[required.size()];
         Arrays.fill(assignment, -1);
         return assign(0, required, available, assignment, new boolean[available.size()]) ? assignment : null;
@@ -238,7 +240,7 @@ public class TileEntityAlchemyMachineCore extends SyncedBlockEntity implements M
         ItemStack fuel = getStack(FUEL_SLOT);
         if (fuel.isEmpty()) return false;
 
-        int duration = level.fuelValues().burnDuration(fuel);
+        int duration = ForgeHooks.getBurnTime(fuel, null);
         if (duration <= 0) return false;
 
         setSlotAmount(FUEL_SLOT, inventory.getStackInSlot(FUEL_SLOT).getCount() - 1);

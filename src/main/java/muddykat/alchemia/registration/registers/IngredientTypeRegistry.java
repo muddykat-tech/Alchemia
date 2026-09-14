@@ -25,7 +25,7 @@ public class IngredientTypeRegistry {
 
         @Override
         public void write(FriendlyByteBuf buffer, PotionEffectIngredient ingredient) {
-            ingredient.toNetwork(buffer);
+            ingredient.write(buffer);
         }
     };
 

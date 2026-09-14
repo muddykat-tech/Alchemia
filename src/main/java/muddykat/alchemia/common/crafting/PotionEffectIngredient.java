@@ -98,7 +98,7 @@ public class PotionEffectIngredient extends AbstractIngredient {
     }
 
     @Override
-    public JsonObject toJson(boolean allowEmpty) {
+    public JsonObject toJson() {
         JsonObject json = new JsonObject();
         json.addProperty("type", IngredientTypeRegistry.POTION_EFFECT_ID.toString());
 
@@ -135,7 +135,7 @@ public class PotionEffectIngredient extends AbstractIngredient {
         return new PotionEffectIngredient(required);
     }
 
-    public void toNetwork(FriendlyByteBuf buffer) {
+    public void write(FriendlyByteBuf buffer) {
         buffer.writeVarInt(required.size());
         for (Requirement requirement : required) {
             buffer.writeVarInt(BuiltInRegistries.MOB_EFFECT.getId(requirement.effect()));

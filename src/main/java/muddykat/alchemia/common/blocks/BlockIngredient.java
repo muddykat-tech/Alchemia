@@ -51,7 +51,7 @@ public class BlockIngredient extends CropBlock {
     }
 
     @Override
-    public boolean isValidBonemealTarget(LevelReader level, BlockPos pos, BlockState state) {
+    public boolean isValidBonemealTarget(LevelReader level, BlockPos pos, BlockState state, boolean isClient) {
         return !isMaxAge(state);
     }
 
@@ -125,8 +125,8 @@ public class BlockIngredient extends CropBlock {
             return switch (habitat) {
                 case CEILING -> hasRootSupport(level, pos);
                 case AQUATIC -> isSeabed(soil) && level.getFluidState(pos).is(FluidTags.WATER);
-                case SURFACE -> soil.canSustainPlant(level, below, Direction.UP, state)
-                        .toBoolean(soil.is(BlockTags.DIRT));
+                case SURFACE -> soil.canSustainPlant(level, below, Direction.UP, this)
+                        || soil.is(BlockTags.DIRT);
                 default -> this.mayPlaceOn(soil, level, below);
             };
         }

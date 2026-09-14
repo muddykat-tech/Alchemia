@@ -7,6 +7,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -57,12 +58,12 @@ public abstract class ItemPathTool extends Item {
     }
 
     @Override
-    public InteractionResult use(Level level, Player player, InteractionHand hand) {
+    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack tool = player.getItemInHand(hand);
-        if (findTarget(player, tool).isEmpty()) return InteractionResult.FAIL;
+        if (findTarget(player, tool).isEmpty()) return InteractionResultHolder.fail(tool);
 
         player.startUsingItem(hand);
-        return InteractionResult.CONSUME;
+        return InteractionResultHolder.consume(tool);
     }
 
     @Override
@@ -76,9 +77,9 @@ public abstract class ItemPathTool extends Item {
             return;
         }
 
-        if (level instanceof ServerLevel server) {
+        if (!level.isClientSide()) {
             apply(target);
-            tool.hurtAndBreak(1, server, user, item -> user.stopUsingItem());
+            tool.hurtAndBreak(1, user, item -> user.stopUsingItem());
         }
 
         level.playSound(null, user.getX(), user.getY(), user.getZ(),

@@ -8,7 +8,7 @@ public class BlockMineralClusterGeneric extends AmethystClusterBlock {
     private final BlockRegistry.BudSize cluster_size;
     private final Ingredients ingredient;
 
-    public BlockMineralClusterGeneric(Ingredients ingredient, float height, float width, BlockRegistry.BudSize size, Properties properties) {
+    public BlockMineralClusterGeneric(Ingredients ingredient, int height, int width, BlockRegistry.BudSize size, Properties properties) {
         super(height, width, properties);
         this.ingredient = ingredient;
         this.cluster_size = size;

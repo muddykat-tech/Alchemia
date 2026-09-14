@@ -52,7 +52,7 @@ public class AlchemiaJeiPlugin implements IModPlugin {
         for (UpgradeSide side : UpgradeSide.values()) {
             stations.add(BlockRegistry.BLOCK_REGISTRY.get(side.registryName()).get());
         }
-        registration.addCraftingStation(AlchemyMachineRecipeCategory.TYPE, stations.toArray(ItemLike[]::new));
+        registration.addRecipeCatalysts(AlchemyMachineRecipeCategory.TYPE, stations.toArray(ItemLike[]::new));
     }
 
     @Override

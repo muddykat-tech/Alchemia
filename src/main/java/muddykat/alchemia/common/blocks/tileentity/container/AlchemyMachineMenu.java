@@ -15,6 +15,7 @@ import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.SlotItemHandler;
 
@@ -75,7 +76,7 @@ public class AlchemyMachineMenu extends AbstractContainerMenu {
         addSlot(new SlotItemHandler(handler, TileEntityAlchemyMachineCore.FUEL_SLOT, FUEL_X, FUEL_Y) {
             @Override
             public boolean mayPlace(ItemStack stack) {
-                return core.getLevel() != null && core.getLevel().fuelValues().isFuel(stack);
+                return ForgeHooks.getBurnTime(stack, null) > 0;
             }
         });
 
@@ -195,7 +196,7 @@ public class AlchemyMachineMenu extends AbstractContainerMenu {
             if (!moveItemStackTo(stack, machineSlots, this.slots.size(), true)) return ItemStack.EMPTY;
         } else if (potionSlots > 0 && TileEntityAlchemyMachineUpgrade.isPotion(stack)) {
             if (!moveItemStackTo(stack, potionStart, potionStart + potionSlots, false)) return ItemStack.EMPTY;
-        } else if (core.getLevel() != null && core.getLevel().fuelValues().isFuel(stack)) {
+        } else if (ForgeHooks.getBurnTime(stack, null) > 0) {
             if (!moveItemStackTo(stack, TileEntityAlchemyMachineCore.FUEL_SLOT, TileEntityAlchemyMachineCore.FUEL_SLOT + 1, false)) return ItemStack.EMPTY;
         } else {
             if (!moveItemStackTo(stack, TileEntityAlchemyMachineCore.INPUT_SLOT, TileEntityAlchemyMachineCore.INPUT_SLOT + 1, false)) return ItemStack.EMPTY;

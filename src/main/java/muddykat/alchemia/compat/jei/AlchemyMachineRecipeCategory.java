@@ -7,7 +7,7 @@ import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.category.IRecipeCategory;
-import mezz.jei.api.recipe.types.IRecipeType;
+import mezz.jei.api.recipe.RecipeType;
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.blocks.tileentity.TileEntityAlchemyMachineCore;
 import muddykat.alchemia.common.crafting.MagnumOpus;
@@ -22,8 +22,8 @@ import java.util.List;
 
 public class AlchemyMachineRecipeCategory implements IRecipeCategory<MagnumOpus.Stage> {
 
-    public static final IRecipeType<MagnumOpus.Stage> TYPE =
-            IRecipeType.create(Alchemia.MODID, "alchemy_machine", MagnumOpus.Stage.class);
+    public static final RecipeType<MagnumOpus.Stage> TYPE =
+            RecipeType.create(Alchemia.MODID, "alchemy_machine", MagnumOpus.Stage.class);
 
     private static final int WIDTH = 134;
     private static final int HEIGHT = 60;
@@ -53,7 +53,7 @@ public class AlchemyMachineRecipeCategory implements IRecipeCategory<MagnumOpus.
     }
 
     @Override
-    public IRecipeType<MagnumOpus.Stage> getRecipeType() {
+    public RecipeType<MagnumOpus.Stage> getRecipeType() {
         return TYPE;
     }
 
@@ -85,29 +85,28 @@ public class AlchemyMachineRecipeCategory implements IRecipeCategory<MagnumOpus.
                             POTION_X + (index % POTION_COLUMNS) * SLOT_PITCH,
                             POTION_Y + (index / POTION_COLUMNS) * SLOT_PITCH)
                     .setStandardSlotBackground()
-                    .add(potions.get(index).display());
+                    .addItemStack(potions.get(index).sampleStack());
         }
 
         String previous = stage.previous();
         if (previous != null) {
             builder.addSlot(RecipeIngredientRole.INPUT, INPUT_X, INPUT_Y)
                     .setStandardSlotBackground()
-                    .add(ItemRegistry.getItemFromRegistry(previous));
+                    .addItemLike(ItemRegistry.getItemFromRegistry(previous));
         }
 
         builder.addSlot(RecipeIngredientRole.OUTPUT, OUTPUT_X, OUTPUT_Y)
                 .setOutputSlotBackground()
-                .add(ItemRegistry.getItemFromRegistry(stage.result()));
+                .addItemLike(ItemRegistry.getItemFromRegistry(stage.result()));
     }
 
     @Override
     public void createRecipeExtras(IRecipeExtrasBuilder builder, MagnumOpus.Stage stage, IFocusGroup focuses) {
-        builder.addAnimatedRecipeArrowWidget(TileEntityAlchemyMachineCore.COOK_DURATION)
+        builder.addAnimatedRecipeArrow(TileEntityAlchemyMachineCore.COOK_DURATION)
                 .setPosition(ARROW_X, ARROW_Y);
 
-        builder.addAnimatedRecipeFlameWidget(FLAME_TICKS)
-                .setPosition(FLAME_X, FLAME_Y)
-                .setTooltip(Component.translatable("alchemia.jei.alchemy_machine.fuel"));
+        builder.addAnimatedRecipeFlame(FLAME_TICKS)
+                .setPosition(FLAME_X, FLAME_Y);
 
         builder.addText(Component.translatable("alchemia.jei.alchemy_machine.slots", stage.potionCount()),
                         WIDTH - 2, TEXT_HEIGHT)
@@ -115,7 +114,7 @@ public class AlchemyMachineRecipeCategory implements IRecipeCategory<MagnumOpus.
     }
 
     @Override
-    public @Nullable ResourceLocation getIdentifier(MagnumOpus.Stage stage) {
+    public @Nullable ResourceLocation getRegistryName(MagnumOpus.Stage stage) {
         return new ResourceLocation(Alchemia.MODID, stage.result());
     }
 }

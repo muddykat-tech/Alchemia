@@ -61,7 +61,7 @@ public class BlockAlchemyMachinePart extends Block {
     }
 
     @Override
-    protected boolean isPathfindable(BlockState state, PathComputationType type) {
+    public boolean isPathfindable(BlockState state, BlockGetter level, BlockPos pos, PathComputationType type) {
         return false;
     }
 
@@ -84,7 +84,7 @@ public class BlockAlchemyMachinePart extends Block {
     }
 
     @Override
-    protected ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData) {
+    public ItemStack getCloneItemStack(BlockGetter level, BlockPos pos, BlockState state) {
         BlockPos owner = ownerPos(state, pos);
         BlockState ownerState = level.getBlockState(owner);
         return isOwner(ownerState, state.getValue(OWNER)) ? new ItemStack(ownerState.getBlock()) : ItemStack.EMPTY;
