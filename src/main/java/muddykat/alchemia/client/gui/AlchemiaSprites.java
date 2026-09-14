@@ -13,6 +13,7 @@ public final class AlchemiaSprites {
 
     public record Sprite(ResourceLocation texture, int width, int height, int border) {
         public void blit(GuiGraphics graphics, int x, int y, int drawWidth, int drawHeight) {
+            RenderSystem.enableBlend();
             if (border <= 0) {
                 part(graphics, x, y, drawWidth, drawHeight, 0, 0, width, height);
                 return;
@@ -60,6 +61,7 @@ public final class AlchemiaSprites {
 
         public void blit(GuiGraphics graphics, int texWidth, int texHeight, int u, int v,
                          int x, int y, int drawWidth, int drawHeight) {
+            RenderSystem.enableBlend();
             graphics.blit(texture, x, y, drawWidth, drawHeight, (float) u, (float) v,
                     drawWidth, drawHeight, texWidth, texHeight);
         }
@@ -112,6 +114,7 @@ public final class AlchemiaSprites {
     }
 
     public static void blitMobEffect(GuiGraphics graphics, MobEffect effect, int x, int y, int width, int height) {
+        RenderSystem.enableBlend();
         TextureAtlasSprite sprite = Minecraft.getInstance().getMobEffectTextures().get(effect);
         graphics.blit(x, y, 0, width, height, sprite);
     }

@@ -1,5 +1,6 @@
 package muddykat.alchemia.client.gui;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.items.ItemMortarPestle;
 import muddykat.alchemia.common.network.packets.PacketForgetRecipe;
@@ -457,6 +458,7 @@ public class GuideScreen extends Screen {
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float a) {
         refresh();
+        RenderSystem.enableBlend();
         this.renderBackground(graphics);
         super.render(graphics, mouseX, mouseY, a);
 

@@ -1,5 +1,6 @@
 package muddykat.alchemia.client.gui;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import muddykat.alchemia.common.blocks.tileentity.container.AlchemyMachineMenu;
 import muddykat.alchemia.common.blocks.tileentity.container.AlchemyMachineMenu.UpgradePanel;
 import net.minecraft.client.gui.GuiGraphics;
@@ -41,6 +42,7 @@ public class AlchemyMachineScreen extends AbstractContainerScreen<AlchemyMachine
 
     @Override
     protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
+        RenderSystem.enableBlend();
         int left = this.leftPos;
         int top = this.topPos;
 

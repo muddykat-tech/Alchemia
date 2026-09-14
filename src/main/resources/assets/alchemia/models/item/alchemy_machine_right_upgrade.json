@@ -1,6 +1,8 @@
 {
+  "render_type": "minecraft:cutout",
   "loader": "forge:obj",
   "model": "alchemia:models/alchemy_machine_right_upgrade.obj",
+  "emissive_ambient": false,
   "flip_v": true,
   "automatic_culling": false,
   "gui_light": "side",

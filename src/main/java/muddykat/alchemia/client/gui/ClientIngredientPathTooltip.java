@@ -1,5 +1,6 @@
 package muddykat.alchemia.client.gui;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.platform.InputConstants;
 import muddykat.alchemia.common.items.helper.IngredientPathTooltip;
 import net.minecraft.client.Minecraft;
@@ -71,6 +72,7 @@ public class ClientIngredientPathTooltip implements ClientTooltipComponent {
     @Override
     public void renderImage(Font font, int x, int y, GuiGraphics graphics) {
         if (!visible()) return;
+        RenderSystem.enableBlend();
 
         int width = getWidth(font);
         int height = getHeight();

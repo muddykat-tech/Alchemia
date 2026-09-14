@@ -102,6 +102,8 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
     private static final double LABEL_ZOOM = 1.5;
 
     private static final int INK = 0xFF4A3A28;
+    private static final int NAME_FIELD_BACKING = 0xFFFFF6DC;
+    private static final int NAME_SELECTION = 0x804A3A28;
     private static final int INK_FAINT = 0xFF7A6A52;
     private static final int LINE_RGB = 0x282828;
     private static final int UNKNOWN_TINT = 0xFF7A6A52;
@@ -154,7 +156,11 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
 
         String existing = this.getMenu().getCauldron().getBrewName();
         this.nameField = new EditBox(this.font, viewLeft() + NAME_X + 2, viewTop() + NAME_Y + 2,
-                NAME_W - 4, NAME_H - 4, Component.translatable("alchemia.gui.name"));
+                NAME_W - 4, NAME_H - 4, Component.translatable("alchemia.gui.name")) {
+            @Override
+            public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+            }
+        };
         this.nameField.setBordered(false);
         this.nameField.setMaxLength(PacketNameBrew.MAX_LENGTH);
         this.nameField.setTextColor(INK);
@@ -310,6 +316,8 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
 
     @Override
     protected void renderBg(GuiGraphics graphics, float a, int mouseX, int mouseY) {
+        RenderSystem.enableBlend();
+        drawNameField(graphics);
 
         if (!viewInitialised) resetView();
         tickZoom();
@@ -672,6 +680,7 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float a) {
+        RenderSystem.enableBlend();
         this.renderBackground(graphics);
         super.render(graphics, mouseX, mouseY, a);
         graphics.blit(FRAME_TEXTURE, this.leftPos, this.topPos, 0.0F, 0.0F, IMAGE_WIDTH, BOOK_HEIGHT, IMAGE_WIDTH, BOOK_HEIGHT);
@@ -686,13 +695,61 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
         }
     }
 
-    private void extractOverlayText(GuiGraphics graphics) {
-        int left = viewLeft() + 4;
-        int top = viewTop() + 3;
-
+    private void drawNameField(GuiGraphics graphics) {
         int fieldX = viewLeft() + NAME_X;
         int fieldY = viewTop() + NAME_Y;
+
+        graphics.fill(fieldX, fieldY, fieldX + NAME_W, fieldY + NAME_H, NAME_FIELD_BACKING);
         AlchemiaSprites.NAME_FIELD.blit(graphics, fieldX, fieldY, NAME_W, NAME_H);
+    }
+
+    private void drawNameText(GuiGraphics graphics) {
+        if (this.nameField == null) return;
+
+        int textX = viewLeft() + NAME_X + 2;
+        int textY = viewTop() + NAME_Y + 2 + (NAME_H - 4 - this.font.lineHeight) / 2 + 1;
+
+        String value = this.nameField.getValue();
+        boolean focused = this.nameField.isFocused();
+
+        if (value.isEmpty() && !focused) {
+            Component hint = Component.translatable("alchemia.gui.name.hint");
+            graphics.drawString(this.font, hint, textX, textY, INK_FAINT, false);
+            return;
+        }
+
+        int cursor = Mth.clamp(this.nameField.getCursorPosition(), 0, value.length());
+        int selection = cursor;
+
+        String highlighted = this.nameField.getHighlighted();
+        if (!highlighted.isEmpty()) {
+            int before = cursor - highlighted.length();
+            selection = before >= 0 && value.startsWith(highlighted, before)
+                    ? before
+                    : Math.min(value.length(), cursor + highlighted.length());
+        }
+
+        if (focused && selection != cursor) {
+            int from = Math.min(cursor, selection);
+            int to = Math.max(cursor, selection);
+            int selStart = textX + this.font.width(value.substring(0, from));
+            int selEnd = textX + this.font.width(value.substring(0, to));
+            graphics.fill(selStart, textY - 1, selEnd, textY + this.font.lineHeight, NAME_SELECTION);
+        }
+
+        graphics.drawString(this.font, value, textX, textY, INK, false);
+
+        if (focused && (System.currentTimeMillis() / 400L) % 2L == 0L) {
+            int caret = textX + this.font.width(value.substring(0, cursor));
+            graphics.fill(caret, textY - 1, caret + 1, textY + this.font.lineHeight, INK);
+        }
+    }
+
+    private void extractOverlayText(GuiGraphics graphics) {
+        drawNameText(graphics);
+
+        int left = viewLeft() + 4;
+        int top = viewTop() + 3;
 
         Component recipes = Component.translatable("alchemia.gui.recipes", known.size(), RecipeDiscovery.total());
         graphics.drawString(this.font, recipes, viewLeft() + VIEW_WIDTH - 4 - this.font.width(recipes), top, INK_FAINT, false);

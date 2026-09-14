@@ -1,4 +1,5 @@
 {
+  "render_type": "minecraft:cutout",
   "parent": "alchemia:block/alchemical_cauldron",
   "gui_light": "side",
   "display": {

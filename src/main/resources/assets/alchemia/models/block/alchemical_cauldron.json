@@ -1,4 +1,5 @@
 {
+	"render_type": "minecraft:cutout",
 	"credit": "Made with Blockbench",
 	"textures": {
 		"coal_block": "alchemia:block/alchemy/coal_block",

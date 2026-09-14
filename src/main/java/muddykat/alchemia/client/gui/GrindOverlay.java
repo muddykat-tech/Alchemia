@@ -1,5 +1,6 @@
 package muddykat.alchemia.client.gui;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.Util;
 import muddykat.alchemia.common.items.ItemIngredient;
 import muddykat.alchemia.common.items.ItemMortarPestle;
@@ -46,6 +47,7 @@ public class GrindOverlay {
 
     public static void render(net.minecraftforge.client.gui.overlay.ForgeGui gui, GuiGraphics graphics,
                               float partialTick, int screenWidth, int screenHeight) {
+        RenderSystem.enableBlend();
         long now = Util.getMillis();
         float step = lastFrame == 0L ? 0.0F : (now - lastFrame) / 1000.0F;
         lastFrame = now;
