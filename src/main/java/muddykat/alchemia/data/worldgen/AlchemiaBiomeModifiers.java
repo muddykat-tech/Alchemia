@@ -9,7 +9,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.data.worldgen.BootstrapContext;
+import net.minecraft.data.worldgen.BootstapContext;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
@@ -61,7 +61,7 @@ public class AlchemiaBiomeModifiers {
                 : GenerationStep.Decoration.VEGETAL_DECORATION;
     }
 
-    public static void bootstrap(BootstrapContext<BiomeModifier> context) {
+    public static void bootstrap(BootstapContext<BiomeModifier> context) {
         HolderGetter<Biome> biomes = context.lookup(Registries.BIOME);
         HolderGetter<PlacedFeature> features = context.lookup(Registries.PLACED_FEATURE);
 

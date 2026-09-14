@@ -9,7 +9,6 @@ import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyMachineCore;
 import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyMachineUpgrade;
 import muddykat.alchemia.registration.registers.BlockRegistry;
 import muddykat.alchemia.registration.registers.ItemRegistry;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.level.ItemLike;
@@ -30,8 +29,8 @@ import java.util.Set;
 
 public class BlockLoot extends BlockLootSubProvider {
 
-    public BlockLoot(HolderLookup.Provider registries) {
-        super(Set.of(), FeatureFlags.REGISTRY.allFlags(), registries);
+    public BlockLoot() {
+        super(Set.of(), FeatureFlags.REGISTRY.allFlags());
     }
 
     @Override

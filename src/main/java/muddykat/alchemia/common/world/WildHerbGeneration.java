@@ -13,7 +13,7 @@ import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.Vec3i;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.data.worldgen.BootstrapContext;
+import net.minecraft.data.worldgen.BootstapContext;
 import net.minecraft.data.worldgen.placement.PlacementUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
@@ -90,7 +90,7 @@ public class WildHerbGeneration {
         };
     }
 
-    public static void bootstrapConfiguredFeatures(BootstrapContext<ConfiguredFeature<?, ?>> context) {
+    public static void bootstrapConfiguredFeatures(BootstapContext<ConfiguredFeature<?, ?>> context) {
         HolderGetter<Block> blocks = context.lookup(Registries.BLOCK);
 
         for (Ingredients ingredient : Ingredients.values()) {
@@ -142,7 +142,7 @@ public class WildHerbGeneration {
                         BlockRegistry.getGeodeCluster(Ingredients.Cloud_Crystal, BlockRegistry.BudSize.CLUSTER)))));
     }
 
-    public static void bootstrapPlacedFeatures(BootstrapContext<PlacedFeature> context) {
+    public static void bootstrapPlacedFeatures(BootstapContext<PlacedFeature> context) {
         HolderGetter<ConfiguredFeature<?, ?>> configured = context.lookup(Registries.CONFIGURED_FEATURE);
 
         for (Ingredients ingredient : Ingredients.values()) {

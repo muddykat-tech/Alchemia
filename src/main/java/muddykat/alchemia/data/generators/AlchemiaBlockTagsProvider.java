@@ -11,13 +11,17 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.TagsProvider;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.block.Block;
+import net.minecraftforge.common.data.ExistingFileHelper;
+
+import javax.annotation.Nullable;
 
 import java.util.concurrent.CompletableFuture;
 
 public class AlchemiaBlockTagsProvider extends TagsProvider<Block> {
 
-    public AlchemiaBlockTagsProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
-        super(output, Registries.BLOCK, registries, Alchemia.MODID);
+    public AlchemiaBlockTagsProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> registries,
+                                     @Nullable ExistingFileHelper existingFileHelper) {
+        super(output, Registries.BLOCK, registries, Alchemia.MODID, existingFileHelper);
     }
 
     @Override

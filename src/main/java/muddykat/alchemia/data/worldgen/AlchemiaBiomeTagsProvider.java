@@ -7,16 +7,21 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.BiomeTagsProvider;
+import net.minecraft.data.tags.TagsProvider;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraftforge.common.Tags;
+import net.minecraftforge.common.data.ExistingFileHelper;
+
+import javax.annotation.Nullable;
 
 import java.util.concurrent.CompletableFuture;
 
 public class AlchemiaBiomeTagsProvider extends BiomeTagsProvider {
 
-    public AlchemiaBiomeTagsProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
-        super(output, registries, Alchemia.MODID);
+    public AlchemiaBiomeTagsProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> registries,
+                                     @Nullable ExistingFileHelper existingFileHelper) {
+        super(output, registries, Alchemia.MODID, existingFileHelper);
     }
 
     @Override
@@ -50,7 +55,7 @@ public class AlchemiaBiomeTagsProvider extends BiomeTagsProvider {
                 .add(ResourceKey.create(Registries.BIOME, new ResourceLocation("sulfur_caves")));
     }
 
-    private net.minecraft.data.tags.TagAppender<Biome> wildPlantTag(TagKey<Biome> tag) {
+    private TagsProvider.TagAppender<Biome> wildPlantTag(TagKey<Biome> tag) {
         return tag(tag)
                 .remove(Tags.Biomes.IS_MUSHROOM)
                 .remove(Tags.Biomes.IS_MOUNTAIN);
