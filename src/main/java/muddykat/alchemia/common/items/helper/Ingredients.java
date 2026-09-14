@@ -72,10 +72,10 @@ public enum Ingredients {
 
     IngredientAlignment secondaryAlignment;
 
-    final Holder<MobEffect> ingredientEffect;
+    final MobEffect ingredientEffect;
     final int ingredientStrength;
 
-    Ingredients(IngredientType type, IngredientAlignment primaryAlignment, Holder<MobEffect> effect, int strength, Rarity rarity) {
+    Ingredients(IngredientType type, IngredientAlignment primaryAlignment, MobEffect effect, int strength, Rarity rarity) {
         this.type = type;
         this.primaryAlignment = primaryAlignment;
         this.ingredientEffect = effect;
@@ -83,7 +83,7 @@ public enum Ingredients {
         this.rarity = rarity;
     }
 
-    Ingredients(IngredientType type, IngredientAlignment primaryAlignment, IngredientAlignment secondaryAlignment, Holder<MobEffect> effect, int strength, Rarity rarity) {
+    Ingredients(IngredientType type, IngredientAlignment primaryAlignment, IngredientAlignment secondaryAlignment, MobEffect effect, int strength, Rarity rarity) {
         this(type, primaryAlignment, effect, strength, rarity);
         this.secondaryAlignment = secondaryAlignment;
     }
@@ -127,7 +127,7 @@ public enum Ingredients {
         return secondaryAlignment == null ? IngredientAlignment.Void : secondaryAlignment;
     }
 
-    public Holder<MobEffect> getIngredientEffect() {
+    public MobEffect getIngredientEffect() {
         return ingredientEffect;
     }
 

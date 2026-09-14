@@ -70,7 +70,7 @@ public class RecipeDiscovery {
         return null;
     }
 
-    public static PotionEnum byEffect(Holder<MobEffect> effect) {
+    public static PotionEnum byEffect(MobEffect effect) {
         for (PotionEnum recipe : PotionEnum.values()) {
             if (recipe.getEffect().equals(effect)) return recipe;
         }

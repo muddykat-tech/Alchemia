@@ -55,7 +55,7 @@ public class ItemAlchemiaGuide extends Item {
                 tooltips.accept(Component.translatable("alchemia.guide.more", names.size() - shown).withStyle(ChatFormatting.DARK_GRAY));
                 break;
             }
-            tooltips.accept(Component.literal(" ").append(recipe.getEffect().value().getDisplayName()).withStyle(ChatFormatting.BLUE));
+            tooltips.accept(Component.literal(" ").append(recipe.getEffect().getDisplayName()).withStyle(ChatFormatting.BLUE));
             shown++;
         }
     }

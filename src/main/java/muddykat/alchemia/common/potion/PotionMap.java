@@ -44,7 +44,7 @@ public class PotionMap {
 
         for (PotionEnum e : PotionEnum.values()) {
             if (!base.allows(e)) continue;
-            Holder<MobEffect> effect = e.getEffect();
+            MobEffect effect = e.getEffect();
             int strength = e.maxStrength;
             boolean placed = false;
             int spacing = minDistance;
@@ -389,7 +389,7 @@ public class PotionMap {
         crystalGated = 0;
     }
 
-    private boolean placeAnywhere(PotionEnum recipe, Holder<MobEffect> effect, int strength) {
+    private boolean placeAnywhere(PotionEnum recipe, MobEffect effect, int strength) {
         for (int x = HARD_MARGIN; x <= size - 1 - HARD_MARGIN; x++) {
             for (int y = HARD_MARGIN; y <= size - 1 - HARD_MARGIN; y++) {
                 String position = x + "," + y;
@@ -546,12 +546,12 @@ public class PotionMap {
 
     public static class PotionEffectPosition {
         final PotionEnum recipe;
-        final Holder<MobEffect> effect;
+        final MobEffect effect;
         final int duration;
         final int strength;
         final Holder<Potion> potion;
         final boolean perfect;
-        PotionEffectPosition(PotionEnum recipe, Holder<MobEffect> effect, int duration, int maxStrength, Holder<Potion> potion, boolean isPerfect) {
+        PotionEffectPosition(PotionEnum recipe, MobEffect effect, int duration, int maxStrength, Holder<Potion> potion, boolean isPerfect) {
             this.recipe = recipe;
             this.effect = effect;
             this.duration = duration;
@@ -564,7 +564,7 @@ public class PotionMap {
             return recipe;
         }
 
-        public Holder<MobEffect> getEffect() {
+        public MobEffect getEffect() {
             return effect;
         }
 

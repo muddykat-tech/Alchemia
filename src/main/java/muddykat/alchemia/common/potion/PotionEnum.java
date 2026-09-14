@@ -50,13 +50,13 @@ public enum PotionEnum {
     Raid_Omen(MobEffects.RAID_OMEN, 3, IngredientAlignment.Fire, IngredientAlignment.Earth, Rarity.EPIC),
     Trial_Omen(MobEffects.TRIAL_OMEN, 3, IngredientAlignment.Fire, IngredientAlignment.Air, Rarity.EPIC);
 
-    final Holder<MobEffect> effect;
+    final MobEffect effect;
     final int maxStrength;
     private final IngredientAlignment primaryAlignment;
     private final IngredientAlignment secondaryAlignment;
     private final Rarity rarity;
 
-    PotionEnum(Holder<MobEffect> effect, int maxStrength, IngredientAlignment primaryAlignment, IngredientAlignment secondaryAlignment, Rarity rarity){
+    PotionEnum(MobEffect effect, int maxStrength, IngredientAlignment primaryAlignment, IngredientAlignment secondaryAlignment, Rarity rarity){
         this.effect = effect;
         this.maxStrength = maxStrength - 1;
         this.rarity = rarity;
@@ -64,7 +64,7 @@ public enum PotionEnum {
         this.secondaryAlignment = secondaryAlignment;
     }
 
-    public Holder<MobEffect> getEffect() {
+    public MobEffect getEffect() {
         return effect;
     }
 

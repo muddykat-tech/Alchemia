@@ -23,7 +23,6 @@ public class AlchemiaRegistry {
         MenuTypeRegistry.MENU_TYPES.register(modEventBus);
         CreativeTabRegistry.CREATIVE_MODE_TABS.register(modEventBus);
         PotionRegistry.POTIONS.register(modEventBus);
-        IngredientTypeRegistry.INGREDIENT_TYPES.register(modEventBus);
         Alchemia.LOGGER.info(MOD_NAME + " Registration Complete");
     }
 }

@@ -57,7 +57,7 @@ public record BrewRecipe(String id, String name, String base, List<BrewRecipe.Br
 
         public Component displayName() {
             PotionEnum potion = asPotion();
-            return potion != null ? potion.getEffect().value().getDisplayName() : Component.literal(recipe);
+            return potion != null ? potion.getEffect().getDisplayName() : Component.literal(recipe);
         }
     }
 

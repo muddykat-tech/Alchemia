@@ -275,7 +275,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
                 if (getWaterLevel() < 1) {
                     resetEffectList();
                     if (!level.isClientSide()) {
-                        level.playSound(null, pos, SoundEvents.SOUL_ESCAPE.value(), SoundSource.BLOCKS, 1.0F, 1.0F);
+                        level.playSound(null, pos, SoundEvents.SOUL_ESCAPE, SoundSource.BLOCKS, 1.0F, 1.0F);
                         level.gameEvent(null, GameEvent.SPLASH, pos);
                         sync();
                     }
@@ -831,8 +831,8 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         return true;
     }
 
-    public Map<Holder<MobEffect>, Integer> previewPotencies(List<ItemStack> queued) {
-        Map<Holder<MobEffect>, Integer> potencies = new LinkedHashMap<>();
+    public Map<MobEffect, Integer> previewPotencies(List<ItemStack> queued) {
+        Map<MobEffect, Integer> potencies = new LinkedHashMap<>();
         for (MobEffectInstance instance : effectList) {
             potencies.put(instance.getEffect(), instance.getAmplifier() + 1);
         }
@@ -878,7 +878,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
     }
 
     public int previewPotency(List<ItemStack> queued) {
-        Map<Holder<MobEffect>, Integer> potencies = previewPotencies(queued);
+        Map<MobEffect, Integer> potencies = previewPotencies(queued);
         if (potencies == null) return -1;
 
         int total = redstoneCharges();
@@ -923,7 +923,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
     private void applyEffectPosition(PotionMap.PotionEffectPosition potionEffectPos) {
         if (level == null) return;
 
-        Holder<MobEffect> mobEffect = potionEffectPos.getEffect();
+        MobEffect mobEffect = potionEffectPos.getEffect();
         BlockPos pos = getBlockPos();
 
         if (mobEffect != null) {
@@ -1067,11 +1067,11 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         return waterLevel;
     }
 
-    public boolean checkForEffect(Holder<MobEffect> effect, int duration) {
+    public boolean checkForEffect(MobEffect effect, int duration) {
         return effectList.stream().noneMatch(instance -> instance.getEffect().equals(effect) && instance.getDuration() == duration);
     }
 
-    public void ensureStrength(Holder<MobEffect> effect, int effectStrength) {
+    public void ensureStrength(MobEffect effect, int effectStrength) {
         boolean replace = false;
         for (MobEffectInstance instance : effectList) {
             if (instance.getEffect().equals(effect) && instance.getAmplifier() < effectStrength) {
@@ -1127,8 +1127,8 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         if (level.isClientSide()) {
             if (random.nextFloat() < 0.2F && waterLevel > 0 && !getEffectList().isEmpty()) {
                 int color = getEffectList().stream().findFirst()
-                        .map(instance -> instance.getEffect().value().getColor())
-                        .orElse(MobEffects.WATER_BREATHING.value().getColor());
+                        .map(instance -> instance.getEffect().getColor())
+                        .orElse(MobEffects.WATER_BREATHING.getColor());
 
                 ParticleUtils.generatePotionParticles(level, pos, color, false);
             }
@@ -1195,7 +1195,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
             int count = Math.min(effects.size(), 3);
 
             for (int i = 0; i < count; i++) {
-                int color = effects.get(i).getEffect().value().getColor();
+                int color = effects.get(i).getEffect().getColor();
                 red += (color >> 16) & 255;
                 green += (color >> 8) & 255;
                 blue += color & 255;

@@ -187,7 +187,7 @@ public class GuideScreen extends Screen {
             case RECIPES -> Component.translatable("alchemia.guide.recipe.entry",
                     recipes.get(index).displayName(),
                     recipes.get(index).brewBase().displayName());
-            case EFFECTS -> effects.get(index).getEffect().value().getDisplayName();
+            case EFFECTS -> effects.get(index).getEffect().getDisplayName();
             case INGREDIENTS -> ingredientStack(ingredients.get(index)).getHoverName();
         };
     }
@@ -557,7 +557,7 @@ public class GuideScreen extends Screen {
         }
 
         graphics.blitSprite(RenderPipelines.GUI_TEXTURED, Hud.getMobEffectSprite(selectedEffect.getEffect()), x, y - 2, 16, 16);
-        drawWrapped(graphics, selectedEffect.getEffect().value().getDisplayName(), x + 20, y + 2, RIGHT_PAGE_W - 20, INK_HEAD);
+        drawWrapped(graphics, selectedEffect.getEffect().getDisplayName(), x + 20, y + 2, RIGHT_PAGE_W - 20, INK_HEAD);
         y += 22;
 
         y = drawWrapped(graphics, Component.translatable("alchemia.guide.effect.strength", selectedEffect.getMaxStrength() + 1),

@@ -49,7 +49,10 @@ public class Alchemia {
         AlchemiaRegistry.register(modEventBus);
 
         LOGGER.info(MOD_NAME + " Setting up Networking");
-        modEventBus.addListener((FMLCommonSetupEvent event) -> event.enqueueWork(NetworkHandler::register));
+        modEventBus.addListener((FMLCommonSetupEvent event) -> event.enqueueWork(() -> {
+            NetworkHandler.register();
+            IngredientTypeRegistry.register();
+        }));
 
         LOGGER.info(MOD_NAME + " Registering Event Handlers");
         MinecraftForge.EVENT_BUS.register(WorldEventHandler.class);

@@ -29,7 +29,7 @@ public class VanillaIngredientTooltip {
 
         event.getToolTip().add(Component.translatable(
                 drift.homing() ? "alchemia.tooltip.homing" : "alchemia.tooltip.bearing",
-                drift.target().getEffect().value().getDisplayName()).withStyle(ChatFormatting.DARK_GRAY));
+                drift.target().getEffect().getDisplayName()).withStyle(ChatFormatting.DARK_GRAY));
 
         if (!drift.homing()) {
             event.getToolTip().add(Component.translatable("alchemia.tooltip.path").withStyle(ChatFormatting.DARK_GRAY));

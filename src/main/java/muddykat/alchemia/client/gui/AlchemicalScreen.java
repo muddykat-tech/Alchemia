@@ -423,13 +423,13 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
         return y;
     }
 
-    private Map<Holder<MobEffect>, Integer> gainedEffects() {
+    private Map<MobEffect, Integer> gainedEffects() {
         TileEntityAlchemyCauldron cauldron = this.getMenu().getCauldron();
-        Map<Holder<MobEffect>, Integer> predicted = cauldron.previewPotencies(queuedIngredients());
-        Map<Holder<MobEffect>, Integer> gained = new LinkedHashMap<>();
+        Map<MobEffect, Integer> predicted = cauldron.previewPotencies(queuedIngredients());
+        Map<MobEffect, Integer> gained = new LinkedHashMap<>();
         if (predicted == null) return gained;
 
-        Map<Holder<MobEffect>, Integer> current = new LinkedHashMap<>();
+        Map<MobEffect, Integer> current = new LinkedHashMap<>();
         for (MobEffectInstance instance : cauldron.getEffectList()) {
             current.put(instance.getEffect(), instance.getAmplifier() + 1);
         }
@@ -441,7 +441,7 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
         return gained;
     }
 
-    private record PotencySlot(Component name, Holder<MobEffect> effect, boolean redstone) {}
+    private record PotencySlot(Component name, MobEffect effect, boolean redstone) {}
 
     private List<PotencySlot> potencySlots(TileEntityAlchemyCauldron cauldron) {
         List<PotencySlot> slots = new ArrayList<>();
@@ -453,7 +453,7 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
 
         for (MobEffectInstance instance : cauldron.getEffectList()) {
             Component name = Component.translatable("alchemia.gui.effect.entry",
-                    instance.getEffect().value().getDisplayName(), instance.getAmplifier() + 1,
+                    instance.getEffect().getDisplayName(), instance.getAmplifier() + 1,
                     (instance.getDuration() + cauldron.getDurationBonus()) / 20);
 
             for (int i = 0; i <= instance.getAmplifier(); i++) {
@@ -518,7 +518,7 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
 
         List<PotencySlot> filled = potencySlots(cauldron);
 
-        List<Holder<MobEffect>> incoming = new ArrayList<>();
+        List<MobEffect> incoming = new ArrayList<>();
         gainedEffects().forEach((effect, potency) -> {
             for (int i = 0; i < potency; i++) incoming.add(effect);
         });
@@ -749,7 +749,7 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
 
 
             if (discovered && zoom >= LABEL_ZOOM) {
-                Component name = entry.effect().getEffect().value().getDisplayName();
+                Component name = entry.effect().getEffect().getDisplayName();
                 graphics.text(this.font, name, nx - this.font.width(name) / 2, ny + half + 2, INK, false);
             }
 
@@ -757,7 +757,7 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
                 hoverX = mouseX;
                 hoverY = mouseY;
                 if (discovered) {
-                    hoverName = entry.effect().getEffect().value().getDisplayName();
+                    hoverName = entry.effect().getEffect().getDisplayName();
                     hoverDetail = Component.translatable("alchemia.gui.potency",
                             entry.effect().getStrength() + 1, entry.effect().getDuration() / 20);
                 } else {
@@ -801,7 +801,7 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
         boolean doomed = false;
         boolean stranded = false;
 
-        Set<Holder<MobEffect>> held = new HashSet<>();
+        Set<MobEffect> held = new HashSet<>();
         for (MobEffectInstance instance : cauldron.getEffectList()) held.add(instance.getEffect());
 
         List<int[]> pickups = new ArrayList<>();
@@ -932,7 +932,7 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
             PotionMap.PotionEffectPosition landing = map().getEffectPotion(new int[]{x, y});
             Component label = landing.getEffect() == null
                     ? Component.translatable("alchemia.gui.predicted.none")
-                    : landing.getEffect().value().getDisplayName();
+                    : landing.getEffect().getDisplayName();
             int labelX = Mth.clamp(prevX, viewLeft() + this.font.width(label) / 2 + 2,
                     viewLeft() + VIEW_WIDTH - this.font.width(label) / 2 - 2);
             graphics.text(this.font, label, labelX - this.font.width(label) / 2, prevY + half + 3, INK, false);
@@ -1072,7 +1072,7 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
         if (cx + reachX < viewLeft() || cx - reachX > viewLeft() + VIEW_WIDTH
                 || cy + reachY < viewTop() || cy - reachY > viewTop() + VIEW_HEIGHT) return;
 
-        int rgb = discovered ? entry.effect().getEffect().value().getColor() : AURA_UNKNOWN_RGB;
+        int rgb = discovered ? entry.effect().getEffect().getColor() : AURA_UNKNOWN_RGB;
         double pulse = (Math.sin(Util.getMillis() / 520.0 + cx * 0.35) + 1.0) * 0.5;
         double glow = 0.72 + pulse * 0.28;
 

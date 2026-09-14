@@ -1,22 +1,35 @@
 package muddykat.alchemia.registration.registers;
 
+import com.google.gson.JsonObject;
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.crafting.PotionEffectIngredient;
-import net.neoforged.neoforge.common.crafting.IngredientType;
-import net.minecraftforge.registries.RegistryObject;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.common.crafting.CraftingHelper;
+import net.minecraftforge.common.crafting.IIngredientSerializer;
 
 public class IngredientTypeRegistry {
 
-    public static final DeferredRegister<IngredientType<?>> INGREDIENT_TYPES =
-            DeferredRegister.create(NeoForgeRegistries.Keys.INGREDIENT_TYPES, Alchemia.MODID);
+    public static final ResourceLocation POTION_EFFECT_ID = new ResourceLocation(Alchemia.MODID, "potion_effect");
 
-    public static final RegistryObject<IngredientType<PotionEffectIngredient>> POTION_EFFECT =
-            INGREDIENT_TYPES.register("potion_effect",
-                    () -> new IngredientType<>(PotionEffectIngredient.CODEC, PotionEffectIngredient.STREAM_CODEC));
+    public static final IIngredientSerializer<PotionEffectIngredient> POTION_EFFECT = new IIngredientSerializer<>() {
+        @Override
+        public PotionEffectIngredient parse(FriendlyByteBuf buffer) {
+            return PotionEffectIngredient.fromNetwork(buffer);
+        }
 
-    public static DeferredRegister<IngredientType<?>> getRegistry() {
-        return INGREDIENT_TYPES;
+        @Override
+        public PotionEffectIngredient parse(JsonObject json) {
+            return PotionEffectIngredient.fromJson(json);
+        }
+
+        @Override
+        public void write(FriendlyByteBuf buffer, PotionEffectIngredient ingredient) {
+            ingredient.toNetwork(buffer);
+        }
+    };
+
+    public static void register() {
+        CraftingHelper.register(POTION_EFFECT_ID, POTION_EFFECT);
     }
 }

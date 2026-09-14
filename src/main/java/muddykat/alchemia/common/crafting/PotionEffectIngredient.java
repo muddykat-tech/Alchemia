@@ -1,57 +1,49 @@
 package muddykat.alchemia.common.crafting;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import muddykat.alchemia.common.utility.PotionStacks;
 import muddykat.alchemia.registration.registers.IngredientTypeRegistry;
-import net.minecraft.core.Holder;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
+import muddykat.alchemia.registration.registers.PotionRegistry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.ItemStackTemplate;
-import net.minecraft.world.item.crafting.display.SlotDisplay;
 import net.minecraft.world.item.Items;
-import muddykat.alchemia.common.utility.PotionStacks;
-import muddykat.alchemia.registration.registers.PotionRegistry;
-import net.neoforged.neoforge.common.crafting.ICustomIngredient;
-import net.neoforged.neoforge.common.crafting.IngredientType;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraftforge.common.crafting.AbstractIngredient;
+import net.minecraftforge.common.crafting.IIngredientSerializer;
 
+import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 
-public record PotionEffectIngredient(List<Requirement> required) implements ICustomIngredient {
+public class PotionEffectIngredient extends AbstractIngredient {
 
-    public record Requirement(Holder<MobEffect> effect, int amplifier) {
-        public static final Codec<Requirement> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                MobEffect.CODEC.fieldOf("effect").forGetter(Requirement::effect),
-                Codec.INT.optionalFieldOf("amplifier", 0).forGetter(Requirement::amplifier)
-        ).apply(instance, Requirement::new));
+    public record Requirement(MobEffect effect, int amplifier) {}
 
-        public static final StreamCodec<RegistryFriendlyByteBuf, Requirement> STREAM_CODEC = StreamCodec.composite(
-                ByteBufCodecs.holderRegistry(Registries.MOB_EFFECT), Requirement::effect,
-                ByteBufCodecs.VAR_INT, Requirement::amplifier,
-                Requirement::new);
+    private final List<Requirement> required;
+
+    protected PotionEffectIngredient(List<Requirement> required) {
+        super(Stream.of(
+                new Ingredient.ItemValue(new ItemStack(Items.POTION)),
+                new Ingredient.ItemValue(new ItemStack(Items.SPLASH_POTION)),
+                new Ingredient.ItemValue(new ItemStack(Items.LINGERING_POTION))));
+        this.required = List.copyOf(required);
     }
 
-    public static final MapCodec<PotionEffectIngredient> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            Requirement.CODEC.listOf().fieldOf("effects").forGetter(PotionEffectIngredient::required)
-    ).apply(instance, PotionEffectIngredient::new));
+    public List<Requirement> required() {
+        return required;
+    }
 
-    public static final StreamCodec<RegistryFriendlyByteBuf, PotionEffectIngredient> STREAM_CODEC = StreamCodec.composite(
-            Requirement.STREAM_CODEC.apply(ByteBufCodecs.list()), PotionEffectIngredient::required,
-            PotionEffectIngredient::new);
-
-    public static Requirement need(Holder<MobEffect> effect, int potency) {
+    public static Requirement need(MobEffect effect, int potency) {
         return new Requirement(effect, potency - 1);
     }
 
-    public static PotionEffectIngredient of(Holder<MobEffect> effect, int potency) {
+    public static PotionEffectIngredient of(MobEffect effect, int potency) {
         return new PotionEffectIngredient(List.of(need(effect, potency)));
     }
 
@@ -60,8 +52,8 @@ public record PotionEffectIngredient(List<Requirement> required) implements ICus
     }
 
     @Override
-    public boolean test(ItemStack stack) {
-        if (!PotionStacks.isPotion(stack)) return false;
+    public boolean test(@Nullable ItemStack stack) {
+        if (stack == null || !PotionStacks.isPotion(stack)) return false;
         List<MobEffectInstance> contents = PotionStacks.effectsOf(stack);
 
         if (contents.size() != required.size()) return false;
@@ -80,7 +72,7 @@ public record PotionEffectIngredient(List<Requirement> required) implements ICus
         return true;
     }
 
-    private ItemStack sampleStack() {
+    public ItemStack sampleStack() {
         ItemStack sample = new ItemStack(Items.POTION);
         List<MobEffectInstance> effects = required.stream()
                 .map(requirement -> new MobEffectInstance(requirement.effect(), 3600, requirement.amplifier()))
@@ -91,17 +83,8 @@ public record PotionEffectIngredient(List<Requirement> required) implements ICus
     }
 
     @Override
-    public SlotDisplay display() {
-        ItemStack sample = sampleStack();
-        return new SlotDisplay.ItemStackSlotDisplay(
-                new ItemStackTemplate(sample.getItem(), sample.getCount(), sample.getComponentsPatch()));
-    }
-
-    @Override
-    public Stream<Holder<Item>> items() {
-        return Stream.of(Items.POTION.builtInRegistryHolder(),
-                Items.SPLASH_POTION.builtInRegistryHolder(),
-                Items.LINGERING_POTION.builtInRegistryHolder());
+    public ItemStack[] getItems() {
+        return new ItemStack[]{sampleStack()};
     }
 
     @Override
@@ -110,7 +93,53 @@ public record PotionEffectIngredient(List<Requirement> required) implements ICus
     }
 
     @Override
-    public IngredientType<?> getType() {
-        return IngredientTypeRegistry.POTION_EFFECT.get();
+    public IIngredientSerializer<? extends Ingredient> getSerializer() {
+        return IngredientTypeRegistry.POTION_EFFECT;
+    }
+
+    @Override
+    public JsonObject toJson(boolean allowEmpty) {
+        JsonObject json = new JsonObject();
+        json.addProperty("type", IngredientTypeRegistry.POTION_EFFECT_ID.toString());
+
+        JsonArray effects = new JsonArray();
+        for (Requirement requirement : required) {
+            JsonObject entry = new JsonObject();
+            entry.addProperty("effect", BuiltInRegistries.MOB_EFFECT.getKey(requirement.effect()).toString());
+            entry.addProperty("amplifier", requirement.amplifier());
+            effects.add(entry);
+        }
+        json.add("effects", effects);
+        return json;
+    }
+
+    public static PotionEffectIngredient fromJson(JsonObject json) {
+        List<Requirement> required = new ArrayList<>();
+        for (var element : json.getAsJsonArray("effects")) {
+            JsonObject entry = element.getAsJsonObject();
+            MobEffect effect = BuiltInRegistries.MOB_EFFECT.get(new ResourceLocation(entry.get("effect").getAsString()));
+            if (effect == null) continue;
+            int amplifier = entry.has("amplifier") ? entry.get("amplifier").getAsInt() : 0;
+            required.add(new Requirement(effect, amplifier));
+        }
+        return new PotionEffectIngredient(required);
+    }
+
+    public static PotionEffectIngredient fromNetwork(FriendlyByteBuf buffer) {
+        int count = buffer.readVarInt();
+        List<Requirement> required = new ArrayList<>(count);
+        for (int index = 0; index < count; index++) {
+            MobEffect effect = BuiltInRegistries.MOB_EFFECT.byId(buffer.readVarInt());
+            required.add(new Requirement(effect, buffer.readVarInt()));
+        }
+        return new PotionEffectIngredient(required);
+    }
+
+    public void toNetwork(FriendlyByteBuf buffer) {
+        buffer.writeVarInt(required.size());
+        for (Requirement requirement : required) {
+            buffer.writeVarInt(BuiltInRegistries.MOB_EFFECT.getId(requirement.effect()));
+            buffer.writeVarInt(requirement.amplifier());
+        }
     }
 }
