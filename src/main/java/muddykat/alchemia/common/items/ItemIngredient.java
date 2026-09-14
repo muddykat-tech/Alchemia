@@ -16,10 +16,11 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 
 import java.util.ArrayList;
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 
@@ -120,38 +121,38 @@ public class ItemIngredient extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltips, TooltipFlag flag) {
-        super.appendHoverText(stack, context, display, tooltips, flag);
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltips, TooltipFlag flag) {
+        super.appendHoverText(stack, level, tooltips, flag);
 
-        tooltips.accept(TextUtils.brewingSource());
+        tooltips.add(TextUtils.brewingSource());
 
         int crush = crushOf(stack);
-        tooltips.accept(Component.translatable("alchemia.tooltip.potency",
+        tooltips.add(Component.translatable("alchemia.tooltip.potency",
                 String.format("%.2f", getPotency(stack))).withStyle(ChatFormatting.GRAY));
-        tooltips.accept(Component.translatable("alchemia.tooltip.drift", describeDrift(getDriftX(stack), getDriftY(stack))).withStyle(ChatFormatting.DARK_GRAY));
+        tooltips.add(Component.translatable("alchemia.tooltip.drift", describeDrift(getDriftX(stack), getDriftY(stack))).withStyle(ChatFormatting.DARK_GRAY));
 
         if (IngredientPath.of(ingredient).teleports()) {
-            tooltips.accept(Component.translatable("alchemia.tooltip.teleport", PotionMap.teleportDistance(stack)).withStyle(ChatFormatting.DARK_GRAY));
+            tooltips.add(Component.translatable("alchemia.tooltip.teleport", PotionMap.teleportDistance(stack)).withStyle(ChatFormatting.DARK_GRAY));
         } else {
-            tooltips.accept(Component.translatable("alchemia.tooltip.pathlength", pathCellCount(stack)).withStyle(ChatFormatting.DARK_GRAY));
+            tooltips.add(Component.translatable("alchemia.tooltip.pathlength", pathCellCount(stack)).withStyle(ChatFormatting.DARK_GRAY));
         }
 
         if (crush < Ingredients.MAX_CRUSH_UNITS) {
-            tooltips.accept(Component.translatable("alchemia.tooltip.grind", crush, Ingredients.MAX_CRUSH_UNITS).withStyle(ChatFormatting.DARK_GRAY));
+            tooltips.add(Component.translatable("alchemia.tooltip.grind", crush, Ingredients.MAX_CRUSH_UNITS).withStyle(ChatFormatting.DARK_GRAY));
         } else {
-            tooltips.accept(Component.translatable("alchemia.tooltip.ground").withStyle(ChatFormatting.DARK_GRAY));
+            tooltips.add(Component.translatable("alchemia.tooltip.ground").withStyle(ChatFormatting.DARK_GRAY));
         }
 
-        tooltips.accept(Component.translatable("alchemia.tooltip.path").withStyle(ChatFormatting.DARK_GRAY));
+        tooltips.add(Component.translatable("alchemia.tooltip.path").withStyle(ChatFormatting.DARK_GRAY));
 
         int trim = trimOf(stack);
         if (trim > 0) {
-            tooltips.accept(Component.translatable("alchemia.tooltip.path.shortened", trim).withStyle(ChatFormatting.DARK_GRAY));
+            tooltips.add(Component.translatable("alchemia.tooltip.path.shortened", trim).withStyle(ChatFormatting.DARK_GRAY));
         }
 
         int rotation = rotationOf(stack);
         if (rotation > 0) {
-            tooltips.accept(Component.translatable("alchemia.tooltip.path.rotated", rotation * 45).withStyle(ChatFormatting.DARK_GRAY));
+            tooltips.add(Component.translatable("alchemia.tooltip.path.rotated", rotation * 45).withStyle(ChatFormatting.DARK_GRAY));
         }
     }
 

@@ -11,9 +11,12 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.ItemUseAnimation;
+import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.level.Level;
+
+import javax.annotation.Nullable;
+import java.util.List;
 import net.minecraft.world.level.Level;
 
 import java.util.function.Consumer;
@@ -64,7 +67,7 @@ public abstract class ItemPathTool extends Item {
 
     @Override
     public void onUseTick(Level level, LivingEntity user, ItemStack tool, int ticksRemaining) {
-        int elapsed = getUseDuration(tool, user) - ticksRemaining;
+        int elapsed = getUseDuration(tool) - ticksRemaining;
         if (elapsed <= 0 || elapsed % TICKS_PER_STEP != 0) return;
 
         ItemStack target = findTarget(user, tool);
@@ -87,23 +90,23 @@ public abstract class ItemPathTool extends Item {
     }
 
     @Override
-    public int getUseDuration(ItemStack stack, LivingEntity user) {
+    public int getUseDuration(ItemStack stack) {
         return USE_DURATION;
     }
 
     @Override
-    public ItemUseAnimation getUseAnimation(ItemStack stack) {
-        return ItemUseAnimation.BRUSH;
+    public UseAnim getUseAnimation(ItemStack stack) {
+        return UseAnim.BRUSH;
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltips, TooltipFlag flag) {
-        tooltips.accept(Component.translatable(tooltipKey()).withStyle(ChatFormatting.DARK_GRAY));
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltips, TooltipFlag flag) {
+        tooltips.add(Component.translatable(tooltipKey()).withStyle(ChatFormatting.DARK_GRAY));
 
         if (isPristine(stack)) {
-            tooltips.accept(Component.translatable("alchemia.tooltip.stage.pristine").withStyle(ChatFormatting.DARK_PURPLE));
+            tooltips.add(Component.translatable("alchemia.tooltip.stage.pristine").withStyle(ChatFormatting.DARK_PURPLE));
         } else {
-            tooltips.accept(Component.translatable("alchemia.tooltip.stage.spent").withStyle(ChatFormatting.DARK_RED));
+            tooltips.add(Component.translatable("alchemia.tooltip.stage.spent").withStyle(ChatFormatting.DARK_RED));
         }
     }
 }

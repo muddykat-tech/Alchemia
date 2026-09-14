@@ -14,9 +14,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.UseOnContext;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -29,21 +29,21 @@ public class ItemAlchemiaGuide extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltips, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltips, TooltipFlag flag) {
         List<String> names = RecipeDiscovery.stored(stack);
 
-        tooltips.accept(Component.translatable("alchemia.guide.recorded", names.size(), RecipeDiscovery.total())
+        tooltips.add(Component.translatable("alchemia.guide.recorded", names.size(), RecipeDiscovery.total())
                 .withStyle(ChatFormatting.GRAY));
-        tooltips.accept(Component.translatable("alchemia.guide.brews", BrewRecipeBook.recipes(stack).size())
+        tooltips.add(Component.translatable("alchemia.guide.brews", BrewRecipeBook.recipes(stack).size())
                 .withStyle(ChatFormatting.GRAY));
 
         BrewRecipe chosen = BrewRecipeBook.selectedRecipe(stack);
         if (chosen != null) {
-            tooltips.accept(Component.translatable("alchemia.guide.selected", chosen.displayName()).withStyle(ChatFormatting.GOLD));
+            tooltips.add(Component.translatable("alchemia.guide.selected", chosen.displayName()).withStyle(ChatFormatting.GOLD));
         }
 
         if (names.isEmpty()) {
-            tooltips.accept(Component.translatable("alchemia.guide.empty").withStyle(ChatFormatting.DARK_GRAY));
+            tooltips.add(Component.translatable("alchemia.guide.empty").withStyle(ChatFormatting.DARK_GRAY));
             return;
         }
 
@@ -52,10 +52,10 @@ public class ItemAlchemiaGuide extends Item {
             PotionEnum recipe = RecipeDiscovery.byName(name);
             if (recipe == null) continue;
             if (shown == TOOLTIP_LIST_LIMIT) {
-                tooltips.accept(Component.translatable("alchemia.guide.more", names.size() - shown).withStyle(ChatFormatting.DARK_GRAY));
+                tooltips.add(Component.translatable("alchemia.guide.more", names.size() - shown).withStyle(ChatFormatting.DARK_GRAY));
                 break;
             }
-            tooltips.accept(Component.literal(" ").append(recipe.getEffect().getDisplayName()).withStyle(ChatFormatting.BLUE));
+            tooltips.add(Component.literal(" ").append(recipe.getEffect().getDisplayName()).withStyle(ChatFormatting.BLUE));
             shown++;
         }
     }

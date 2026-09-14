@@ -2,10 +2,8 @@ package muddykat.alchemia.common.utility;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.ColorParticleOption;
+import net.minecraft.client.ParticleStatus;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.core.particles.SpellParticleOption;
-import net.minecraft.server.level.ParticleStatus;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -31,18 +29,15 @@ public class ParticleUtils {
             else if (random.nextInt(10) % 3 != 0) return;
         }
 
-        SpellParticleOption options = SpellParticleOption.create(ParticleTypes.EFFECT,
-                (color >> 16 & 255) / 255.0f, (color >> 8 & 255) / 255.0f, (color & 255) / 255.0f, 1.0f);
-
         for (int i = 1; i <= numberOfParticles; i++) {
             Minecraft.getInstance().particleEngine.createParticle(
-                    options,
+                    ParticleTypes.EFFECT,
                     pos.getX() + 0.45 + random.nextDouble() * 0.2,
                     pos.getY() + 1.0,
                     pos.getZ() + 0.45 + random.nextDouble() * 0.2,
-                    0.7,
-                    1.3,
-                    0.7);
+                    red(color),
+                    green(color),
+                    blue(color));
         }
     }
 
@@ -57,17 +52,28 @@ public class ParticleUtils {
 
         int maxParticles = particleStatus == ParticleStatus.DECREASED ? 2 : 5;
         int noParticles = random.nextInt(1, 2 * maxParticles);
-        ColorParticleOption options = ColorParticleOption.create(ParticleTypes.ENTITY_EFFECT, 0xFF000000 | color);
 
         for (int i = 1; i <= noParticles; i++) {
             Minecraft.getInstance().particleEngine.createParticle(
-                    options,
+                    ParticleTypes.ENTITY_EFFECT,
                     pos.getX() + 0.1 + random.nextDouble() * 0.8,
                     pos.getY() + 1.0,
                     pos.getZ() + 0.1 + random.nextDouble() * 0.8,
-                    0,
-                    0.1,
-                    0);
+                    red(color),
+                    green(color),
+                    blue(color));
         }
+    }
+
+    private static double red(int color) {
+        return (color >> 16 & 255) / 255.0;
+    }
+
+    private static double green(int color) {
+        return (color >> 8 & 255) / 255.0;
+    }
+
+    private static double blue(int color) {
+        return (color & 255) / 255.0;
     }
 }

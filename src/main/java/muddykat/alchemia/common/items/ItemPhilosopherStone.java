@@ -7,7 +7,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.level.Level;
+
+import javax.annotation.Nullable;
+import java.util.List;
 
 import java.util.function.Consumer;
 
@@ -48,11 +51,10 @@ public class ItemPhilosopherStone extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display,
-                                Consumer<Component> tooltips, TooltipFlag flag) {
-        tooltips.accept(TextUtils.brewingSource());
-        tooltips.accept(Component.translatable("alchemia.tooltip.stone.charges",
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltips, TooltipFlag flag) {
+        tooltips.add(TextUtils.brewingSource());
+        tooltips.add(Component.translatable("alchemia.tooltip.stone.charges",
                 chargesOf(stack), MAX_CHARGES).withStyle(ChatFormatting.GRAY));
-        tooltips.accept(Component.translatable("alchemia.tooltip.stone.effect").withStyle(ChatFormatting.DARK_GRAY));
+        tooltips.add(Component.translatable("alchemia.tooltip.stone.effect").withStyle(ChatFormatting.DARK_GRAY));
     }
 }

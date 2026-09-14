@@ -18,7 +18,7 @@ import net.minecraft.data.worldgen.placement.PlacementUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.BlockTags;
-import net.minecraft.util.random.WeightedList;
+import net.minecraft.util.random.SimpleWeightedRandomList;
 import net.minecraft.util.valueproviders.ConstantInt;
 import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.level.block.Block;
@@ -215,7 +215,7 @@ public class WildHerbGeneration {
         return new WildHerbConfiguration(24, 4, 0, colonyBlockConfig(block, hangsFrom), plantBlockConfig(block, hangsFrom), Optional.empty());
     }
 
-    static final BlockStateProvider NETHER_OUTER_SHELL = new WeightedStateProvider(WeightedList.<BlockState>builder()
+    static final BlockStateProvider NETHER_OUTER_SHELL = new WeightedStateProvider(SimpleWeightedRandomList.<BlockState>builder()
             .add(Blocks.CRYING_OBSIDIAN.defaultBlockState(), 1)
             .add(Blocks.OBSIDIAN.defaultBlockState(), 4)
             .add(Blocks.BASALT.defaultBlockState(), 5)

@@ -1,7 +1,7 @@
 package muddykat.alchemia.common;
 
 import muddykat.alchemia.Alchemia;
-import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.advancements.Advancement;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import muddykat.alchemia.registration.registers.BlockRegistry;
@@ -25,10 +25,10 @@ public class WorldEventHandler {
     private static void awardCauldronAdvancement(Player player) {
         if (!(player instanceof ServerPlayer serverPlayer)) return;
 
-        AdvancementHolder advancement = serverPlayer.level().getServer().getAdvancements().get(CAULDRON_ADVANCEMENT);
+        Advancement advancement = serverPlayer.level().getServer().getAdvancements().getAdvancement(CAULDRON_ADVANCEMENT);
         if (advancement == null) return;
 
-        for (String criterion : advancement.value().criteria().keySet()) {
+        for (String criterion : advancement.getCriteria().keySet()) {
             serverPlayer.getAdvancements().award(advancement, criterion);
         }
     }
