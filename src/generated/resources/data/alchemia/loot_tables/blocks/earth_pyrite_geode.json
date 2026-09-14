@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "alchemia:earth_pyrite_geode"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "alchemia:blocks/earth_pyrite_geode"
+}

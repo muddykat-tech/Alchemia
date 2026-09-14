@@ -11,6 +11,7 @@ import net.minecraft.data.tags.BiomeTagsProvider;
 import net.minecraft.data.tags.TagsProvider;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.Biomes;
 import net.minecraftforge.common.Tags;
 import net.minecraftforge.common.data.ExistingFileHelper;
 
@@ -53,7 +54,8 @@ public class AlchemiaBiomeTagsProvider extends BiomeTagsProvider {
                 .addTag(Tags.Biomes.IS_COLD_OVERWORLD);
 
         tag(AlchemiaBiomeTags.HAS_SULPHUR_SHELF)
-                .add(ResourceKey.create(Registries.BIOME, new ResourceLocation("sulfur_caves")));
+                .add(Biomes.BASALT_DELTAS)
+                .addOptional(new ResourceLocation("sulfur_caves"));
     }
 
     private TagsProvider.TagAppender<Biome> wildPlantTag(TagKey<Biome> tag) {

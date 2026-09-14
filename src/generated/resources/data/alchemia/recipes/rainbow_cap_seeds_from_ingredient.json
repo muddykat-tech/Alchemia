@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "alchemia:mushroom_rainbow_cap"
+    },
+    {
+      "item": "minecraft:shears"
+    }
+  ],
+  "result": {
+    "item": "alchemia:mushroom_rainbow_cap_seed"
+  }
+}

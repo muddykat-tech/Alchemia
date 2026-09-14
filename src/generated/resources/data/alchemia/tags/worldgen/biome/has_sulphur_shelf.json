@@ -1,0 +1,9 @@
+{
+  "values": [
+    "minecraft:basalt_deltas",
+    {
+      "id": "minecraft:sulfur_caves",
+      "required": false
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "type": "forge:add_features",
+  "biomes": "#forge:is_swamp",
+  "features": "alchemia:patch_wild_marshroom",
+  "step": "vegetal_decoration"
+}

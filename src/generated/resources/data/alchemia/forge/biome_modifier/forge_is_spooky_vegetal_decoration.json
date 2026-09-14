@@ -1,0 +1,6 @@
+{
+  "type": "forge:add_features",
+  "biomes": "#forge:is_spooky",
+  "features": "alchemia:patch_wild_boombloom",
+  "step": "vegetal_decoration"
+}

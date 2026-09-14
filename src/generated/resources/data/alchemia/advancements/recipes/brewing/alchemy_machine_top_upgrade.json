@@ -1,0 +1,35 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_mineral_cloud_crystal": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "alchemia:mineral_cloud_crystal"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "alchemia:alchemy_machine_top_upgrade"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_mineral_cloud_crystal",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "alchemia:alchemy_machine_top_upgrade"
+    ]
+  },
+  "sends_telemetry_event": false
+}

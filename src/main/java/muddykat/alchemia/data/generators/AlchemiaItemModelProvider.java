@@ -64,12 +64,14 @@ public class AlchemiaItemModelProvider extends ItemModelProvider {
     private void generateBlockItem(Item item, BlockItemGeneric blockItem) {
         var block = blockItem.getBlock();
 
-        if (block instanceof BlockMineralClusterGeneric cluster) {
-            flatItem(itemName(item), clusterTexture(cluster));
-        } else if (block instanceof BlockAlchemyCauldron
+        if (block instanceof BlockAlchemyCauldron
                 || block instanceof BlockAlchemyMachineCore
                 || block instanceof BlockAlchemyMachineUpgrade) {
-            flatItem(itemName(item), itemTexture(itemName(item)));
+            return;
+        }
+
+        if (block instanceof BlockMineralClusterGeneric cluster) {
+            flatItem(itemName(item), clusterTexture(cluster));
         } else {
             withExistingParent(itemName(item), modLoc("block/" + itemName(item)));
         }

@@ -1,0 +1,6 @@
+{
+  "type": "forge:add_features",
+  "biomes": "#forge:is_spooky",
+  "features": "alchemia:geode_arcane_crystal",
+  "step": "underground_decoration"
+}

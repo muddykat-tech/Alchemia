@@ -1,0 +1,6 @@
+{
+  "type": "forge:add_features",
+  "biomes": "#alchemia:has_spellbloom",
+  "features": "alchemia:patch_wild_spellbloom",
+  "step": "vegetal_decoration"
+}

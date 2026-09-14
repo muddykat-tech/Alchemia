@@ -1,0 +1,38 @@
+{
+  "parent": "alchemia:guide",
+  "criteria": {
+    "unlocked": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "alchemia:alchemical_cauldron"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.alchemia.cauldron.description"
+    },
+    "frame": "task",
+    "hidden": false,
+    "icon": {
+      "item": "alchemia:alchemical_cauldron"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.alchemia.cauldron.title"
+    }
+  },
+  "requirements": [
+    [
+      "unlocked"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

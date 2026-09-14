@@ -1,0 +1,6 @@
+{
+  "type": "forge:add_features",
+  "biomes": "#minecraft:is_nether",
+  "features": "alchemia:geode_fire_citrine",
+  "step": "underground_decoration"
+}

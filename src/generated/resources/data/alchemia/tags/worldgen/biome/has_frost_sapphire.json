@@ -1,0 +1,9 @@
+{
+  "remove": [
+    "#forge:is_mushroom",
+    "#forge:is_mountain"
+  ],
+  "values": [
+    "#forge:is_cold/overworld"
+  ]
+}

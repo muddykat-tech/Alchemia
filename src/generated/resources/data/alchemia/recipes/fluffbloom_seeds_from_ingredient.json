@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "alchemia:flower_fluffbloom"
+    },
+    {
+      "item": "minecraft:shears"
+    }
+  ],
+  "result": {
+    "item": "alchemia:flower_fluffbloom_seed"
+  }
+}
