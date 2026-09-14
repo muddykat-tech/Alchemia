@@ -34,7 +34,7 @@ public class AlchemiaAdvancementProvider implements ForgeAdvancementProvider.Adv
 
         Advancement root = Advancement.Builder.advancement()
                 .display(guide, title("root"), description("root"),
-                        new ResourceLocation("block/dark_oak_log"),
+                        new ResourceLocation("textures/block/dark_oak_log.png"),
                         FrameType.TASK, true, true, false)
                 .addCriterion("has_ingredient", InventoryChangeTrigger.TriggerInstance.hasItems(anyIngredient().build()))
                 .save(output, id("root"));
