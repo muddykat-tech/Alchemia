@@ -5,6 +5,7 @@ import muddykat.alchemia.common.items.helper.IngredientAlignment;
 import muddykat.alchemia.common.items.helper.Ingredients;
 import muddykat.alchemia.common.world.IngredientHabitat;
 import muddykat.alchemia.common.world.WildHerbGeneration;
+import net.minecraft.tags.BiomeTags;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderSet;
@@ -32,19 +33,19 @@ public class AlchemiaBiomeModifiers {
     private static final Map<Ingredients, TagKey<Biome>> BIOME_OVERRIDES = new EnumMap<>(Ingredients.class);
 
     static {
-        BIOME_OVERRIDES.put(Ingredients.Flameweed, Tags.Biomes.IS_OCEAN);
-        BIOME_OVERRIDES.put(Ingredients.Tangleweed, Tags.Biomes.IS_OCEAN);
-        BIOME_OVERRIDES.put(Ingredients.Druids_Rosemary, Tags.Biomes.IS_JUNGLE);
+        BIOME_OVERRIDES.put(Ingredients.Flameweed, BiomeTags.IS_OCEAN);
+        BIOME_OVERRIDES.put(Ingredients.Tangleweed, BiomeTags.IS_OCEAN);
+        BIOME_OVERRIDES.put(Ingredients.Druids_Rosemary, BiomeTags.IS_JUNGLE);
         BIOME_OVERRIDES.put(Ingredients.Thornstick, Tags.Biomes.IS_DESERT);
         BIOME_OVERRIDES.put(Ingredients.Marshroom, Tags.Biomes.IS_SWAMP);
-        BIOME_OVERRIDES.put(Ingredients.Firebell, Tags.Biomes.IS_FOREST);
+        BIOME_OVERRIDES.put(Ingredients.Firebell, BiomeTags.IS_FOREST);
         BIOME_OVERRIDES.put(Ingredients.Sulphur_Shelf, AlchemiaBiomeTags.HAS_SULPHUR_SHELF);
 
         BIOME_OVERRIDES.put(Ingredients.Spellbloom, AlchemiaBiomeTags.HAS_SPELLBLOOM);
-        BIOME_OVERRIDES.put(Ingredients.Boombloom, Tags.Biomes.IS_DARK_FOREST);
-        BIOME_OVERRIDES.put(Ingredients.Arcane_Crystal, Tags.Biomes.IS_DARK_FOREST);
+        BIOME_OVERRIDES.put(Ingredients.Boombloom, Tags.Biomes.IS_SPOOKY);
+        BIOME_OVERRIDES.put(Ingredients.Arcane_Crystal, Tags.Biomes.IS_SPOOKY);
         BIOME_OVERRIDES.put(Ingredients.Frost_Sapphire, AlchemiaBiomeTags.HAS_FROST_SAPPHIRE);
-        BIOME_OVERRIDES.put(Ingredients.Fire_Citrine, Tags.Biomes.IS_NETHER);
+        BIOME_OVERRIDES.put(Ingredients.Fire_Citrine, BiomeTags.IS_NETHER);
         BIOME_OVERRIDES.put(Ingredients.Fable_Bismuth, Tags.Biomes.IS_MUSHROOM);
         BIOME_OVERRIDES.put(Ingredients.Cloud_Crystal, Tags.Biomes.IS_MOUNTAIN);
         BIOME_OVERRIDES.put(Ingredients.Earth_Pyrite, AlchemiaBiomeTags.HAS_EARTH_PLANTS);
@@ -97,7 +98,7 @@ public class AlchemiaBiomeModifiers {
         });
 
         context.register(modifierKey(WildHerbGeneration.PEAK_CLUSTER_NAME), new ForgeBiomeModifiers.AddFeaturesBiomeModifier(
-                biomes.getOrThrow(Tags.Biomes.IS_MOUNTAIN_PEAK),
+                biomes.getOrThrow(Tags.Biomes.IS_PEAK),
                 HolderSet.direct(features.getOrThrow(WildHerbGeneration.PEAK_CLUSTER)),
                 GenerationStep.Decoration.VEGETAL_DECORATION));
     }

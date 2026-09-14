@@ -15,6 +15,6 @@ public class CreativeTabRegistry {
             () -> CreativeModeTab.builder()
                     .title(Component.translatable("itemGroup." + Alchemia.MODID))
                     .icon(() -> new ItemStack(BlockRegistry.BLOCK_REGISTRY.get("alchemical_cauldron").get()))
-                    .displayItems((parameters, output) -> ItemRegistry.ITEM_REGISTRY.values().forEach(output::accept))
+                    .displayItems((parameters, output) -> ItemRegistry.ITEM_REGISTRY.values().forEach(entry -> output.accept(entry.get())))
                     .build());
 }

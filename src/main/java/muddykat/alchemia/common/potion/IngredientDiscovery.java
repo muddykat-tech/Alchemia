@@ -33,7 +33,7 @@ public class IngredientDiscovery {
         Ingredients ingredient = item.getIngredient();
         int discovered = 0;
 
-        for (ItemStack stack : player.getInventory()) {
+        for (ItemStack stack : player.getInventory().items) {
             if (!(stack.getItem() instanceof ItemAlchemiaGuide)) continue;
 
             List<String> names = new ArrayList<>(stored(stack));

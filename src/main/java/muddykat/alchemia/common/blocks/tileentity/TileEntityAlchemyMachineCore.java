@@ -190,7 +190,7 @@ public class TileEntityAlchemyMachineCore extends SyncedBlockEntity implements M
     private boolean canOutput(ItemStack result) {
         ItemStack existing = getStack(OUTPUT_SLOT);
         if (existing.isEmpty()) return true;
-        if (!ItemStack.isSameItemSameComponents(existing, result)) return false;
+        if (!ItemStack.isSameItemSameTags(existing, result)) return false;
         return existing.getCount() + result.getCount() <= existing.getMaxStackSize();
     }
 

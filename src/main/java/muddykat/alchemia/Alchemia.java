@@ -71,7 +71,7 @@ public class Alchemia {
     @SubscribeEvent
     public void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
-            Random rand = new Random(player.level().getSeed());
+            Random rand = new Random(player.serverLevel().getSeed());
             long map_seed = rand.nextLong();
             LOGGER.info("Player Joined - Sending Brew Bases and Potion Map Seed");
             NetworkHandler.sendToPlayer(new PacketBrewBases(BrewBases.definitions()), player);

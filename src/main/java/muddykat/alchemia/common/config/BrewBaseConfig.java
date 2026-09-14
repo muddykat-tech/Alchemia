@@ -77,7 +77,7 @@ public final class BrewBaseConfig {
             for (JsonElement entry : bases.getAsJsonArray()) {
                 DataResult<BrewBase> result = BrewBase.CODEC.parse(JsonOps.INSTANCE, entry);
                 result.result().ifPresentOrElse(parsed::add, () -> Alchemia.LOGGER.error("Skipping a brew base in {}: {}",
-                        FILE_NAME, result.error().map(DataResult.Error::message).orElse("unknown problem")));
+                        FILE_NAME, result.error().map(DataResult.PartialResult::message).orElse("unknown problem")));
             }
             BrewBases.install(parsed);
         } catch (IOException | RuntimeException error) {

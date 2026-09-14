@@ -39,11 +39,11 @@ public class BlockMineralBuddingGeneric extends BlockGeneric {
     }
 
     @Override
-    protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+    public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         if (random.nextInt(5) != 0) return;
 
         Direction direction = DIRECTIONS[random.nextInt(DIRECTIONS.length)];
-        BlockPos blockPos = pos.offset(direction.getUnitVec3i());
+        BlockPos blockPos = pos.offset(direction.getNormal());
         BlockState blockState = level.getBlockState(blockPos);
         List<Block> resolved = getClusters();
         Block nextBlock = null;

@@ -92,7 +92,7 @@ public class AlchemyMachineMenu extends AbstractContainerMenu {
             UpgradePanel panel = panelFor(upgrade.getSide());
             attached.add(panel);
             ItemStackHandler potions = upgrade.getPotions();
-            for (int slot = 0; slot < potions.size(); slot++) {
+            for (int slot = 0; slot < potions.getSlots(); slot++) {
                 addSlot(new SlotItemHandler(potions, slot, panel.slotX(slot), panel.slotY(slot)) {
                     @Override
                     public boolean mayPlace(ItemStack stack) {

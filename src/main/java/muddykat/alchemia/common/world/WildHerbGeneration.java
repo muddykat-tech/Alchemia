@@ -18,6 +18,7 @@ import net.minecraft.data.worldgen.placement.PlacementUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.util.random.SimpleWeightedRandomList;
 import net.minecraft.util.valueproviders.ConstantInt;
 import net.minecraft.util.valueproviders.UniformInt;
@@ -110,17 +111,17 @@ public class WildHerbGeneration {
                     : BlockPredicate.ONLY_IN_AIR_PREDICATE;
 
             BlockPredicate grownOn = switch (habitat) {
-                case SURFACE -> BlockPredicate.matchesTag(BLOCK_BELOW, BlockTags.SUPPORTS_VEGETATION);
+                case SURFACE -> BlockPredicate.matchesTag(BLOCK_BELOW, BlockTags.DIRT);
                 case SAND -> BlockPredicate.matchesTag(BLOCK_BELOW, BlockTags.SAND);
                 case UNDERGROUND -> BlockPredicate.matchesTag(BLOCK_BELOW, BlockTags.BASE_STONE_OVERWORLD);
-                case SULFUR -> BlockPredicate.matchesBlocks(BLOCK_BELOW, Blocks.SULFUR, Blocks.POTENT_SULFUR);
+                case SULFUR -> BlockPredicate.matchesBlocks(BLOCK_BELOW, Blocks.MAGMA_BLOCK, Blocks.NETHERRACK);
                 case AQUATIC -> BlockPredicate.anyOf(
                         BlockPredicate.matchesTag(BLOCK_BELOW, BlockTags.SAND),
                         BlockPredicate.matchesTag(BLOCK_BELOW, BlockTags.DIRT),
                         BlockPredicate.matchesBlocks(BLOCK_BELOW, Blocks.GRAVEL, Blocks.CLAY));
                 case CEILING -> BlockPredicate.allOf(
                         BlockPredicate.matchesTag(BLOCK_ABOVE, BlockTags.DIRT),
-                        BlockPredicate.matchesTag(BLOCK_BELOW, BlockTags.AIR));
+                        BlockPredicate.matchesBlocks(BLOCK_BELOW, Blocks.AIR));
                 case GEODE -> BlockPredicate.alwaysTrue();
             };
 
@@ -222,8 +223,8 @@ public class WildHerbGeneration {
             .build());
 
     public static GeodeConfiguration crystalGeodeConfig(Ingredients ingredient, HolderGetter<Block> blocks) {
-        HolderSet<Block> cannotReplace = blocks.getOrThrow(BlockTags.FEATURES_CANNOT_REPLACE);
-        HolderSet<Block> invalidBlocks = blocks.getOrThrow(BlockTags.GEODE_INVALID_BLOCKS);
+        TagKey<Block> cannotReplace = BlockTags.FEATURES_CANNOT_REPLACE;
+        TagKey<Block> invalidBlocks = BlockTags.GEODE_INVALID_BLOCKS;
 
         return new GeodeConfiguration(
                 new GeodeBlockSettings(

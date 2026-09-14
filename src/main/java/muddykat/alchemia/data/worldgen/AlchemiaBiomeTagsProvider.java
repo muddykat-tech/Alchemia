@@ -1,6 +1,7 @@
 package muddykat.alchemia.data.worldgen;
 
 import muddykat.alchemia.Alchemia;
+import net.minecraft.tags.BiomeTags;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -28,25 +29,25 @@ public class AlchemiaBiomeTagsProvider extends BiomeTagsProvider {
     protected void addTags(HolderLookup.Provider registries) {
         wildPlantTag(AlchemiaBiomeTags.HAS_FIRE_PLANTS)
                 .addTag(Tags.Biomes.IS_HOT_OVERWORLD)
-                .remove(Tags.Biomes.IS_DARK_FOREST);
+                .remove(Tags.Biomes.IS_SPOOKY);
 
         wildPlantTag(AlchemiaBiomeTags.HAS_WATER_PLANTS)
                 .addTag(Tags.Biomes.IS_COLD_OVERWORLD)
                 .addTag(Tags.Biomes.IS_WET_OVERWORLD)
-                .remove(Tags.Biomes.IS_DARK_FOREST);
+                .remove(Tags.Biomes.IS_SPOOKY);
 
         wildPlantTag(AlchemiaBiomeTags.HAS_AIR_PLANTS)
-                .addTag(Tags.Biomes.IS_TEMPERATE_OVERWORLD)
-                .remove(Tags.Biomes.IS_DARK_FOREST);
+                .addTag(Tags.Biomes.IS_PLAINS)
+                .remove(Tags.Biomes.IS_SPOOKY);
 
         wildPlantTag(AlchemiaBiomeTags.HAS_EARTH_PLANTS)
-                .addTag(Tags.Biomes.IS_FOREST)
+                .addTag(BiomeTags.IS_FOREST)
                 .addTag(Tags.Biomes.IS_PLAINS)
-                .remove(Tags.Biomes.IS_DARK_FOREST);
+                .remove(Tags.Biomes.IS_SPOOKY);
 
         wildPlantTag(AlchemiaBiomeTags.HAS_SPELLBLOOM)
-                .addTag(Tags.Biomes.IS_TEMPERATE_OVERWORLD)
-                .addTag(Tags.Biomes.IS_DARK_FOREST);
+                .addTag(Tags.Biomes.IS_PLAINS)
+                .addTag(Tags.Biomes.IS_SPOOKY);
 
         wildPlantTag(AlchemiaBiomeTags.HAS_FROST_SAPPHIRE)
                 .addTag(Tags.Biomes.IS_COLD_OVERWORLD);

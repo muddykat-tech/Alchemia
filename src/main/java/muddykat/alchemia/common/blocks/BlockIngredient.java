@@ -92,7 +92,7 @@ public class BlockIngredient extends CropBlock {
     @Override
     protected boolean mayPlaceOn(BlockState state, BlockGetter level, BlockPos pos) {
         return switch (IngredientHabitat.of(ingredientData)) {
-            case SURFACE -> state.is(BlockTags.SUPPORTS_VEGETATION);
+            case SURFACE -> state.is(BlockTags.DIRT);
             case SAND -> state.is(BlockTags.SAND);
             case AQUATIC -> isSeabed(state);
             case UNDERGROUND -> state.is(BlockTags.BASE_STONE_OVERWORLD);
@@ -107,7 +107,7 @@ public class BlockIngredient extends CropBlock {
     }
 
     private static boolean isSulfur(BlockState state) {
-        return state.is(Blocks.SULFUR) || state.is(Blocks.POTENT_SULFUR);
+        return state.is(Blocks.MAGMA_BLOCK) || state.is(Blocks.NETHERRACK);
     }
 
     private boolean hasRootSupport(BlockGetter level, BlockPos pos) {
@@ -115,7 +115,7 @@ public class BlockIngredient extends CropBlock {
     }
 
     @Override
-    protected boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
+    public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
         BlockPos below = pos.below();
 
         if (state.getBlock() == this) {
@@ -126,7 +126,7 @@ public class BlockIngredient extends CropBlock {
                 case CEILING -> hasRootSupport(level, pos);
                 case AQUATIC -> isSeabed(soil) && level.getFluidState(pos).is(FluidTags.WATER);
                 case SURFACE -> soil.canSustainPlant(level, below, Direction.UP, state)
-                        .toBoolean(soil.is(BlockTags.SUPPORTS_VEGETATION));
+                        .toBoolean(soil.is(BlockTags.DIRT));
                 default -> this.mayPlaceOn(soil, level, below);
             };
         }
@@ -135,7 +135,7 @@ public class BlockIngredient extends CropBlock {
     }
 
     @Override
-    protected FluidState getFluidState(BlockState state) {
+    public FluidState getFluidState(BlockState state) {
         return IngredientHabitat.of(ingredientData) == IngredientHabitat.AQUATIC
                 ? Fluids.WATER.getSource(false)
                 : super.getFluidState(state);

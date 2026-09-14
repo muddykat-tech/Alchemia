@@ -39,7 +39,7 @@ public final class BrewBase {
                 Codec.intRange(1, MAX_FILL_LEVEL).optionalFieldOf("levels", 1).forGetter(Fill::levels),
                 ResourceLocation.CODEC.optionalFieldOf("remainder").forGetter(Fill::remainder),
                 Codec.intRange(1, Integer.MAX_VALUE).optionalFieldOf("amount").forGetter(Fill::amount)
-        ).apply(instance, Fill::new)).validate(Fill::verify);
+        ).apply(instance, Fill::new)).flatXmap(Fill::verify, Fill::verify);
 
         private static DataResult<Fill> verify(Fill fill) {
             if (fill.item.isPresent() == fill.fluid.isPresent()) {
@@ -87,7 +87,7 @@ public final class BrewBase {
 
     public static final Codec<BrewBase> CODEC = RecordCodecBuilder.<BrewBase>create(instance -> instance.group(
             Codec.STRING.fieldOf("id").forGetter(BrewBase::id),
-            Fill.CODEC.listOf(1, 64).fieldOf("fills").forGetter(BrewBase::fills),
+            Fill.CODEC.listOf().fieldOf("fills").forGetter(BrewBase::fills),
             Codec.intRange(1, 64).optionalFieldOf("instability_cap", 1).forGetter(BrewBase::instabilityCap),
             COLOR_CODEC.optionalFieldOf("tint").forGetter(BrewBase::tint),
             Codec.BOOL.optionalFieldOf("biome_tint", false).forGetter(BrewBase::biomeTint),
@@ -95,7 +95,7 @@ public final class BrewBase {
             ResourceLocation.CODEC.optionalFieldOf("fluid").forGetter(BrewBase::fluid),
             ResourceLocation.CODEC.optionalFieldOf("unbrewed_result").forGetter(BrewBase::unbrewedResult),
             Codec.STRING.listOf().optionalFieldOf("effects").forGetter(BrewBase::effects)
-    ).apply(instance, BrewBase::new)).validate(BrewBase::verify);
+    ).apply(instance, BrewBase::new)).flatXmap(BrewBase::verify, BrewBase::verify);
 
     public static final Codec<List<BrewBase>> LIST_CODEC = CODEC.listOf();
 
@@ -217,11 +217,11 @@ public final class BrewBase {
     }
 
     private static @Nullable Item resolveItem(Optional<ResourceLocation> id) {
-        return id.map(name -> BuiltInRegistries.ITEM.getValue(name)).orElse(null);
+        return id.map(name -> BuiltInRegistries.ITEM.get(name)).orElse(null);
     }
 
     private static Fluid resolveFluid(Optional<ResourceLocation> id) {
-        Fluid resolved = id.map(name -> BuiltInRegistries.FLUID.getValue(name)).orElse(null);
+        Fluid resolved = id.map(name -> BuiltInRegistries.FLUID.get(name)).orElse(null);
         return resolved == null ? Fluids.EMPTY : resolved;
     }
 

@@ -8,6 +8,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraftforge.network.NetworkHooks;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
@@ -60,17 +61,17 @@ public class BlockAlchemyMachineCore extends EntityBlockGeneric {
     }
 
     @Override
-    protected BlockState rotate(BlockState state, Rotation rotation) {
+    public BlockState rotate(BlockState state, Rotation rotation) {
         return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
     }
 
     @Override
-    protected BlockState mirror(BlockState state, Mirror mirror) {
+    public BlockState mirror(BlockState state, Mirror mirror) {
         return state.rotate(mirror.getRotation(state.getValue(FACING)));
     }
 
     @Override
-    protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return AlchemyMachineParts.ownShape(MachineOwner.CORE, state.getValue(FACING));
     }
 
@@ -112,7 +113,7 @@ public class BlockAlchemyMachineCore extends EntityBlockGeneric {
     public static InteractionResult openMenu(Level level, BlockPos pos, Player player) {
         if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer
                 && level.getBlockEntity(pos) instanceof TileEntityAlchemyMachineCore core) {
-            serverPlayer.openMenu(core, pos);
+            NetworkHooks.openScreen(serverPlayer, core, pos);
         }
         return InteractionResult.SUCCESS;
     }

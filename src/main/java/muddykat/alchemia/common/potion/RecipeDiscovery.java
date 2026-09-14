@@ -31,7 +31,7 @@ public class RecipeDiscovery {
 
     public static Set<PotionEnum> knownTo(Player player) {
         Set<PotionEnum> known = EnumSet.noneOf(PotionEnum.class);
-        for (ItemStack stack : player.getInventory()) {
+        for (ItemStack stack : player.getInventory().items) {
             if (stack.getItem() instanceof ItemAlchemiaGuide) known.addAll(knownTo(stack));
         }
         return known;
@@ -46,7 +46,7 @@ public class RecipeDiscovery {
         if (brewed.isEmpty()) return 0;
 
         int discovered = 0;
-        for (ItemStack stack : player.getInventory()) {
+        for (ItemStack stack : player.getInventory().items) {
             if (!(stack.getItem() instanceof ItemAlchemiaGuide)) continue;
 
             List<String> names = new ArrayList<>(stored(stack));

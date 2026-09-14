@@ -101,7 +101,7 @@ public enum Ingredients {
             var block = BlockRegistry.registerBlock(getSeedRegistryName(), properties -> new BlockIngredient(this, type, properties),
                     () -> BlockBehaviour.Properties.of()
                             .mapColor(MapColor.PLANT)
-                            .noCollision()
+                            .noCollission()
                             .randomTicks()
                             .instabreak()
                             .sound(SoundType.CROP)
@@ -112,11 +112,12 @@ public enum Ingredients {
     }
 
     public Item.Properties applyFoodProperties(Item.Properties properties) {
-        return properties.food(
-                new FoodProperties.Builder().nutrition(4).alwaysEdible().saturationModifier(2f).build(),
-                Consumables.defaultFood()
-                        .onConsume(new ApplyStatusEffectsConsumeEffect(new MobEffectInstance(ingredientEffect, 40, 0), 0.75f))
-                        .build());
+        return properties.food(new FoodProperties.Builder()
+                .nutrition(4)
+                .alwaysEat()
+                .saturationMod(2f)
+                .effect(() -> new MobEffectInstance(ingredientEffect, 40, 0), 0.75f)
+                .build());
     }
 
     public IngredientAlignment getPrimaryAlignment() {

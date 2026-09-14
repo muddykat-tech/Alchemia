@@ -27,6 +27,7 @@ import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraftforge.network.NetworkHooks;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
@@ -292,7 +293,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         }
 
         if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer) {
-            serverPlayer.openMenu(this, pos);
+            NetworkHooks.openScreen(serverPlayer, this, pos);
         }
 
         return SUCCESS;
@@ -379,7 +380,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
     }
 
     private static boolean hasMortar(Player player) {
-        for (ItemStack stack : player.getInventory()) {
+        for (ItemStack stack : player.getInventory().items) {
             if (stack.getItem() instanceof ItemMortarPestle) return true;
         }
         return false;
@@ -387,7 +388,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
 
     private static int countIn(Player player, ItemStack wanted) {
         int found = 0;
-        for (ItemStack stack : player.getInventory()) {
+        for (ItemStack stack : player.getInventory().items) {
             if (sameIngredient(stack, wanted)) found += stack.getCount();
         }
         return found;
@@ -395,7 +396,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
 
     private static void consumeFrom(Player player, ItemStack wanted, int amount) {
         int remaining = amount;
-        for (ItemStack stack : player.getInventory()) {
+        for (ItemStack stack : player.getInventory().items) {
             if (remaining <= 0) break;
             if (!sameIngredient(stack, wanted)) continue;
             int take = Math.min(remaining, stack.getCount());

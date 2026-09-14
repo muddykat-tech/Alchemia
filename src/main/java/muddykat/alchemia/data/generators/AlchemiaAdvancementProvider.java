@@ -36,7 +36,7 @@ public class AlchemiaAdvancementProvider implements ForgeAdvancementProvider.Adv
                 .display(guide, title("root"), description("root"),
                         new ResourceLocation("block/dark_oak_log"),
                         FrameType.TASK, true, true, false)
-                .addCriterion("has_ingredient", InventoryChangeTrigger.TriggerInstance.hasItems(anyIngredient()))
+                .addCriterion("has_ingredient", InventoryChangeTrigger.TriggerInstance.hasItems(anyIngredient().build()))
                 .save(output, id("root"));
 
         Advancement book = child(output, root, guide, "guide", FrameType.TASK,

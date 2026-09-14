@@ -201,7 +201,7 @@ public class GuideScreen extends Screen {
     }
 
     private static ItemStack ingredientStack(Ingredients ingredient) {
-        return new ItemStack(BuiltInRegistries.ITEM.getValue(
+        return new ItemStack(BuiltInRegistries.ITEM.get(
                 new ResourceLocation(Alchemia.MODID, ingredient.getRegistryName())));
     }
 

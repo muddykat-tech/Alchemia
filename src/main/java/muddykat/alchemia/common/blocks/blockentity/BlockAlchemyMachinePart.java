@@ -51,12 +51,12 @@ public class BlockAlchemyMachinePart extends Block {
     }
 
     @Override
-    protected boolean canBeReplaced(BlockState state, BlockPlaceContext context) {
+    public boolean canBeReplaced(BlockState state, BlockPlaceContext context) {
         return AlchemyMachineParts.isMachineItem(context.getItemInHand()) || super.canBeReplaced(state, context);
     }
 
     @Override
-    protected RenderShape getRenderShape(BlockState state) {
+    public RenderShape getRenderShape(BlockState state) {
         return RenderShape.INVISIBLE;
     }
 
@@ -66,7 +66,7 @@ public class BlockAlchemyMachinePart extends Block {
     }
 
     @Override
-    protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         List<AlchemyMachineParts.Placed> cells = AlchemyMachineParts.placed(state.getValue(OWNER), state.getValue(FACING));
         int index = state.getValue(INDEX);
         return index < cells.size() ? cells.get(index).shape() : Shapes.block();

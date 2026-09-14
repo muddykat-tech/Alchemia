@@ -17,13 +17,15 @@ public class BlockEntityTypeRegistry {
     public static final DeferredRegister<BlockEntityType<?>> TILES = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, Alchemia.MODID);
 
     public static final RegistryObject<BlockEntityType<TileEntityAlchemyCauldron>> ALCHEMICAL_CAULDRON = TILES.register("alchemical_cauldron",
-            () -> new BlockEntityType<>(TileEntityAlchemyCauldron::new, BlockRegistry.BLOCK_REGISTRY.get("alchemical_cauldron").get()));
+            () -> BlockEntityType.Builder.of(TileEntityAlchemyCauldron::new,
+                    BlockRegistry.BLOCK_REGISTRY.get("alchemical_cauldron").get()).build(null));
 
     public static final RegistryObject<BlockEntityType<TileEntityAlchemyMachineCore>> ALCHEMY_MACHINE_CORE = TILES.register("alchemy_machine_core",
-            () -> new BlockEntityType<>(TileEntityAlchemyMachineCore::new, BlockRegistry.BLOCK_REGISTRY.get("alchemy_machine_core").get()));
+            () -> BlockEntityType.Builder.of(TileEntityAlchemyMachineCore::new,
+                    BlockRegistry.BLOCK_REGISTRY.get("alchemy_machine_core").get()).build(null));
 
     public static final RegistryObject<BlockEntityType<TileEntityAlchemyMachineUpgrade>> ALCHEMY_MACHINE_UPGRADE = TILES.register("alchemy_machine_upgrade",
-            () -> new BlockEntityType<>(TileEntityAlchemyMachineUpgrade::new, upgradeBlocks()));
+            () -> BlockEntityType.Builder.of(TileEntityAlchemyMachineUpgrade::new, upgradeBlocks()).build(null));
 
     private static Block[] upgradeBlocks() {
         return Arrays.stream(UpgradeSide.values())

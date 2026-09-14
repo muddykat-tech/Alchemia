@@ -68,7 +68,7 @@ public class BrewRecipeBook {
         produced.sort(java.util.Comparator.comparing(BrewRecipe.BrewEffect::recipe));
 
         int recorded = 0;
-        for (ItemStack stack : player.getInventory()) {
+        for (ItemStack stack : player.getInventory().items) {
             if (!(stack.getItem() instanceof ItemAlchemiaGuide)) continue;
 
             List<BrewRecipe> stored = new ArrayList<>(recipes(stack));

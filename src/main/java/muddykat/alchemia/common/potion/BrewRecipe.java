@@ -68,7 +68,7 @@ public record BrewRecipe(String id, String name, String base, List<BrewRecipe.Br
     ).apply(instance, (recipe, ingredients, potency) -> new BrewRecipe("", "",
             BrewBases.DEFAULT_ID, List.of(new BrewEffect(recipe, potency)), ingredients)));
 
-    public static final Codec<BrewRecipe> CODEC = Codec.either(MODERN, LEGACY).xmap(Either::unwrap, Either::left);
+    public static final Codec<BrewRecipe> CODEC = Codec.either(MODERN, LEGACY).xmap(either -> either.map(left -> left, right -> right), Either::left);
 
     public Component displayName() {
         if (!name.isBlank()) return Component.literal(name);
@@ -145,7 +145,7 @@ public record BrewRecipe(String id, String name, String base, List<BrewRecipe.Br
 
     public static Item itemFor(String registryName) {
         if (registryName.indexOf(':') >= 0) {
-            return BuiltInRegistries.ITEM.getValue(new ResourceLocation(registryName));
+            return BuiltInRegistries.ITEM.get(new ResourceLocation(registryName));
         }
 
         var holder = ItemRegistry.ITEM_REGISTRY.get(registryName);
