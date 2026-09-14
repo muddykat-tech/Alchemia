@@ -20,7 +20,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import muddykat.alchemia.common.utility.PotionStacks;
 import net.minecraft.world.phys.Vec3;
-import org.jspecify.annotations.Nullable;
+import javax.annotation.Nullable;
 
 import java.util.List;
 

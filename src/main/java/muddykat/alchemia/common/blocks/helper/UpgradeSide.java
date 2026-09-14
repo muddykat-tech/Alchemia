@@ -2,7 +2,7 @@ package muddykat.alchemia.common.blocks.helper;
 
 import net.minecraft.core.Direction;
 import net.minecraft.util.StringRepresentable;
-import org.jspecify.annotations.Nullable;
+import javax.annotation.Nullable;
 
 public enum UpgradeSide implements StringRepresentable {
     RIGHT("right", 5),

@@ -1,7 +1,7 @@
 package muddykat.alchemia.common.crafting;
 
 import net.minecraft.world.effect.MobEffects;
-import org.jspecify.annotations.Nullable;
+import javax.annotation.Nullable;
 
 import java.util.List;
 

@@ -34,7 +34,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.jspecify.annotations.Nullable;
+import javax.annotation.Nullable;
 
 public class BlockAlchemyMachineUpgrade extends EntityBlockGeneric {
 
@@ -134,7 +134,8 @@ public class BlockAlchemyMachineUpgrade extends EntityBlockGeneric {
     }
 
     @Override
-    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+        ItemStack stack = player.getItemInHand(hand);
         if (AlchemyMachineParts.upgradeSide(stack) != null) {
             BlockPos corePos = corePos(pos, state.getValue(FACING));
             BlockState coreState = level.getBlockState(corePos);
@@ -151,15 +152,6 @@ public class BlockAlchemyMachineUpgrade extends EntityBlockGeneric {
             InteractionResult inserted = upgrade.insertPotion(player, hand, hitResult);
             if (inserted != InteractionResult.PASS) return inserted;
 
-            TileEntityAlchemyMachineCore core = upgrade.getCore();
-            if (core != null) return BlockAlchemyMachineCore.openMenu(level, core.getBlockPos(), player);
-        }
-        return InteractionResult.PASS;
-    }
-
-    @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (level.getBlockEntity(pos) instanceof TileEntityAlchemyMachineUpgrade upgrade) {
             TileEntityAlchemyMachineCore core = upgrade.getCore();
             if (core != null) return BlockAlchemyMachineCore.openMenu(level, core.getBlockPos(), player);
         }

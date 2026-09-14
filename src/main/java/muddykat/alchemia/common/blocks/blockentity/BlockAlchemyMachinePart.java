@@ -99,18 +99,19 @@ public class BlockAlchemyMachinePart extends Block {
     }
 
     @Override
-    public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
+    public void playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
         if (!level.isClientSide()) {
             BlockPos owner = ownerPos(state, pos);
             if (isOwner(level.getBlockState(owner), state.getValue(OWNER))) {
                 level.destroyBlock(owner, !player.isCreative(), player);
             }
         }
-        return super.playerWillDestroy(level, pos, state, player);
+        super.playerWillDestroy(level, pos, state, player);
     }
 
     @Override
-    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        ItemStack stack = player.getItemInHand(hand);
         if (AlchemyMachineParts.isMachineItem(stack) && AlchemyMachineParts.upgradeSide(stack) == null) {
             return InteractionResult.PASS;
         }
@@ -119,17 +120,7 @@ public class BlockAlchemyMachinePart extends Block {
         BlockState ownerState = level.getBlockState(owner);
         if (!isOwner(ownerState, state.getValue(OWNER))) return InteractionResult.PASS;
 
-        return ownerState.useItemOn(stack, level, player, hand,
-                new BlockHitResult(hit.getLocation(), hit.getDirection(), owner, hit.isInside()));
-    }
-
-    @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
-        BlockPos owner = ownerPos(state, pos);
-        BlockState ownerState = level.getBlockState(owner);
-        if (!isOwner(ownerState, state.getValue(OWNER))) return InteractionResult.PASS;
-
-        return ownerState.useWithoutItem(level, player,
+        return ownerState.use(level, player, hand,
                 new BlockHitResult(hit.getLocation(), hit.getDirection(), owner, hit.isInside()));
     }
 }

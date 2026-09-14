@@ -32,7 +32,7 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.jspecify.annotations.Nullable;
+import javax.annotation.Nullable;
 
 public class BlockAlchemyMachineCore extends EntityBlockGeneric {
 
@@ -107,17 +107,13 @@ public class BlockAlchemyMachineCore extends EntityBlockGeneric {
     }
 
     @Override
-    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, net.minecraft.world.phys.BlockHitResult hitResult) {
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, net.minecraft.world.phys.BlockHitResult hitResult) {
+        ItemStack stack = player.getItemInHand(hand);
         if (AlchemyMachineParts.upgradeSide(stack) != null) {
             InteractionResult placed = AlchemyMachineParts.placeUpgrade(level, pos, state.getValue(FACING), stack, player, hand);
             return placed.consumesAction() ? placed : openMenu(level, pos, player);
         }
         if (AlchemyMachineParts.isMachineItem(stack)) return InteractionResult.PASS;
-        return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
-    }
-
-    @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, net.minecraft.world.phys.BlockHitResult hitResult) {
         return openMenu(level, pos, player);
     }
 
