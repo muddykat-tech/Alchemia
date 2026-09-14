@@ -457,6 +457,7 @@ public class GuideScreen extends Screen {
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float a) {
         refresh();
+        this.renderBackground(graphics);
         super.render(graphics, mouseX, mouseY, a);
 
         sprite(graphics, left, top, 0, 0, COVER_W, COVER_H);

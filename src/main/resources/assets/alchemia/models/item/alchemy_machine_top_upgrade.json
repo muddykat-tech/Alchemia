@@ -1,5 +1,5 @@
 {
-  "loader": "neoforge:obj",
+  "loader": "forge:obj",
   "model": "alchemia:models/alchemy_machine_top_upgrade.obj",
   "flip_v": true,
   "automatic_culling": false,

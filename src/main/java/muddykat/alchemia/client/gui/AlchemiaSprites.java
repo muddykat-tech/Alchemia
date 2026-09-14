@@ -2,6 +2,7 @@ package muddykat.alchemia.client.gui;
 
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.blocks.helper.UpgradeSide;
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -12,11 +13,45 @@ public final class AlchemiaSprites {
 
     public record Sprite(ResourceLocation texture, int width, int height, int border) {
         public void blit(GuiGraphics graphics, int x, int y, int drawWidth, int drawHeight) {
-            if (border > 0) {
-                graphics.blitNineSliced(texture, x, y, drawWidth, drawHeight, border, width, height, 0, 0);
-            } else {
-                graphics.blit(texture, x, y, 0, 0, drawWidth, drawHeight, width, height);
+            if (border <= 0) {
+                part(graphics, x, y, drawWidth, drawHeight, 0, 0, width, height);
+                return;
             }
+
+            int edge = Math.min(border, Math.min(drawWidth, drawHeight) / 2);
+            int sourceInnerW = width - border * 2;
+            int sourceInnerH = height - border * 2;
+            int drawInnerW = drawWidth - edge * 2;
+            int drawInnerH = drawHeight - edge * 2;
+
+            part(graphics, x, y, edge, edge, 0, 0, border, border);
+            part(graphics, x + drawWidth - edge, y, edge, edge, width - border, 0, border, border);
+            part(graphics, x, y + drawHeight - edge, edge, edge, 0, height - border, border, border);
+            part(graphics, x + drawWidth - edge, y + drawHeight - edge, edge, edge,
+                    width - border, height - border, border, border);
+
+            if (drawInnerW > 0) {
+                part(graphics, x + edge, y, drawInnerW, edge, border, 0, sourceInnerW, border);
+                part(graphics, x + edge, y + drawHeight - edge, drawInnerW, edge,
+                        border, height - border, sourceInnerW, border);
+            }
+
+            if (drawInnerH > 0) {
+                part(graphics, x, y + edge, edge, drawInnerH, 0, border, border, sourceInnerH);
+                part(graphics, x + drawWidth - edge, y + edge, edge, drawInnerH,
+                        width - border, border, border, sourceInnerH);
+            }
+
+            if (drawInnerW > 0 && drawInnerH > 0) {
+                part(graphics, x + edge, y + edge, drawInnerW, drawInnerH,
+                        border, border, sourceInnerW, sourceInnerH);
+            }
+        }
+
+        private void part(GuiGraphics graphics, int x, int y, int drawWidth, int drawHeight,
+                          int u, int v, int regionWidth, int regionHeight) {
+            graphics.blit(texture, x, y, drawWidth, drawHeight, (float) u, (float) v,
+                    regionWidth, regionHeight, width, height);
         }
 
         public void blit(GuiGraphics graphics, int x, int y) {
@@ -25,16 +60,13 @@ public final class AlchemiaSprites {
 
         public void blit(GuiGraphics graphics, int texWidth, int texHeight, int u, int v,
                          int x, int y, int drawWidth, int drawHeight) {
-            graphics.blit(texture, x, y, u, v, drawWidth, drawHeight, texWidth, texHeight);
+            graphics.blit(texture, x, y, drawWidth, drawHeight, (float) u, (float) v,
+                    drawWidth, drawHeight, texWidth, texHeight);
         }
 
         public void blit(GuiGraphics graphics, int x, int y, int drawWidth, int drawHeight, int argb) {
-            float alpha = (argb >>> 24) / 255.0F;
-            float red = ((argb >> 16) & 255) / 255.0F;
-            float green = ((argb >> 8) & 255) / 255.0F;
-            float blue = (argb & 255) / 255.0F;
-
-            graphics.setColor(red, green, blue, alpha);
+            RenderSystem.enableBlend();
+            graphics.setColor(red(argb), green(argb), blue(argb), alpha(argb));
             blit(graphics, x, y, drawWidth, drawHeight);
             graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
         }
@@ -85,14 +117,26 @@ public final class AlchemiaSprites {
     }
 
     public static void blitMobEffect(GuiGraphics graphics, MobEffect effect, int x, int y, int width, int height, int argb) {
-        float alpha = (argb >>> 24) / 255.0F;
-        float red = ((argb >> 16) & 255) / 255.0F;
-        float green = ((argb >> 8) & 255) / 255.0F;
-        float blue = (argb & 255) / 255.0F;
-
-        graphics.setColor(red, green, blue, alpha);
+        RenderSystem.enableBlend();
+        graphics.setColor(red(argb), green(argb), blue(argb), alpha(argb));
         blitMobEffect(graphics, effect, x, y, width, height);
         graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
+    }
+
+    static float alpha(int argb) {
+        return (argb >>> 24) / 255.0F;
+    }
+
+    static float red(int argb) {
+        return ((argb >> 16) & 255) / 255.0F;
+    }
+
+    static float green(int argb) {
+        return ((argb >> 8) & 255) / 255.0F;
+    }
+
+    static float blue(int argb) {
+        return (argb & 255) / 255.0F;
     }
 
     private static Sprite sprite(String path, int width, int height, int border) {

@@ -10,6 +10,7 @@ import muddykat.alchemia.common.potion.PotionEnum;
 import muddykat.alchemia.common.potion.PotionMap;
 import muddykat.alchemia.common.potion.RecipeDiscovery;
 import muddykat.alchemia.common.network.packets.PacketNameBrew;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
@@ -463,21 +464,23 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
     private void drawUnknownSymbol(GuiGraphics graphics, int cx, int cy, int node) {
         int w = Math.max(1, Math.round(node * (float) UNKNOWN_W / UNKNOWN_CELL));
         int h = Math.max(1, Math.round(node * (float) UNKNOWN_H / UNKNOWN_CELL));
-        float alpha = (UNKNOWN_TINT >>> 24) / 255.0F;
-        float red = ((UNKNOWN_TINT >> 16) & 255) / 255.0F;
-        float green = ((UNKNOWN_TINT >> 8) & 255) / 255.0F;
-        float blue = (UNKNOWN_TINT & 255) / 255.0F;
-
-        graphics.setColor(red, green, blue, alpha);
+        RenderSystem.enableBlend();
+        graphics.setColor(AlchemiaSprites.red(UNKNOWN_TINT), AlchemiaSprites.green(UNKNOWN_TINT),
+                AlchemiaSprites.blue(UNKNOWN_TINT), AlchemiaSprites.alpha(UNKNOWN_TINT));
         graphics.blit(SYMBOLS_TEXTURE, cx - w / 2, cy - h / 2, w, h,
                 UNKNOWN_U, UNKNOWN_V, UNKNOWN_W, UNKNOWN_H, SYMBOLS_W, SYMBOLS_H);
         graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
     private void ghostDust(GuiGraphics graphics, int slotX, int slotY) {
+        RenderSystem.enableBlend();
+        graphics.setColor(AlchemiaSprites.red(GHOST_ALPHA), AlchemiaSprites.green(GHOST_ALPHA),
+                AlchemiaSprites.blue(GHOST_ALPHA), AlchemiaSprites.alpha(GHOST_ALPHA));
         graphics.blit(SYMBOLS_TEXTURE,
                 slotX + (18 - DUST_W) / 2, slotY + (18 - DUST_H) / 2,
-                DUST_U, DUST_V, DUST_W, DUST_H, SYMBOLS_W, SYMBOLS_H, GHOST_ALPHA);
+                DUST_W, DUST_H, (float) DUST_U, (float) DUST_V,
+                DUST_W, DUST_H, SYMBOLS_W, SYMBOLS_H);
+        graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
     private void extractEffectsPanel(GuiGraphics graphics, int mouseX, int mouseY) {
@@ -669,9 +672,11 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float a) {
+        this.renderBackground(graphics);
         super.render(graphics, mouseX, mouseY, a);
         graphics.blit(FRAME_TEXTURE, this.leftPos, this.topPos, 0.0F, 0.0F, IMAGE_WIDTH, BOOK_HEIGHT, IMAGE_WIDTH, BOOK_HEIGHT);
         extractOverlayText(graphics);
+        this.renderTooltip(graphics, mouseX, mouseY);
 
         if (hoverName != null) {
             List<net.minecraft.util.FormattedCharSequence> lines = new ArrayList<>();
