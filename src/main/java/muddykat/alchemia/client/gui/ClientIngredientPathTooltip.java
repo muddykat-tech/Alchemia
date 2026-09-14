@@ -4,9 +4,8 @@ import com.mojang.blaze3d.platform.InputConstants;
 import muddykat.alchemia.common.items.helper.IngredientPathTooltip;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
-import net.minecraft.client.renderer.RenderPipelines;
 
 import java.util.List;
 
@@ -45,7 +44,7 @@ public class ClientIngredientPathTooltip implements ClientTooltipComponent {
     }
 
     private static boolean shiftDown() {
-        var window = Minecraft.getInstance().getWindow();
+        long window = Minecraft.getInstance().getWindow().getWindow();
         return InputConstants.isKeyDown(window, InputConstants.KEY_LSHIFT)
                 || InputConstants.isKeyDown(window, InputConstants.KEY_RSHIFT);
     }
@@ -65,19 +64,19 @@ public class ClientIngredientPathTooltip implements ClientTooltipComponent {
     }
 
     @Override
-    public int getHeight(Font font) {
+    public int getHeight() {
         return visible() ? rows * CELL + LABEL_H + PADDING * 2 : 0;
     }
 
     @Override
-    public void extractImage(Font font, int x, int y, int w, int h, GuiGraphicsExtractor graphics) {
+    public void renderImage(Font font, int x, int y, GuiGraphics graphics) {
         if (!visible()) return;
 
         int width = getWidth(font);
-        int height = getHeight(font);
+        int height = getHeight();
 
-        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, AlchemiaSprites.PATH_TOOLTIP_PANEL, x, y, width, height);
-        graphics.text(font, tooltip.label(), x + PADDING, y + PADDING, LABEL_INK, false);
+        AlchemiaSprites.PATH_TOOLTIP_PANEL.blit(graphics, x, y, width, height);
+        graphics.drawString(font, tooltip.label(), x + PADDING, y + PADDING, LABEL_INK, false);
 
         int gridX = x + (width - gridWidth()) / 2;
         int gridY = y + PADDING + LABEL_H;

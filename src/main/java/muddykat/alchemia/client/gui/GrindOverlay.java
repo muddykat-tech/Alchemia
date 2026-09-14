@@ -6,14 +6,10 @@ import muddykat.alchemia.common.items.ItemMortarPestle;
 import muddykat.alchemia.common.items.ItemPathTool;
 import muddykat.alchemia.common.items.helper.IngredientPath;
 import muddykat.alchemia.common.items.helper.Ingredients;
-import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.Util;
-import net.minecraft.util.ARGB;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
@@ -48,7 +44,8 @@ public class GrindOverlay {
         return ARGB.color((int) (255 * amount), rgb);
     }
 
-    public static void render(GuiGraphicsExtractor graphics, DeltaTracker delta) {
+    public static void render(net.minecraftforge.client.gui.overlay.ForgeGui gui, GuiGraphics graphics,
+                              float partialTick, int screenWidth, int screenHeight) {
         long now = Util.getMillis();
         float step = lastFrame == 0L ? 0.0F : (now - lastFrame) / 1000.0F;
         lastFrame = now;
@@ -93,7 +90,7 @@ public class GrindOverlay {
         return true;
     }
 
-    private static void draw(GuiGraphicsExtractor graphics, float fade) {
+    private static void draw(GuiGraphics graphics, float fade) {
         Minecraft minecraft = Minecraft.getInstance();
         Ingredients ingredient = cached;
         IngredientPath shape = IngredientPath.of(ingredient);
@@ -132,12 +129,11 @@ public class GrindOverlay {
         int panelX = (graphics.guiWidth() - panelW) / 2;
         int panelY = graphics.guiHeight() * TOP_MARGIN_PERCENT / 100;
 
-        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, AlchemiaSprites.GRIND_PANEL,
-                panelX, panelY, panelW, panelH, shade(0xFFFFFF, fade));
+        AlchemiaSprites.GRIND_PANEL.blit(graphics, panelX, panelY, panelW, panelH, shade(0xFFFFFF, fade));
 
-        graphics.text(minecraft.font, cachedName, panelX + (panelW - minecraft.font.width(cachedName)) / 2,
+        graphics.drawString(minecraft.font, cachedName, panelX + (panelW - minecraft.font.width(cachedName)) / 2,
                 panelY + PADDING, shade(LABEL_INK_RGB, fade), false);
-        graphics.text(minecraft.font, progress, panelX + (panelW - minecraft.font.width(progress)) / 2,
+        graphics.drawString(minecraft.font, progress, panelX + (panelW - minecraft.font.width(progress)) / 2,
                 panelY + PADDING + 10, shade(LABEL_FAINT_RGB, fade), false);
 
         int gridX = panelX + (panelW - gridW) / 2;

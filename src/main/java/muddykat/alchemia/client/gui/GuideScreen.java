@@ -14,18 +14,14 @@ import muddykat.alchemia.common.network.packets.PacketDiscover;
 import muddykat.alchemia.common.items.ItemIngredient;
 import java.util.Comparator;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.client.gui.Hud;
 import muddykat.alchemia.common.items.helper.Ingredients;
 import muddykat.alchemia.common.items.helper.IngredientPath;
 import muddykat.alchemia.common.items.helper.IngredientAlignment;
 import muddykat.alchemia.common.potion.IngredientDiscovery;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.ARGB;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
@@ -303,7 +299,7 @@ public class GuideScreen extends Screen {
         return left + PAGES_INSET + RIGHT_EDGE_X;
     }
 
-    private void leftBookmark(GuiGraphicsExtractor graphics, int y, boolean selected) {
+    private void leftBookmark(GuiGraphics graphics, int y, boolean selected) {
         int x = leftMarkX();
         sprite(graphics, x, y, MARK_U, MARK_LEFT_V, MARK_W, MARK_H);
         if (selected) {
@@ -311,7 +307,7 @@ public class GuideScreen extends Screen {
         }
     }
 
-    private void rightBookmark(GuiGraphicsExtractor graphics, int y, boolean selected) {
+    private void rightBookmark(GuiGraphics graphics, int y, boolean selected) {
         int x = rightMarkX();
         sprite(graphics, x, y, MARK_U, MARK_RIGHT_V, MARK_W, MARK_H);
         if (selected) {
@@ -373,7 +369,7 @@ public class GuideScreen extends Screen {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollY) {
         scroll = Mth.clamp(scroll - (int) Math.signum(scrollY), 0, maxScroll());
         return true;
     }
@@ -383,41 +379,41 @@ public class GuideScreen extends Screen {
     }
 
     @Override
-    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
         for (Link link : links) {
-            if (link.covers(event.x(), event.y())) {
+            if (link.covers(mouseX, mouseY)) {
                 follow(link);
                 return true;
             }
         }
 
-        int tab = sectionTabAt(event.x(), event.y());
+        int tab = sectionTabAt(mouseX, mouseY);
         if (tab >= 0) {
             setSection(Section.values()[tab]);
             return true;
         }
 
-        if (overTurn(event.x(), event.y(), turnLeftX())) {
+        if (overTurn(mouseX, mouseY, turnLeftX())) {
             setSection(Section.values()[Math.floorMod(section.ordinal() - 1, Section.values().length)]);
             return true;
         }
-        if (overTurn(event.x(), event.y(), turnRightX())) {
+        if (overTurn(mouseX, mouseY, turnRightX())) {
             setSection(Section.values()[Math.floorMod(section.ordinal() + 1, Section.values().length)]);
             return true;
         }
 
         if (maxScroll() > 0) {
-            if (overArrow(event.x(), event.y(), upArrowX())) {
+            if (overArrow(mouseX, mouseY, upArrowX())) {
                 scroll = Math.max(0, scroll - 1);
                 return true;
             }
-            if (overArrow(event.x(), event.y(), downArrowX())) {
+            if (overArrow(mouseX, mouseY, downArrowX())) {
                 scroll = Math.min(maxScroll(), scroll + 1);
                 return true;
             }
         }
 
-        if (section == Section.RECIPES && overDelete(event.x(), event.y())) {
+        if (section == Section.RECIPES && overDelete(mouseX, mouseY)) {
             String removed = selected;
             BrewRecipeBook.forget(guide, removed);
             selected = null;
@@ -426,18 +422,18 @@ public class GuideScreen extends Screen {
             return true;
         }
 
-        int marked = bookmarkAt(event.x(), event.y());
+        int marked = bookmarkAt(mouseX, mouseY);
         if (marked >= 0 && marked < entryCount()) {
             select(marked);
             return true;
         }
 
-        int index = rowAt(event.x(), event.y());
+        int index = rowAt(mouseX, mouseY);
         if (index >= 0 && index < entryCount()) {
             select(index);
             return true;
         }
-        return super.mouseClicked(event, doubleClick);
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
     private int rowAt(double mouseX, double mouseY) {
@@ -446,22 +442,22 @@ public class GuideScreen extends Screen {
         return scroll + (int) ((mouseY - listTop()) / ROW_HEIGHT);
     }
 
-    private void sprite(GuiGraphicsExtractor graphics, int x, int y, int u, int v, int w, int h) {
-        graphics.blit(RenderPipelines.GUI_TEXTURED, PAGES_TEXTURE, x, y, u, v, w, h, SHEET, SHEET);
+    private void sprite(GuiGraphics graphics, int x, int y, int u, int v, int w, int h) {
+        graphics.blit(PAGES_TEXTURE, x, y, u, v, w, h, SHEET, SHEET);
     }
 
-    private int drawWrapped(GuiGraphicsExtractor graphics, Component text, int x, int y, int maxWidth, int colour) {
+    private int drawWrapped(GuiGraphics graphics, Component text, int x, int y, int maxWidth, int colour) {
         for (FormattedCharSequence line : this.font.split(text, maxWidth)) {
-            graphics.text(this.font, line, x, y, colour, false);
+            graphics.drawString(this.font, line, x, y, colour, false);
             y += LINE_HEIGHT;
         }
         return y;
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float a) {
         refresh();
-        super.extractRenderState(graphics, mouseX, mouseY, a);
+        super.render(graphics, mouseX, mouseY, a);
 
         sprite(graphics, left, top, 0, 0, COVER_W, COVER_H);
         sprite(graphics, left + PAGES_INSET, top + PAGES_INSET, PAGES_U, PAGES_V, PAGES_W, PAGES_H);
@@ -478,14 +474,14 @@ public class GuideScreen extends Screen {
         extractSectionTabs(graphics, mouseX, mouseY);
     }
 
-    private void extractList(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+    private void extractList(GuiGraphics graphics, int mouseX, int mouseY) {
         int x = listX();
         Component header = switch (section) {
             case RECIPES -> Component.translatable("alchemia.guide.recipes.header", recipes.size());
             case EFFECTS -> Component.translatable("alchemia.guide.effects.header", effects.size(), RecipeDiscovery.total());
             case INGREDIENTS -> Component.translatable("alchemia.guide.ingredients.header", ingredients.size(), IngredientDiscovery.total());
         };
-        graphics.text(this.font, header, listTextX(), pageTop(), INK_HEAD, false);
+        graphics.drawString(this.font, header, listTextX(), pageTop(), INK_HEAD, false);
 
         if (entryCount() == 0) {
             Component empty = switch (section) {
@@ -509,18 +505,17 @@ public class GuideScreen extends Screen {
             boolean isSelected = entrySelected(index);
 
             if (!isSelected && (hovered == index || marked == index)) {
-                graphics.blitSprite(RenderPipelines.GUI_TEXTURED, AlchemiaSprites.ROW_HIGHLIGHT,
-                        listTextX() - 2, rowY - 2, x + LEFT_PAGE_W - (listTextX() - 2), ROW_HEIGHT - 1);
+                AlchemiaSprites.ROW_HIGHLIGHT.blit(graphics, listTextX() - 2, rowY - 2, x + LEFT_PAGE_W - (listTextX() - 2), ROW_HEIGHT - 1);
             }
 
             leftBookmark(graphics, markRowY(i), isSelected);
 
             String name = this.font.plainSubstrByWidth(entryName(index).getString(), NAME_W);
-            graphics.text(this.font, name, listTextX(), rowY, isSelected ? INK_HEAD : INK, false);
+            graphics.drawString(this.font, name, listTextX(), rowY, isSelected ? INK_HEAD : INK, false);
         }
 
         if (marked >= 0 && marked < entryCount()) {
-            graphics.setTooltipForNextFrame(entryName(marked), mouseX, mouseY);
+            graphics.renderTooltip(this.font, entryName(marked), mouseX, mouseY);
         }
 
         if (maxScroll() > 0) {
@@ -528,11 +523,11 @@ public class GuideScreen extends Screen {
             sprite(graphics, downArrowX(), arrowY(), ARROW_DOWN_U, ARROW_V, ARROW_W, ARROW_H);
 
             Component page = Component.translatable("alchemia.guide.page", scroll + 1, maxScroll() + 1);
-            graphics.text(this.font, page, listTextX(), arrowY() + 5, INK_FAINT, false);
+            graphics.drawString(this.font, page, listTextX(), arrowY() + 5, INK_FAINT, false);
         }
     }
 
-    private void extractSectionTabs(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+    private void extractSectionTabs(GuiGraphics graphics, int mouseX, int mouseY) {
         int hovered = sectionTabAt(mouseX, mouseY);
 
         for (int i = 0; i < Section.values().length; i++) {
@@ -540,14 +535,14 @@ public class GuideScreen extends Screen {
         }
 
         if (hovered >= 0) {
-            graphics.setTooltipForNextFrame(Section.values()[hovered].title(), mouseX, mouseY);
+            graphics.renderTooltip(this.font, Section.values()[hovered].title(), mouseX, mouseY);
         }
 
         sprite(graphics, turnLeftX(), turnY(), TURN_U, TURN_LEFT_V, TURN_W, TURN_H);
         sprite(graphics, turnRightX(), turnY(), TURN_U, TURN_RIGHT_V, TURN_W, TURN_H);
     }
 
-    private void extractEffectDetail(GuiGraphicsExtractor graphics) {
+    private void extractEffectDetail(GuiGraphics graphics) {
         int x = detailX();
         int y = pageTop();
 
@@ -556,7 +551,7 @@ public class GuideScreen extends Screen {
             return;
         }
 
-        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, Hud.getMobEffectSprite(selectedEffect.getEffect()), x, y - 2, 16, 16);
+        AlchemiaSprites.blitMobEffect(graphics, selectedEffect.getEffect(), x, y - 2, 16, 16);
         drawWrapped(graphics, selectedEffect.getEffect().getDisplayName(), x + 20, y + 2, RIGHT_PAGE_W - 20, INK_HEAD);
         y += 22;
 
@@ -574,7 +569,7 @@ public class GuideScreen extends Screen {
         return Component.translatable("alchemia.alignment." + alignment.name().toLowerCase());
     }
 
-    private void extractIngredientDetail(GuiGraphicsExtractor graphics) {
+    private void extractIngredientDetail(GuiGraphics graphics) {
         int x = detailX();
         int y = pageTop();
 
@@ -584,7 +579,7 @@ public class GuideScreen extends Screen {
         }
 
         ItemStack icon = ingredientStack(selectedIngredient);
-        graphics.item(icon, x, y - 2);
+        graphics.renderItem(icon, x, y - 2);
         drawWrapped(graphics, icon.getHoverName(), x + 20, y + 2, RIGHT_PAGE_W - 20, INK_HEAD);
         y += 22;
 
@@ -613,7 +608,7 @@ public class GuideScreen extends Screen {
         drawPathGrid(graphics, full, base.size(), x, y + 4);
     }
 
-    private void drawPathGrid(GuiGraphicsExtractor graphics, List<int[]> cells, int taken, int x, int y) {
+    private void drawPathGrid(GuiGraphics graphics, List<int[]> cells, int taken, int x, int y) {
         if (cells.isEmpty()) return;
 
         int lowX = 0, highX = 0, lowY = 0, highY = 0;
@@ -647,7 +642,7 @@ public class GuideScreen extends Screen {
         return mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + h;
     }
 
-    private void extractDetail(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+    private void extractDetail(GuiGraphics graphics, int mouseX, int mouseY) {
         int x = detailX();
         int y = pageTop();
 
@@ -684,7 +679,7 @@ public class GuideScreen extends Screen {
         y += 4;
 
         if (y + 12 <= contentBottom) {
-            graphics.text(this.font, Component.translatable("alchemia.guide.ingredients"), x, y, INK_HEAD, false);
+            graphics.drawString(this.font, Component.translatable("alchemia.guide.ingredients"), x, y, INK_HEAD, false);
             y += 12;
         }
 
@@ -694,7 +689,7 @@ public class GuideScreen extends Screen {
             boolean last = shown == DETAIL_ROW_LIMIT || y + 18 > contentBottom;
             if (last) {
                 if (y + LINE_HEIGHT <= contentBottom) {
-                    graphics.text(this.font, Component.translatable("alchemia.guide.more", tally.size() - shown), x, y, INK_FAINT, false);
+                    graphics.drawString(this.font, Component.translatable("alchemia.guide.more", tally.size() - shown), x, y, INK_FAINT, false);
                     y += LINE_HEIGHT;
                 }
                 break;
@@ -702,7 +697,7 @@ public class GuideScreen extends Screen {
             shown++;
 
             ItemStack icon = entry.getKey();
-            graphics.item(icon, x, y - 4);
+            graphics.renderItem(icon, x, y - 4);
 
             int held = countHeld(icon);
             boolean enough = held >= entry.getValue();
@@ -712,7 +707,7 @@ public class GuideScreen extends Screen {
             Ingredients linked = icon.getItem() instanceof ItemIngredient item ? item.getIngredient() : null;
             boolean hot = linked != null && hovering(mouseX, mouseY, x, y - 4, 20 + this.font.width(clipped), 16);
 
-            graphics.text(this.font, clipped, x + 20, y, hot ? INK_LINK : (enough ? INK : INK_SHORT), false);
+            graphics.drawString(this.font, clipped, x + 20, y, hot ? INK_LINK : (enough ? INK : INK_SHORT), false);
 
             if (linked != null) {
                 links.add(new Link(x, y - 4, 20 + this.font.width(clipped), 16, Section.INGREDIENTS, linked.name()));
@@ -720,21 +715,21 @@ public class GuideScreen extends Screen {
 
             if (!enough) {
                 Component shortfall = Component.translatable("alchemia.guide.have", held);
-                graphics.text(this.font, shortfall, x + 20 + this.font.width(clipped) + 4, y, INK_FAINT, false);
+                graphics.drawString(this.font, shortfall, x + 20 + this.font.width(clipped) + 4, y, INK_FAINT, false);
             }
             y += 18;
         }
 
         if (recipe.requiresGrinding() && y + LINE_HEIGHT <= contentBottom) {
             boolean hasMortar = this.minecraft != null && this.minecraft.player != null
-                    && this.minecraft.player.getInventory().contains(
-                            held -> held.getItem() instanceof ItemMortarPestle);
+                    && this.minecraft.player.getInventory().items.stream()
+                            .anyMatch(held -> held.getItem() instanceof ItemMortarPestle);
             drawWrapped(graphics, Component.translatable("alchemia.guide.needs_mortar"), x, y, RIGHT_PAGE_W,
                     hasMortar ? INK_FAINT : INK_SHORT);
         }
 
         for (FormattedCharSequence line : hint) {
-            graphics.text(this.font, line, x, hintY, INK_FAINT, false);
+            graphics.drawString(this.font, line, x, hintY, INK_FAINT, false);
             hintY += LINE_HEIGHT;
         }
 
@@ -756,22 +751,21 @@ public class GuideScreen extends Screen {
                 && mouseY >= deleteY() && mouseY < deleteY() + DELETE_H;
     }
 
-    private void extractDeleteButton(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+    private void extractDeleteButton(GuiGraphics graphics, int mouseX, int mouseY) {
         int x = deleteX();
         int y = deleteY();
 
-        graphics.blitSprite(RenderPipelines.GUI_TEXTURED,
-                overDelete(mouseX, mouseY) ? AlchemiaSprites.DELETE_BUTTON_HIGHLIGHTED : AlchemiaSprites.DELETE_BUTTON,
-                x, y, DELETE_W, DELETE_H);
+        (overDelete(mouseX, mouseY) ? AlchemiaSprites.DELETE_BUTTON_HIGHLIGHTED : AlchemiaSprites.DELETE_BUTTON)
+                .blit(graphics, x, y, DELETE_W, DELETE_H);
 
         Component label = Component.translatable("alchemia.guide.delete");
-        graphics.text(this.font, label, x + (DELETE_W - this.font.width(label)) / 2, y + 4, INK_HEAD, false);
+        graphics.drawString(this.font, label, x + (DELETE_W - this.font.width(label)) / 2, y + 4, INK_HEAD, false);
     }
 
     private int countHeld(ItemStack wanted) {
         if (this.minecraft == null || this.minecraft.player == null) return 0;
         int found = 0;
-        for (ItemStack stack : this.minecraft.player.getInventory()) {
+        for (ItemStack stack : this.minecraft.player.getInventory().items) {
             if (stack.getItem() == wanted.getItem()) {
                 found += stack.getCount();
             }
