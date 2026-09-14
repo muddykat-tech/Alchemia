@@ -1,5 +1,6 @@
 package muddykat.alchemia.client.gui;
 
+import net.minecraft.Util;
 import com.mojang.blaze3d.platform.InputConstants;
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.blocks.tileentity.TileEntityAlchemyCauldron;

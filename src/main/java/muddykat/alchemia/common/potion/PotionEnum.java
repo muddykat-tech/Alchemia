@@ -9,19 +9,19 @@ import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.alchemy.Potions;
 
 public enum PotionEnum {
-    Healing(MobEffects.INSTANT_HEALTH, 3, IngredientAlignment.Water, IngredientAlignment.Air, Rarity.RARE),
-    Harm(MobEffects.INSTANT_DAMAGE, 3, IngredientAlignment.Fire, IngredientAlignment.Void, Rarity.RARE),
+    Healing(MobEffects.HEAL, 3, IngredientAlignment.Water, IngredientAlignment.Air, Rarity.RARE),
+    Harm(MobEffects.HARM, 3, IngredientAlignment.Fire, IngredientAlignment.Void, Rarity.RARE),
     Fire_Protection(MobEffects.FIRE_RESISTANCE, 3, IngredientAlignment.Water, IngredientAlignment.Void, Rarity.UNCOMMON),
     Regeneration(MobEffects.REGENERATION, 3, IngredientAlignment.Earth, IngredientAlignment.Water, Rarity.UNCOMMON),
     Luck(MobEffects.LUCK, 3, IngredientAlignment.Air, IngredientAlignment.Void, Rarity.EPIC),
-    Speed(MobEffects.SPEED, 3, IngredientAlignment.Air, IngredientAlignment.Fire, Rarity.COMMON),
-    Slow(MobEffects.SLOWNESS, 3, IngredientAlignment.Earth, IngredientAlignment.Void, Rarity.COMMON),
-    Dig_Speed(MobEffects.HASTE, 3, IngredientAlignment.Fire, IngredientAlignment.Earth, Rarity.UNCOMMON),
-    Dig_Slowdown(MobEffects.MINING_FATIGUE, 3, IngredientAlignment.Water, IngredientAlignment.Void, Rarity.UNCOMMON),
-    Damage_Boost(MobEffects.STRENGTH, 3, IngredientAlignment.Fire, IngredientAlignment.Air, Rarity.RARE),
-    Jump(MobEffects.JUMP_BOOST, 3, IngredientAlignment.Fire, IngredientAlignment.Void, Rarity.EPIC),
-    Confusion(MobEffects.NAUSEA, 3, IngredientAlignment.Void, IngredientAlignment.Water, Rarity.EPIC),
-    Damage_Resistance(MobEffects.RESISTANCE, 3, IngredientAlignment.Earth, IngredientAlignment.Void, Rarity.EPIC),
+    Speed(MobEffects.MOVEMENT_SPEED, 3, IngredientAlignment.Air, IngredientAlignment.Fire, Rarity.COMMON),
+    Slow(MobEffects.MOVEMENT_SLOWDOWN, 3, IngredientAlignment.Earth, IngredientAlignment.Void, Rarity.COMMON),
+    Dig_Speed(MobEffects.DIG_SPEED, 3, IngredientAlignment.Fire, IngredientAlignment.Earth, Rarity.UNCOMMON),
+    Dig_Slowdown(MobEffects.DIG_SLOWDOWN, 3, IngredientAlignment.Water, IngredientAlignment.Void, Rarity.UNCOMMON),
+    Damage_Boost(MobEffects.DAMAGE_BOOST, 3, IngredientAlignment.Fire, IngredientAlignment.Air, Rarity.RARE),
+    Jump(MobEffects.JUMP, 3, IngredientAlignment.Fire, IngredientAlignment.Void, Rarity.EPIC),
+    Confusion(MobEffects.CONFUSION, 3, IngredientAlignment.Void, IngredientAlignment.Water, Rarity.EPIC),
+    Damage_Resistance(MobEffects.DAMAGE_RESISTANCE, 3, IngredientAlignment.Earth, IngredientAlignment.Void, Rarity.EPIC),
     Water_Breathing(MobEffects.WATER_BREATHING, 3, IngredientAlignment.Air, IngredientAlignment.Water, Rarity.RARE),
     Invisibility(MobEffects.INVISIBILITY, 3, IngredientAlignment.Void, IngredientAlignment.Air, Rarity.EPIC),
     Blindness(MobEffects.BLINDNESS, 3, IngredientAlignment.Void, IngredientAlignment.Earth, Rarity.UNCOMMON),
@@ -40,15 +40,8 @@ public enum PotionEnum {
     Conduit_Power(MobEffects.CONDUIT_POWER, 3, IngredientAlignment.Water, IngredientAlignment.Void, Rarity.EPIC),
     Dolphins_Grace(MobEffects.DOLPHINS_GRACE, 3, IngredientAlignment.Water, IngredientAlignment.Air, Rarity.RARE),
     Bad_Omen(MobEffects.BAD_OMEN, 3, IngredientAlignment.Fire, IngredientAlignment.Void, Rarity.EPIC),
-    Wind_Charged(MobEffects.WIND_CHARGED, 3, IngredientAlignment.Air, IngredientAlignment.Void, Rarity.UNCOMMON),
-    Weaving(MobEffects.WEAVING, 3, IngredientAlignment.Earth, IngredientAlignment.Void, Rarity.UNCOMMON),
-    Oozing(MobEffects.OOZING, 3, IngredientAlignment.Water, IngredientAlignment.Earth, Rarity.UNCOMMON),
-    Infested(MobEffects.INFESTED, 3, IngredientAlignment.Earth, IngredientAlignment.Fire, Rarity.UNCOMMON),
     Darkness(MobEffects.DARKNESS, 3, IngredientAlignment.Void, IngredientAlignment.Air, Rarity.RARE),
-    Breath_Of_The_Nautilus(MobEffects.BREATH_OF_THE_NAUTILUS, 3, IngredientAlignment.Water, IngredientAlignment.Void, Rarity.RARE),
-    Hero_Of_The_Village(MobEffects.HERO_OF_THE_VILLAGE, 3, IngredientAlignment.Earth, IngredientAlignment.Air, Rarity.EPIC),
-    Raid_Omen(MobEffects.RAID_OMEN, 3, IngredientAlignment.Fire, IngredientAlignment.Earth, Rarity.EPIC),
-    Trial_Omen(MobEffects.TRIAL_OMEN, 3, IngredientAlignment.Fire, IngredientAlignment.Air, Rarity.EPIC);
+    Hero_Of_The_Village(MobEffects.HERO_OF_THE_VILLAGE, 3, IngredientAlignment.Earth, IngredientAlignment.Air, Rarity.EPIC);
 
     final MobEffect effect;
     final int maxStrength;
@@ -84,7 +77,7 @@ public enum PotionEnum {
         return secondaryAlignment;
     }
 
-    public Holder<Potion> getPotion() {
+    public Potion getPotion() {
         if (this == PotionEnum.Healing) {
             return Potions.REGENERATION;
         } else if (this == PotionEnum.Harm) {

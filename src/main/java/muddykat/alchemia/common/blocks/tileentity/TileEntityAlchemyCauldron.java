@@ -268,7 +268,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
                 if (!level.isClientSide() && !spoiled && RecipeDiscovery.record(player, brewed) > 0) {
                     level.playSound(null, pos, SoundEvents.PLAYER_LEVELUP, SoundSource.BLOCKS, 0.4F, 1.6F);
                     if (player instanceof ServerPlayer serverPlayer) {
-                        serverPlayer.sendOverlayMessage(Component.translatable("alchemia.guide.discovered"));
+                        serverPlayer.displayClientMessage(Component.translatable("alchemia.guide.discovered"), true);
                     }
                 }
 
@@ -307,28 +307,28 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
 
         BrewRecipe recipe = BrewRecipeBook.selectedRecipe(guide);
         if (recipe == null || !recipe.isResolvable()) {
-            serverPlayer.sendOverlayMessage(Component.translatable("alchemia.brew.none_selected"));
+            serverPlayer.displayClientMessage(Component.translatable("alchemia.brew.none_selected"), true);
             return InteractionResult.FAIL;
         }
 
         if (getWaterLevel() <= 0) {
-            serverPlayer.sendOverlayMessage(Component.translatable("alchemia.brew.no_water"));
+            serverPlayer.displayClientMessage(Component.translatable("alchemia.brew.no_water"), true);
             return InteractionResult.FAIL;
         }
 
         if (!recipe.brewBase().equals(base)) {
-            serverPlayer.sendOverlayMessage(Component.translatable("alchemia.brew.wrong_recipe_base",
-                    recipe.brewBase().displayName()));
+            serverPlayer.displayClientMessage(Component.translatable("alchemia.brew.wrong_recipe_base",
+                    recipe.brewBase().displayName()), true);
             return InteractionResult.FAIL;
         }
 
         if (!isUntouched()) {
-            serverPlayer.sendOverlayMessage(Component.translatable("alchemia.brew.not_clean"));
+            serverPlayer.displayClientMessage(Component.translatable("alchemia.brew.not_clean"), true);
             return InteractionResult.FAIL;
         }
 
         if (recipe.requiresGrinding() && !hasMortar(player)) {
-            serverPlayer.sendOverlayMessage(Component.translatable("alchemia.brew.needs_mortar"));
+            serverPlayer.displayClientMessage(Component.translatable("alchemia.brew.needs_mortar"), true);
             return InteractionResult.FAIL;
         }
 
@@ -336,7 +336,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
 
         for (Map.Entry<ItemStack, Integer> entry : required.entrySet()) {
             if (countIn(player, entry.getKey()) < entry.getValue()) {
-                serverPlayer.sendOverlayMessage(Component.translatable("alchemia.brew.missing", entry.getKey().getHoverName()));
+                serverPlayer.displayClientMessage(Component.translatable("alchemia.brew.missing", entry.getKey().getHoverName()), true);
                 return InteractionResult.FAIL;
             }
         }
@@ -352,7 +352,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
 
         level.playSound(null, pos, SoundEvents.BREWING_STAND_BREW, SoundSource.BLOCKS, 1.0F, 1.2F);
         level.gameEvent(null, GameEvent.SPLASH, pos);
-        serverPlayer.sendOverlayMessage(Component.translatable("alchemia.brew.done"));
+        serverPlayer.displayClientMessage(Component.translatable("alchemia.brew.done"), true);
         sync();
 
         return InteractionResult.CONSUME;
@@ -636,7 +636,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
 
     private static void message(Player player, String key) {
         if (player instanceof ServerPlayer serverPlayer) {
-            serverPlayer.sendOverlayMessage(Component.translatable(key));
+            serverPlayer.displayClientMessage(Component.translatable(key), true);
         }
     }
 

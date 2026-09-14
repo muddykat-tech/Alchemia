@@ -7,26 +7,26 @@ import net.minecraftforge.common.ForgeConfigSpec;
 import java.util.HashMap;
 
 public class Configuration {
-    public static final ModConfigSpec COMMON_CONFIG;
-    public static final ModConfigSpec SERVER_CONFIG;
+    public static final ForgeConfigSpec COMMON_CONFIG;
+    public static final ForgeConfigSpec SERVER_CONFIG;
 
     public static final int DEFAULT_MAX_POTENCY = 5;
 
-    public static final HashMap<Ingredients, ModConfigSpec.IntValue> INGREDIENT_CONFIG = new HashMap<>();
-    public static final ModConfigSpec.IntValue MAX_POTENCY;
+    public static final HashMap<Ingredients, ForgeConfigSpec.IntValue> INGREDIENT_CONFIG = new HashMap<>();
+    public static final ForgeConfigSpec.IntValue MAX_POTENCY;
 
-    public static final ModConfigSpec.DoubleValue NOISE_SCALE;
-    public static final ModConfigSpec.DoubleValue MIN_THRESHOLD;
-    public static final ModConfigSpec.DoubleValue THRESHOLD_SPREAD;
-    public static final ModConfigSpec.DoubleValue MAX_THRESHOLD;
-    public static final ModConfigSpec.DoubleValue THRESHOLD_STEP;
-    public static final ModConfigSpec.IntValue EFFECT_MARGIN;
-    public static final ModConfigSpec.IntValue CENTRE_MARGIN;
-    public static final ModConfigSpec.IntValue EFFECT_SPACING;
-    public static final ModConfigSpec.IntValue MAX_CRYSTAL_GATED;
+    public static final ForgeConfigSpec.DoubleValue NOISE_SCALE;
+    public static final ForgeConfigSpec.DoubleValue MIN_THRESHOLD;
+    public static final ForgeConfigSpec.DoubleValue THRESHOLD_SPREAD;
+    public static final ForgeConfigSpec.DoubleValue MAX_THRESHOLD;
+    public static final ForgeConfigSpec.DoubleValue THRESHOLD_STEP;
+    public static final ForgeConfigSpec.IntValue EFFECT_MARGIN;
+    public static final ForgeConfigSpec.IntValue CENTRE_MARGIN;
+    public static final ForgeConfigSpec.IntValue EFFECT_SPACING;
+    public static final ForgeConfigSpec.IntValue MAX_CRYSTAL_GATED;
 
     static {
-        ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
+        ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
 
         for (Ingredients ingredient : Ingredients.values()) {
             INGREDIENT_CONFIG.put(ingredient, commonConfigSetup(ingredient, builder));
@@ -34,7 +34,7 @@ public class Configuration {
 
         COMMON_CONFIG = builder.build();
 
-        ModConfigSpec.Builder serverBuilder = new ModConfigSpec.Builder();
+        ForgeConfigSpec.Builder serverBuilder = new ForgeConfigSpec.Builder();
         serverBuilder.comment("Brewing rules").push("brewing");
         MAX_POTENCY = serverBuilder
                 .comment("Total potency a single potion can hold before it spoils.",
@@ -120,9 +120,9 @@ public class Configuration {
         return SERVER_CONFIG.isLoaded() ? MAX_CRYSTAL_GATED.get() : 3;
     }
 
-    private static ModConfigSpec.IntValue commonConfigSetup(Ingredients ingredient, ModConfigSpec.Builder builder) {
+    private static ForgeConfigSpec.IntValue commonConfigSetup(Ingredients ingredient, ForgeConfigSpec.Builder builder) {
         builder.comment("Wild " + ingredient.name() + " generation").push("wild_" + ingredient.name().toLowerCase());
-        ModConfigSpec.IntValue chance = builder.comment("Chance of generating clusters. Smaller value = more frequent.",
+        ForgeConfigSpec.IntValue chance = builder.comment("Chance of generating clusters. Smaller value = more frequent.",
                         "Minerals generate as geodes and are confined to a handful of biomes,",
                         "so the rarer a mineral's biome is, the denser its geodes are within it.")
                 .defineInRange("chance", defaultChance(ingredient), 0, Integer.MAX_VALUE);

@@ -13,8 +13,8 @@ public class MenuTypeRegistry {
     public static final DeferredRegister<MenuType<?>> MENU_TYPES = DeferredRegister.create(Registries.MENU, Alchemia.MODID);
 
     public static final RegistryObject<MenuType<AlchemicalCauldronMenu>> ALCHEMICAL_CAULDRON = MENU_TYPES
-            .register("alchemical_cauldron", () -> IMenuTypeExtension.create(AlchemicalCauldronMenu::new));
+            .register("alchemical_cauldron", () -> IForgeMenuType.create(AlchemicalCauldronMenu::new));
 
     public static final RegistryObject<MenuType<AlchemyMachineMenu>> ALCHEMY_MACHINE = MENU_TYPES
-            .register("alchemy_machine", () -> IMenuTypeExtension.create(AlchemyMachineMenu::new));
+            .register("alchemy_machine", () -> IForgeMenuType.create(AlchemyMachineMenu::new));
 }

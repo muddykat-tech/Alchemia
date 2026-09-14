@@ -5,7 +5,7 @@ import muddykat.alchemia.common.blocks.tileentity.TileEntityAlchemyMachineCore;
 import muddykat.alchemia.common.blocks.tileentity.TileEntityAlchemyMachineUpgrade;
 import muddykat.alchemia.registration.registers.BlockRegistry;
 import muddykat.alchemia.registration.registers.MenuTypeRegistry;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -118,12 +118,12 @@ public class AlchemyMachineMenu extends AbstractContainerMenu {
         addDataSlots(machineData);
     }
 
-    public AlchemyMachineMenu(final int windowID, final Inventory playerInventory, final RegistryFriendlyByteBuf data) {
+    public AlchemyMachineMenu(final int windowID, final Inventory playerInventory, final FriendlyByteBuf data) {
         this(windowID, playerInventory, getBlockEntity(playerInventory, data),
                 new SimpleContainerData(TileEntityAlchemyMachineCore.DATA_COUNT));
     }
 
-    private static TileEntityAlchemyMachineCore getBlockEntity(final Inventory playerInventory, final RegistryFriendlyByteBuf data) {
+    private static TileEntityAlchemyMachineCore getBlockEntity(final Inventory playerInventory, final FriendlyByteBuf data) {
         Objects.requireNonNull(playerInventory, "playerInventory cannot be null");
         Objects.requireNonNull(data, "data cannot be null");
         final BlockEntity blockEntity = playerInventory.player.level().getBlockEntity(data.readBlockPos());

@@ -88,7 +88,7 @@ public final class BrewBases {
         } else if (!accepted.containsKey(DEFAULT_ID)) {
             Alchemia.LOGGER.warn("No '{}' brew base was defined, adding the built in one", DEFAULT_ID);
             Map<String, BrewBase> withWater = new LinkedHashMap<>();
-            withWater.put(DEFAULT_ID, defaults().getFirst());
+            withWater.put(DEFAULT_ID, defaults().get(0));
             withWater.putAll(accepted);
             accepted = withWater;
         }

@@ -38,7 +38,7 @@ public class BlockItemAlchemyMachineUpgrade extends BlockItemGeneric {
 
     private InteractionResult refuse(BlockPlaceContext context, Component reason) {
         if (context.getPlayer() instanceof ServerPlayer serverPlayer) {
-            serverPlayer.sendOverlayMessage(reason.copy().withStyle(ChatFormatting.RED));
+            serverPlayer.displayClientMessage(reason.copy().withStyle(ChatFormatting.RED), true);
         }
         return InteractionResult.FAIL;
     }

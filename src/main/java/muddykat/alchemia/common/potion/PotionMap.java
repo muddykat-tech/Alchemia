@@ -549,9 +549,9 @@ public class PotionMap {
         final MobEffect effect;
         final int duration;
         final int strength;
-        final Holder<Potion> potion;
+        final Potion potion;
         final boolean perfect;
-        PotionEffectPosition(PotionEnum recipe, MobEffect effect, int duration, int maxStrength, Holder<Potion> potion, boolean isPerfect) {
+        PotionEffectPosition(PotionEnum recipe, MobEffect effect, int duration, int maxStrength, Potion potion, boolean isPerfect) {
             this.recipe = recipe;
             this.effect = effect;
             this.duration = duration;
@@ -576,7 +576,7 @@ public class PotionMap {
             return strength;
         }
 
-        public Holder<Potion> getPotion() {
+        public Potion getPotion() {
             return potion;
         }
 

@@ -4,7 +4,7 @@ import muddykat.alchemia.common.blocks.tileentity.TileEntityAlchemyCauldron;
 import muddykat.alchemia.common.items.ItemIngredient;
 import muddykat.alchemia.registration.registers.BlockRegistry;
 import muddykat.alchemia.registration.registers.MenuTypeRegistry;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -83,11 +83,11 @@ public class AlchemicalCauldronMenu extends AbstractContainerMenu {
         addDataSlots(cauldronData);
     }
 
-    public AlchemicalCauldronMenu(final int windowID, final Inventory playerInventory, final RegistryFriendlyByteBuf data) {
+    public AlchemicalCauldronMenu(final int windowID, final Inventory playerInventory, final FriendlyByteBuf data) {
         this(windowID, playerInventory, getBlockEntity(playerInventory, data), new SimpleContainerData(3));
     }
 
-    private static TileEntityAlchemyCauldron getBlockEntity(final Inventory playerInventory, final RegistryFriendlyByteBuf data) {
+    private static TileEntityAlchemyCauldron getBlockEntity(final Inventory playerInventory, final FriendlyByteBuf data) {
         Objects.requireNonNull(playerInventory, "playerInventory cannot be null");
         Objects.requireNonNull(data, "data cannot be null");
         final BlockEntity blockEntity = playerInventory.player.level().getBlockEntity(data.readBlockPos());

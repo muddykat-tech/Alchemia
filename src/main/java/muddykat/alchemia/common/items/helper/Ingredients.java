@@ -23,22 +23,22 @@ import static muddykat.alchemia.common.items.helper.IngredientType.*;
 public enum Ingredients {
     Firebell(Flower, IngredientAlignment.Fire, MobEffects.FIRE_RESISTANCE, 1, Rarity.COMMON),
     Waterbloom(Flower, IngredientAlignment.Water, MobEffects.WATER_BREATHING, 1, Rarity.COMMON),
-    Windbloom(Flower, IngredientAlignment.Air, MobEffects.SPEED, 1, Rarity.COMMON),
+    Windbloom(Flower, IngredientAlignment.Air, MobEffects.MOVEMENT_SPEED, 1, Rarity.COMMON),
     Featherbloom(Flower, IngredientAlignment.Air, MobEffects.LEVITATION, 1, Rarity.UNCOMMON),
     Fluffbloom(Flower, IngredientAlignment.Air, MobEffects.SLOW_FALLING, 1, Rarity.UNCOMMON),
     Spellbloom(Flower, IngredientAlignment.Air, IngredientAlignment.Water, MobEffects.ABSORPTION, 1, Rarity.COMMON),
-    Boombloom(Flower, IngredientAlignment.Earth, IngredientAlignment.Water, MobEffects.JUMP_BOOST, 1, Rarity.COMMON),
+    Boombloom(Flower, IngredientAlignment.Earth, IngredientAlignment.Water, MobEffects.JUMP, 1, Rarity.COMMON),
 
     Bloodthorn(Herb, IngredientAlignment.Fire, IngredientAlignment.Air, MobEffects.WEAKNESS, 1, Rarity.COMMON),
-    Coldleaf(Herb, IngredientAlignment.Water, MobEffects.SLOWNESS, 1, Rarity.COMMON),
-    Dragon_Pepper(Herb, IngredientAlignment.Fire, MobEffects.SPEED, 1, Rarity.COMMON),
-    Druids_Rosemary(Herb, IngredientAlignment.Fire, MobEffects.INSTANT_HEALTH, 1, Rarity.COMMON),
-    Evergreen_Fern(Herb, IngredientAlignment.Air, IngredientAlignment.Fire, MobEffects.NAUSEA, 1, Rarity.COMMON),
-    Lifeleaf(Herb, IngredientAlignment.Earth, IngredientAlignment.Water, MobEffects.INSTANT_HEALTH, 1, Rarity.COMMON),
+    Coldleaf(Herb, IngredientAlignment.Water, MobEffects.MOVEMENT_SLOWDOWN, 1, Rarity.COMMON),
+    Dragon_Pepper(Herb, IngredientAlignment.Fire, MobEffects.MOVEMENT_SPEED, 1, Rarity.COMMON),
+    Druids_Rosemary(Herb, IngredientAlignment.Fire, MobEffects.HEAL, 1, Rarity.COMMON),
+    Evergreen_Fern(Herb, IngredientAlignment.Air, IngredientAlignment.Fire, MobEffects.CONFUSION, 1, Rarity.COMMON),
+    Lifeleaf(Herb, IngredientAlignment.Earth, IngredientAlignment.Water, MobEffects.HEAL, 1, Rarity.COMMON),
     Goldthorn(Herb, IngredientAlignment.Earth, MobEffects.WITHER, 1, Rarity.COMMON),
-    Icefruit(Herb, IngredientAlignment.Water, MobEffects.SLOWNESS, 1, Rarity.COMMON),
-    Tangleweed(Herb, IngredientAlignment.Water, MobEffects.NAUSEA, 1, Rarity.COMMON),
-    Whirlweed(Herb, IngredientAlignment.Air, MobEffects.NAUSEA, 1, Rarity.COMMON),
+    Icefruit(Herb, IngredientAlignment.Water, MobEffects.MOVEMENT_SLOWDOWN, 1, Rarity.COMMON),
+    Tangleweed(Herb, IngredientAlignment.Water, MobEffects.CONFUSION, 1, Rarity.COMMON),
+    Whirlweed(Herb, IngredientAlignment.Air, MobEffects.CONFUSION, 1, Rarity.COMMON),
     Goodberry(Herb, IngredientAlignment.Earth, IngredientAlignment.Water, MobEffects.HEALTH_BOOST, 1, Rarity.COMMON),
     Thunder_Thistle(Herb, IngredientAlignment.Water, IngredientAlignment.Air, MobEffects.GLOWING, 1, Rarity.COMMON),
     Flameweed(Herb, IngredientAlignment.Fire, MobEffects.FIRE_RESISTANCE, 1, Rarity.COMMON),
@@ -46,8 +46,8 @@ public enum Ingredients {
     Healers_Heather(Herb, IngredientAlignment.Earth, IngredientAlignment.Water, MobEffects.REGENERATION, 1, Rarity.COMMON),
     Terrorbud(Herb, IngredientAlignment.Earth, IngredientAlignment.Water, MobEffects.BLINDNESS, 1, Rarity.COMMON),
     Thornstick(Herb, IngredientAlignment.Fire, IngredientAlignment.Earth, MobEffects.POISON, 1, Rarity.COMMON),
-    Lava_Root(Root, IngredientAlignment.Fire, MobEffects.INSTANT_DAMAGE, 1, Rarity.COMMON),
-    Terraria(Root, IngredientAlignment.Earth, MobEffects.HASTE, 1, Rarity.COMMON),
+    Lava_Root(Root, IngredientAlignment.Fire, MobEffects.HARM, 1, Rarity.COMMON),
+    Terraria(Root, IngredientAlignment.Earth, MobEffects.DIG_SPEED, 1, Rarity.COMMON),
     Dreambeet(Root, IngredientAlignment.Air, IngredientAlignment.Water, MobEffects.LUCK, 1, Rarity.COMMON),
     Marshroom(IngredientType.Mushroom, IngredientAlignment.Earth, IngredientAlignment.Fire, MobEffects.HUNGER, 1, Rarity.COMMON),
     Sulphur_Shelf(IngredientType.Mushroom, IngredientAlignment.Fire, MobEffects.POISON, 1, Rarity.COMMON),
@@ -56,11 +56,11 @@ public enum Ingredients {
     Rainbow_Cap(IngredientType.Mushroom, IngredientAlignment.Air, IngredientAlignment.Earth, MobEffects.UNLUCK, 1, Rarity.COMMON),
 
     Cloud_Crystal(IngredientType.Mineral, IngredientAlignment.Air, MobEffects.LEVITATION, 1, Rarity.COMMON),
-    Earth_Pyrite(IngredientType.Mineral, IngredientAlignment.Earth, MobEffects.STRENGTH, 1, Rarity.COMMON),
+    Earth_Pyrite(IngredientType.Mineral, IngredientAlignment.Earth, MobEffects.DAMAGE_BOOST, 1, Rarity.COMMON),
     Frost_Sapphire(IngredientType.Mineral, IngredientAlignment.Water, MobEffects.SLOW_FALLING, 1, Rarity.COMMON),
     Fire_Citrine(IngredientType.Mineral, IngredientAlignment.Fire, MobEffects.SATURATION, 1, Rarity.COMMON),
     Arcane_Crystal(IngredientType.Mineral, IngredientAlignment.Air, IngredientAlignment.Water, MobEffects.GLOWING, 1, Rarity.RARE),
-    Fable_Bismuth(IngredientType.Mineral, IngredientAlignment.Water, IngredientAlignment.Air, MobEffects.RESISTANCE, 1, Rarity.EPIC);
+    Fable_Bismuth(IngredientType.Mineral, IngredientAlignment.Water, IngredientAlignment.Air, MobEffects.DAMAGE_RESISTANCE, 1, Rarity.EPIC);
 
     public static final int MAX_CRUSH = 3;
     public static final int CRUSH_UNITS_PER_LEVEL = 4;

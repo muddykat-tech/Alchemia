@@ -3,12 +3,9 @@ package muddykat.alchemia.common.potion;
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.netty.buffer.ByteBuf;
 import muddykat.alchemia.common.items.ItemIngredient;
 import muddykat.alchemia.registration.registers.ItemRegistry;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
 import muddykat.alchemia.common.utility.StackData;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -46,11 +43,6 @@ public record BrewRecipe(String id, String name, String base, List<BrewRecipe.Br
                 Codec.INT.fieldOf("potency").forGetter(BrewEffect::potency)
         ).apply(instance, BrewEffect::new));
 
-        public static final StreamCodec<ByteBuf, BrewEffect> STREAM_CODEC = StreamCodec.composite(
-                ByteBufCodecs.STRING_UTF8, BrewEffect::recipe,
-                ByteBufCodecs.VAR_INT, BrewEffect::potency,
-                BrewEffect::new);
-
         public PotionEnum asPotion() {
             return RecipeDiscovery.byName(recipe);
         }
@@ -70,21 +62,13 @@ public record BrewRecipe(String id, String name, String base, List<BrewRecipe.Br
     ).apply(instance, BrewRecipe::new));
 
     private static final Codec<BrewRecipe> LEGACY = RecordCodecBuilder.create(instance -> instance.group(
-            Codec.STRING.fieldOf("recipe").forGetter(brew -> brew.effects().getFirst().recipe()),
+            Codec.STRING.fieldOf("recipe").forGetter(brew -> brew.effects().get(0).recipe()),
             Codec.STRING.listOf().fieldOf("ingredients").forGetter(BrewRecipe::ingredients),
-            Codec.INT.fieldOf("potency").forGetter(brew -> brew.effects().getFirst().potency())
+            Codec.INT.fieldOf("potency").forGetter(brew -> brew.effects().get(0).potency())
     ).apply(instance, (recipe, ingredients, potency) -> new BrewRecipe("", "",
             BrewBases.DEFAULT_ID, List.of(new BrewEffect(recipe, potency)), ingredients)));
 
     public static final Codec<BrewRecipe> CODEC = Codec.either(MODERN, LEGACY).xmap(Either::unwrap, Either::left);
-
-    public static final StreamCodec<ByteBuf, BrewRecipe> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.STRING_UTF8, BrewRecipe::id,
-            ByteBufCodecs.STRING_UTF8, BrewRecipe::name,
-            ByteBufCodecs.STRING_UTF8, BrewRecipe::base,
-            BrewEffect.STREAM_CODEC.apply(ByteBufCodecs.collection(ArrayList::new)), BrewRecipe::effects,
-            ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.collection(ArrayList::new)), BrewRecipe::ingredients,
-            BrewRecipe::new);
 
     public Component displayName() {
         if (!name.isBlank()) return Component.literal(name);
@@ -93,7 +77,7 @@ public record BrewRecipe(String id, String name, String base, List<BrewRecipe.Br
 
     public Component effectSummary() {
         if (effects.isEmpty()) return Component.translatable("alchemia.guide.unnamed");
-        Component first = effects.getFirst().displayName();
+        Component first = effects.get(0).displayName();
         return effects.size() == 1 ? first : Component.translatable("alchemia.guide.combo", first, effects.size() - 1);
     }
 

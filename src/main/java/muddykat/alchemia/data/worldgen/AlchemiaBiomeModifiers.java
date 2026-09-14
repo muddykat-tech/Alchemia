@@ -92,17 +92,17 @@ public class AlchemiaBiomeModifiers {
             }
             if (holders.isEmpty()) return;
 
-            context.register(modifierKey(name), new BiomeModifiers.AddFeaturesBiomeModifier(
+            context.register(modifierKey(name), new ForgeBiomeModifiers.AddFeaturesBiomeModifier(
                     biomes.getOrThrow(groupTag.get(name)), HolderSet.direct(holders), groupStep.get(name)));
         });
 
-        context.register(modifierKey(WildHerbGeneration.PEAK_CLUSTER_NAME), new BiomeModifiers.AddFeaturesBiomeModifier(
+        context.register(modifierKey(WildHerbGeneration.PEAK_CLUSTER_NAME), new ForgeBiomeModifiers.AddFeaturesBiomeModifier(
                 biomes.getOrThrow(Tags.Biomes.IS_MOUNTAIN_PEAK),
                 HolderSet.direct(features.getOrThrow(WildHerbGeneration.PEAK_CLUSTER)),
                 GenerationStep.Decoration.VEGETAL_DECORATION));
     }
 
     private static ResourceKey<BiomeModifier> modifierKey(String name) {
-        return ResourceKey.create(NeoForgeRegistries.Keys.BIOME_MODIFIERS, new ResourceLocation(Alchemia.MODID, name));
+        return ResourceKey.create(ForgeRegistries.Keys.BIOME_MODIFIERS, new ResourceLocation(Alchemia.MODID, name));
     }
 }
