@@ -3,7 +3,7 @@ package muddykat.alchemia.common.potion;
 import muddykat.alchemia.Alchemia;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.minecraftforge.fluids.FluidStack;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -129,7 +129,7 @@ public final class BrewBases {
         return null;
     }
 
-    public static @Nullable Match forFluid(FluidResource resource) {
+    public static @Nullable Match forFluid(FluidStack resource) {
         if (resource.isEmpty()) return null;
         for (BrewBase base : BASES.values()) {
             BrewBase.Fill fill = base.fillFor(resource);

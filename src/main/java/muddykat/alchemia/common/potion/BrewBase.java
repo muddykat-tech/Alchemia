@@ -12,7 +12,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.fluids.FluidType;
-import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.minecraftforge.fluids.FluidStack;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -79,7 +79,7 @@ public final class BrewBase {
             return match != null && !stack.isEmpty() && stack.is(match);
         }
 
-        public boolean matches(FluidResource resource) {
+        public boolean matches(FluidStack resource) {
             Fluid match = fluidValue();
             return match != Fluids.EMPTY && !resource.isEmpty() && resource.getFluid().isSame(match);
         }
@@ -196,7 +196,7 @@ public final class BrewBase {
         return null;
     }
 
-    public @Nullable Fill fillFor(FluidResource resource) {
+    public @Nullable Fill fillFor(FluidStack resource) {
         for (Fill fill : fills) {
             if (fill.isFluid() && fill.matches(resource)) return fill;
         }

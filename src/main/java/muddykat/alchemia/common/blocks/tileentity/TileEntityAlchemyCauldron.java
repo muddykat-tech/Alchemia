@@ -58,16 +58,16 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.world.phys.AABB;
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.transfer.ResourceHandler;
-import net.neoforged.neoforge.transfer.access.ItemAccess;
-import net.neoforged.neoforge.transfer.fluid.FluidResource;
-import net.neoforged.neoforge.transfer.item.ItemResource;
-import net.neoforged.neoforge.transfer.transaction.Transaction;
-import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.FluidUtil;
+import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.minecraftforge.fluids.capability.IFluidHandlerItem;
+import net.minecraftforge.items.ItemStackHandler;
 import org.jspecify.annotations.Nullable;
 
 import com.mojang.serialization.Codec;
@@ -98,7 +98,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
 
     private int waterLevel;
     private final int maxWaterLevel = BrewBase.MAX_FILL_LEVEL;
-    private ItemStacksResourceHandler inventory;
+    private ItemStackHandler inventory;
 
     private int xAlignment;
     private int yAlignment;
@@ -142,49 +142,62 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
     }
 
     @Override
-    protected void loadAdditional(ValueInput input) {
-        super.loadAdditional(input);
-        input.child("Inventory").ifPresent(saved -> {
-            inventory.deserialize(saved);
+    public void load(CompoundTag tag) {
+        super.load(tag);
+        if (tag.contains("Inventory")) {
+            inventory.deserializeNBT(tag.getCompound("Inventory"));
             inventory = resizeInventory(inventory);
-        });
-        waterLevel = input.getIntOr("waterLevel", 0);
-        xAlignment = input.getIntOr("xAlignment", balanceAlignment);
-        yAlignment = input.getIntOr("yAlignment", balanceAlignment);
-        needsUpdate = input.getBooleanOr("needsUpdate", false);
-        cooldown = input.getIntOr("cooldown", 0);
+        }
+        waterLevel = tag.getInt("waterLevel");
+        xAlignment = tag.contains("xAlignment") ? tag.getInt("xAlignment") : balanceAlignment;
+        yAlignment = tag.contains("yAlignment") ? tag.getInt("yAlignment") : balanceAlignment;
+        needsUpdate = tag.getBoolean("needsUpdate");
+        cooldown = tag.getInt("cooldown");
 
         addedIngredients.clear();
-        addedIngredients.addAll(input.read("addedIngredients", Codec.STRING.listOf()).orElse(List.of()));
+        ListTag ingredients = tag.getList("addedIngredients", Tag.TAG_STRING);
+        for (int index = 0; index < ingredients.size(); index++) addedIngredients.add(ingredients.getString(index));
 
         effectList.clear();
-        effectList.addAll(input.read("effects", MobEffectInstance.CODEC.listOf()).orElse(List.of()));
-        brewName = input.getString("brewName").orElse("");
-        spoiled = input.getBooleanOr("spoiled", false);
-        base = BrewBases.byId(input.getString("base").orElse(BrewBases.DEFAULT_ID));
-        instability = input.getIntOr("instability", 0);
-        bonusInstability = input.getIntOr("bonusInstability", 0);
-        durationBonus = input.getIntOr("durationBonus", 0);
+        ListTag effects = tag.getList("effects", Tag.TAG_COMPOUND);
+        for (int index = 0; index < effects.size(); index++) {
+            MobEffectInstance instance = MobEffectInstance.load(effects.getCompound(index));
+            if (instance != null) effectList.add(instance);
+        }
+
+        brewName = tag.getString("brewName");
+        spoiled = tag.getBoolean("spoiled");
+        base = BrewBases.byId(tag.contains("base") ? tag.getString("base") : BrewBases.DEFAULT_ID);
+        instability = tag.getInt("instability");
+        bonusInstability = tag.getInt("bonusInstability");
+        durationBonus = tag.getInt("durationBonus");
         updateWaterColor();
     }
 
     @Override
-    protected void saveAdditional(ValueOutput output) {
-        super.saveAdditional(output);
-        inventory.serialize(output.child("Inventory"));
-        output.putInt("waterLevel", waterLevel);
-        output.putInt("xAlignment", xAlignment);
-        output.putInt("yAlignment", yAlignment);
-        output.putBoolean("needsUpdate", needsUpdate);
-        output.putInt("cooldown", cooldown);
-        output.store("addedIngredients", Codec.STRING.listOf(), List.copyOf(addedIngredients));
-        output.store("effects", MobEffectInstance.CODEC.listOf(), List.copyOf(effectList));
-        output.putString("brewName", brewName);
-        output.putBoolean("spoiled", spoiled);
-        output.putString("base", base.id());
-        output.putInt("instability", instability);
-        output.putInt("bonusInstability", bonusInstability);
-        output.putInt("durationBonus", durationBonus);
+    protected void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
+        tag.put("Inventory", inventory.serializeNBT());
+        tag.putInt("waterLevel", waterLevel);
+        tag.putInt("xAlignment", xAlignment);
+        tag.putInt("yAlignment", yAlignment);
+        tag.putBoolean("needsUpdate", needsUpdate);
+        tag.putInt("cooldown", cooldown);
+
+        ListTag ingredients = new ListTag();
+        for (String name : addedIngredients) ingredients.add(StringTag.valueOf(name));
+        tag.put("addedIngredients", ingredients);
+
+        ListTag effects = new ListTag();
+        for (MobEffectInstance instance : effectList) effects.add(instance.save(new CompoundTag()));
+        tag.put("effects", effects);
+
+        tag.putString("brewName", brewName);
+        tag.putBoolean("spoiled", spoiled);
+        tag.putString("base", base.id());
+        tag.putInt("instability", instability);
+        tag.putInt("bonusInstability", bonusInstability);
+        tag.putInt("durationBonus", durationBonus);
     }
 
     @Override
@@ -246,7 +259,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
                 player.getInventory().add(potion);
 
                 if (hasGunpowder() && !level.isClientSide()) {
-                    inventory.set(GUNPOWDER_SLOT, ItemResource.EMPTY, 0);
+                    inventory.setStackInSlot(GUNPOWDER_SLOT, ItemStack.EMPTY);
                 }
                 lingeringRequested = false;
 
@@ -413,21 +426,21 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         potion_type = Items.POTION;
     }
 
-    private ItemStacksResourceHandler resizeInventory(ItemStacksResourceHandler saved) {
-        if (saved.size() >= INVENTORY_SLOT_COUNT) return saved;
+    private ItemStackHandler resizeInventory(ItemStackHandler saved) {
+        if (saved.getSlots() >= INVENTORY_SLOT_COUNT) return saved;
 
-        ItemStacksResourceHandler resized = createHandler();
-        for (int slot = 0; slot < saved.size(); slot++) {
-            resized.set(slot, saved.getResource(slot), saved.getAmountAsInt(slot));
+        ItemStackHandler resized = createHandler();
+        for (int slot = 0; slot < saved.getSlots(); slot++) {
+            resized.setStackInSlot(slot, saved.getStackInSlot(slot));
         }
         return resized;
     }
 
-    private ItemStacksResourceHandler createHandler() {
-        return new ItemStacksResourceHandler(INVENTORY_SLOT_COUNT) {
+    private ItemStackHandler createHandler() {
+        return new ItemStackHandler(INVENTORY_SLOT_COUNT) {
             @Override
-            protected int getCapacity(int index, ItemResource resource) {
-                return index == REDSTONE_SLOT ? 64 : 1;
+            public int getSlotLimit(int slot) {
+                return slot == REDSTONE_SLOT ? 64 : 1;
             }
         };
     }
@@ -459,12 +472,12 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
     }
 
     private @Nullable InteractionResult tryFluidFill(Player player, InteractionHand hand, BlockPos pos, Level level) {
-        ResourceHandler<FluidResource> held = ItemAccess.forPlayerInteraction(player, hand).oneByOne()
-                .getCapability(Capabilities.Fluid.ITEM);
+        ItemStack heldStack = player.getItemInHand(hand);
+        IFluidHandlerItem held = FluidUtil.getFluidHandler(heldStack.copyWithCount(1)).orElse(null);
         if (held == null) return null;
 
-        for (int index = 0; index < held.size(); index++) {
-            FluidResource resource = held.getResource(index);
+        for (int tank = 0; tank < held.getTanks(); tank++) {
+            FluidStack resource = held.getFluidInTank(tank);
             if (resource.isEmpty()) continue;
 
             BrewBases.Match match = BrewBases.forFluid(resource);
@@ -472,9 +485,11 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
             if (!canAcceptFill(match.base(), match.fill().levels())) return refuseFill(player, match.base());
 
             int amount = match.fill().fluidAmount();
-            try (Transaction transaction = Transaction.openRoot()) {
-                if (held.extract(index, resource, amount, transaction) < amount) continue;
-                transaction.commit();
+            FluidStack drained = held.drain(new FluidStack(resource, amount), IFluidHandler.FluidAction.EXECUTE);
+            if (drained.getAmount() < amount) continue;
+
+            if (!player.isCreative()) {
+                player.setItemInHand(hand, ItemUtils.createFilledResult(heldStack, player, held.getContainer()));
             }
 
             addFill(match.base(), match.fill().levels());
@@ -539,18 +554,17 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         if (level != null && !level.isClientSide()) sync();
     }
 
-    public ItemStacksResourceHandler getInventory() {
+    public ItemStackHandler getInventory() {
         return inventory;
     }
 
     public List<ItemStack> getQueuedIngredients() {
         List<ItemStack> queued = new ArrayList<>();
         for (int slot = 0; slot < INGREDIENT_SLOT_COUNT; slot++) {
-            int amount = inventory.getAmountAsInt(slot);
-            if (amount <= 0) continue;
-            ItemResource resource = inventory.getResource(slot);
-            if (isBrewingInput(resource.toStack(1))) {
-                for (int i = 0; i < amount; i++) queued.add(resource.toStack(1));
+            ItemStack resource = inventory.getStackInSlot(slot);
+            if (resource.isEmpty()) continue;
+            if (isBrewingInput(resource)) {
+                for (int i = 0; i < resource.getCount(); i++) queued.add(resource.copyWithCount(1));
             }
         }
         return queued;
@@ -570,7 +584,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         }
 
         for (int slot = 0; slot < INGREDIENT_SLOT_COUNT; slot++) {
-            inventory.set(slot, ItemResource.EMPTY, 0);
+            inventory.setStackInSlot(slot, ItemStack.EMPTY);
         }
 
         for (ItemStack queuedStack : queued) {
@@ -611,9 +625,9 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
 
         int left = held - taken;
         if (left > 0) {
-            inventory.set(REDSTONE_SLOT, inventory.getResource(REDSTONE_SLOT), left);
+            inventory.setStackInSlot(REDSTONE_SLOT, inventory.getStackInSlot(REDSTONE_SLOT).copyWithCount(left));
         } else {
-            inventory.set(REDSTONE_SLOT, ItemResource.EMPTY, 0);
+            inventory.setStackInSlot(REDSTONE_SLOT, ItemStack.EMPTY);
         }
 
         durationBonus += taken * REDSTONE_DURATION_BONUS;
@@ -753,8 +767,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
     }
 
     private boolean slotHolds(int slot, Item item) {
-        return slot < inventory.size() && inventory.getAmountAsInt(slot) > 0
-                && inventory.getResource(slot).getItem() == item;
+        return slot < inventory.getSlots() && inventory.getStackInSlot(slot).is(item);
     }
 
     public boolean hasRedstone() {
@@ -762,7 +775,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
     }
 
     public int redstoneCount() {
-        return slotHolds(REDSTONE_SLOT, Items.REDSTONE) ? inventory.getAmountAsInt(REDSTONE_SLOT) : 0;
+        return slotHolds(REDSTONE_SLOT, Items.REDSTONE) ? inventory.getStackInSlot(REDSTONE_SLOT).getCount() : 0;
     }
 
     public int redstoneCharges() {
