@@ -111,6 +111,10 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
     private static final int UNKNOWN_TINT = 0xFF7A6A52;
     private static final int NODE_BASE = 18;
 
+    private static final int SCREEN_MARGIN = 8;
+
+    private float uiScale = 1.0F;
+
     private double camX;
     private double camY;
     private boolean viewInitialised;
@@ -154,6 +158,11 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
     protected void init() {
         super.init();
 
+        this.uiScale = Math.min(1.0F, Math.min((float) this.width / (this.imageWidth + SCREEN_MARGIN),
+                (float) this.height / (this.imageHeight + SCREEN_MARGIN)));
+        this.leftPos = Math.round((this.width / this.uiScale - this.imageWidth) / 2.0F);
+        this.topPos = Math.round((this.height / this.uiScale - this.imageHeight) / 2.0F);
+
         String existing = this.getMenu().getCauldron().getBrewName();
         this.nameField = new EditBox(this.font, viewLeft() + NAME_X + 2, viewTop() + NAME_Y + 2,
                 NAME_W - 4, NAME_H - 4, Component.translatable("alchemia.gui.name"));
@@ -186,6 +195,28 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
 
     @Override
     protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+    }
+
+    private double toGui(double value) {
+        return value / this.uiScale;
+    }
+
+    private int toScreen(double value) {
+        return Math.round((float) value * this.uiScale);
+    }
+
+    private MouseButtonEvent toGui(MouseButtonEvent event) {
+        return new MouseButtonEvent(toGui(event.x()), toGui(event.y()), event.buttonInfo());
+    }
+
+    @Override
+    protected boolean isHovering(int left, int top, int w, int h, double xm, double ym) {
+        return super.isHovering(left, top, w, h, toGui(xm), toGui(ym));
+    }
+
+    @Override
+    protected boolean hasClickedOutside(double mx, double my, int xo, int yo) {
+        return super.hasClickedOutside(toGui(mx), toGui(my), xo, yo);
     }
 
     private int viewLeft() {
@@ -223,12 +254,14 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        if (scrollY == 0 || !overMap(mouseX, mouseY)) return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+        double guiX = toGui(mouseX);
+        double guiY = toGui(mouseY);
+        if (scrollY == 0 || !overMap(guiX, guiY)) return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
 
-        anchorScreenX = mouseX;
-        anchorScreenY = mouseY;
-        anchorWorldX = camX + (mouseX - viewCentreX()) / (SPACING_X * zoom);
-        anchorWorldY = camY + (mouseY - viewCentreY()) / (SPACING_Y * zoom);
+        anchorScreenX = guiX;
+        anchorScreenY = guiY;
+        anchorWorldX = camX + (guiX - viewCentreX()) / (SPACING_X * zoom);
+        anchorWorldY = camY + (guiY - viewCentreY()) / (SPACING_Y * zoom);
 
         double factor = scrollY > 0 ? ZOOM_STEP : 1.0 / ZOOM_STEP;
         targetZoom = Mth.clamp(targetZoom * factor, MIN_ZOOM, MAX_ZOOM);
@@ -238,22 +271,33 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
     @Override
     public boolean mouseDragged(MouseButtonEvent event, double dx, double dy) {
         if (panning && event.button() == InputConstants.MOUSE_BUTTON_LEFT) {
-            camX -= dx / (SPACING_X * zoom);
-            camY -= dy / (SPACING_Y * zoom);
+            camX -= toGui(dx) / (SPACING_X * zoom);
+            camY -= toGui(dy) / (SPACING_Y * zoom);
             targetZoom = zoom;
             clampCamera();
             return true;
+        }
+        if (this.nameField != null && this.nameField.isFocused() && event.button() == InputConstants.MOUSE_BUTTON_LEFT) {
+            return this.nameField.mouseDragged(toGui(event), toGui(dx), toGui(dy));
         }
         return super.mouseDragged(event, dx, dy);
     }
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        if (!overNameField(event.x(), event.y())) {
+        double guiX = toGui(event.x());
+        double guiY = toGui(event.y());
+
+        if (!overNameField(guiX, guiY)) {
             releaseNameFocus();
+        } else if (this.nameField != null && event.button() == InputConstants.MOUSE_BUTTON_LEFT) {
+            this.setFocused(this.nameField);
+            this.nameField.setFocused(true);
+            this.nameField.mouseClicked(toGui(event), doubleClick);
+            return true;
         }
 
-        if (event.button() == InputConstants.MOUSE_BUTTON_LEFT && overButton(event.x(), event.y())) {
+        if (event.button() == InputConstants.MOUSE_BUTTON_LEFT && overButton(guiX, guiY)) {
             if (canBrew() && this.minecraft != null && this.minecraft.gameMode != null) {
                 startBrewAnimation();
                 this.minecraft.gameMode.handleInventoryButtonClick(this.getMenu().containerId, AlchemicalCauldronMenu.BUTTON_BREW);
@@ -261,12 +305,12 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
             return true;
         }
 
-        if (event.button() == InputConstants.MOUSE_BUTTON_RIGHT && overMap(event.x(), event.y())) {
+        if (event.button() == InputConstants.MOUSE_BUTTON_RIGHT && overMap(guiX, guiY)) {
             resetView();
             return true;
         }
 
-        if (event.button() == InputConstants.MOUSE_BUTTON_LEFT && overMap(event.x(), event.y())) {
+        if (event.button() == InputConstants.MOUSE_BUTTON_LEFT && overMap(guiX, guiY)) {
             panning = true;
         }
 
@@ -322,11 +366,20 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
         hoverName = null;
         hoverDetail = null;
 
+        int guiMouseX = (int) Math.round(toGui(mouseX));
+        int guiMouseY = (int) Math.round(toGui(mouseY));
+
+        Matrix3x2fStack pose = graphics.pose();
+        pose.pushMatrix();
+        pose.scale(this.uiScale, this.uiScale);
+
         graphics.blit(RenderPipelines.GUI_TEXTURED, BACKGROUND_TEXTURE, this.leftPos, this.topPos, 0.0F, 0.0F, IMAGE_WIDTH, BOOK_HEIGHT, IMAGE_WIDTH, BOOK_HEIGHT);
-        extractMap(graphics, mouseX, mouseY);
+        extractMap(graphics, guiMouseX, guiMouseY);
         extractSlotPanels(graphics);
-        extractEffectsPanel(graphics, mouseX, mouseY);
-        extractBrewButton(graphics, mouseX, mouseY);
+        extractEffectsPanel(graphics, guiMouseX, guiMouseY);
+        extractBrewButton(graphics, guiMouseX, guiMouseY);
+
+        pose.popMatrix();
     }
 
     private record Hop(int x, int y, boolean teleport) {
@@ -564,7 +617,7 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
                 panelY + panelH - INSTABILITY_BLOCK_H, mouseX, mouseY);
         if (instabilityHover != null) hovered = instabilityHover;
 
-        if (hovered != null) graphics.setTooltipForNextFrame(hovered, mouseX, mouseY);
+        if (hovered != null) graphics.setTooltipForNextFrame(hovered, toScreen(mouseX), toScreen(mouseY));
     }
 
     private Component extractInstability(GuiGraphicsExtractor graphics, TileEntityAlchemyCauldron cauldron,
@@ -669,10 +722,21 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
-        super.extractRenderState(graphics, mouseX, mouseY, a);
+    public void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+        Matrix3x2fStack pose = graphics.pose();
+        pose.pushMatrix();
+        pose.scale(this.uiScale, this.uiScale);
+
+        super.extractContents(graphics, mouseX, mouseY, a);
         graphics.blit(RenderPipelines.GUI_TEXTURED, FRAME_TEXTURE, this.leftPos, this.topPos, 0.0F, 0.0F, IMAGE_WIDTH, BOOK_HEIGHT, IMAGE_WIDTH, BOOK_HEIGHT);
         extractOverlayText(graphics);
+
+        pose.popMatrix();
+    }
+
+    @Override
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+        super.extractRenderState(graphics, mouseX, mouseY, a);
 
         if (hoverName != null) {
             List<net.minecraft.util.FormattedCharSequence> lines = new ArrayList<>();
@@ -754,8 +818,8 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
             }
 
             if (mouseX >= nx - half && mouseX <= nx + half && mouseY >= ny - half && mouseY <= ny + half) {
-                hoverX = mouseX;
-                hoverY = mouseY;
+                hoverX = toScreen(mouseX);
+                hoverY = toScreen(mouseY);
                 if (discovered) {
                     hoverName = entry.effect().getEffect().value().getDisplayName();
                     hoverDetail = Component.translatable("alchemia.gui.potency",

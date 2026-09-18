@@ -1,6 +1,18 @@
 {
   "variants": {
-    "": {
+    "facing=north": {
+      "model": "alchemia:block/alchemical_cauldron",
+      "y": 90
+    },
+    "facing=east": {
+      "model": "alchemia:block/alchemical_cauldron",
+      "y": 180
+    },
+    "facing=south": {
+      "model": "alchemia:block/alchemical_cauldron",
+      "y": 270
+    },
+    "facing=west": {
       "model": "alchemia:block/alchemical_cauldron"
     }
   }

@@ -14,10 +14,13 @@ import java.util.List;
 
 public class AlchemyMachineScreen extends AbstractContainerScreen<AlchemyMachineMenu> {
 
-    private static final int INK = 0xFF4A3A28;
-    private static final int INK_FAINT = 0xFF7A6A52;
+    private static final int LABEL_INK = 0xFF000000;
 
-    private static final int HINT_Y = 24;
+    private static final int HINT_Y = 32;
+
+    private static final int TITLE_X = 20;
+    private static final int TITLE_Y = 20;
+    private static final int INVENTORY_LABEL_X = 12;
 
     private static final int FLAME_X = 56;
     private static final int FLAME_Y = 72;
@@ -27,6 +30,9 @@ public class AlchemyMachineScreen extends AbstractContainerScreen<AlchemyMachine
 
     public AlchemyMachineScreen(AlchemyMachineMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title, AlchemyMachineMenu.GUI_WIDTH, AlchemyMachineMenu.GUI_HEIGHT);
+        this.titleLabelX = TITLE_X;
+        this.titleLabelY = TITLE_Y;
+        this.inventoryLabelX = INVENTORY_LABEL_X;
         this.inventoryLabelY = AlchemyMachineMenu.INVENTORY_Y - 12;
     }
 
@@ -51,7 +57,7 @@ public class AlchemyMachineScreen extends AbstractContainerScreen<AlchemyMachine
         if (this.menu.getPotionSlots() == 0) {
             Component hint = Component.translatable("alchemia.gui.machine.no_upgrade");
             graphics.text(this.font, hint, left + (AlchemyMachineMenu.GUI_WIDTH - this.font.width(hint)) / 2,
-                    top + HINT_Y, INK_FAINT, false);
+                    top + HINT_Y, LABEL_INK, false);
         }
 
         drawBurn(graphics, left, top);
@@ -111,8 +117,7 @@ public class AlchemyMachineScreen extends AbstractContainerScreen<AlchemyMachine
 
     @Override
     protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-        graphics.text(this.font, this.title, this.leftPos + this.titleLabelX, this.topPos + this.titleLabelY, INK, false);
-        graphics.text(this.font, this.playerInventoryTitle, this.leftPos + this.inventoryLabelX,
-                this.topPos + this.inventoryLabelY, INK, false);
+        graphics.text(this.font, this.title, this.titleLabelX, this.titleLabelY, LABEL_INK, false);
+        graphics.text(this.font, this.playerInventoryTitle, this.inventoryLabelX, this.inventoryLabelY, LABEL_INK, false);
     }
 }

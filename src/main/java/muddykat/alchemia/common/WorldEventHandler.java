@@ -4,13 +4,16 @@ import muddykat.alchemia.Alchemia;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
+import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyCauldron;
 import muddykat.alchemia.registration.registers.BlockRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.CampfireBlock;
 import net.minecraft.world.level.block.CauldronBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -43,8 +46,13 @@ public class WorldEventHandler {
         BlockState blockBelow = event.getPlacedAgainst();
         if (blockBelow.is(Blocks.CAMPFIRE)) {
             BlockPos pos = event.getPos();
+            Direction facing = blockBelow.hasProperty(CampfireBlock.FACING)
+                    ? blockBelow.getValue(CampfireBlock.FACING).getOpposite()
+                    : Direction.NORTH;
+
             event.getLevel().setBlock(pos, Blocks.AIR.defaultBlockState(), 1 | 8);
-            event.getLevel().setBlock(pos.below(), BlockRegistry.BLOCK_REGISTRY.get("alchemical_cauldron").get().defaultBlockState(), 1);
+            event.getLevel().setBlock(pos.below(), BlockRegistry.BLOCK_REGISTRY.get("alchemical_cauldron").get()
+                    .defaultBlockState().setValue(BlockAlchemyCauldron.FACING, facing), 1);
 
             awardCauldronAdvancement(player);
         }
