@@ -16,9 +16,12 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.advancements.critereon.StatePropertiesPredicate;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
 import net.minecraft.world.level.storage.loot.predicates.ExplosionCondition;
+import net.minecraft.world.level.storage.loot.predicates.LootItemBlockStatePropertyCondition;
+import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import net.minecraft.world.level.storage.loot.providers.number.NumberProvider;
 import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
@@ -37,7 +40,7 @@ public class BlockLoot extends BlockLootSubProvider {
     protected void generate() {
         for (Block block : getKnownBlocks()) {
             if (block instanceof BlockIngredient ingredient) {
-                add(block, LootTable.lootTable().withPool(randomAmountItem(ItemRegistry.getSeedByIngredient(ingredient.getIngredient()), 1, 4)));
+                add(block, cropTable(block, ingredient));
             } else if (block instanceof BlockAlchemyCauldron) {
                 add(block, LootTable.lootTable().withPool(singleItem(Blocks.CAULDRON)).withPool(singleItem(Blocks.CAMPFIRE)));
             } else if (block instanceof BlockAlchemyMachineCore || block instanceof BlockAlchemyMachineUpgrade) {
@@ -52,6 +55,15 @@ public class BlockLoot extends BlockLootSubProvider {
                                 .apply(SetItemCountFunction.setCount(mineralYield(cluster.getSize()))))));
             }
         }
+    }
+
+    private LootTable.Builder cropTable(Block block, BlockIngredient ingredient) {
+        LootItemCondition.Builder mature = LootItemBlockStatePropertyCondition.hasBlockStateProperties(block)
+                .setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(BlockIngredient.AGE, ingredient.getMaxAge()));
+
+        return LootTable.lootTable()
+                .withPool(randomAmountItem(ItemRegistry.getItemFromRegistry(ingredient.getIngredient().getRegistryName()), 1, 4).when(mature))
+                .withPool(singleItem(ItemRegistry.getSeedByIngredient(ingredient.getIngredient())).when(mature.invert()));
     }
 
     private static NumberProvider mineralYield(BlockRegistry.BudSize size) {

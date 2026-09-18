@@ -6,12 +6,19 @@
       "conditions": [
         {
           "condition": "minecraft:survives_explosion"
+        },
+        {
+          "block": "alchemia:herb_terrorbud_seed",
+          "condition": "minecraft:block_state_property",
+          "properties": {
+            "age": "3"
+          }
         }
       ],
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "alchemia:herb_terrorbud_seed"
+          "name": "alchemia:herb_terrorbud"
         }
       ],
       "functions": [
@@ -23,6 +30,31 @@
             "min": 1.0
           },
           "function": "minecraft:set_count"
+        }
+      ],
+      "rolls": 1.0
+    },
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        },
+        {
+          "condition": "minecraft:inverted",
+          "term": {
+            "block": "alchemia:herb_terrorbud_seed",
+            "condition": "minecraft:block_state_property",
+            "properties": {
+              "age": "3"
+            }
+          }
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "alchemia:herb_terrorbud_seed"
         }
       ],
       "rolls": 1.0

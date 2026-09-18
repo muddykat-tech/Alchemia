@@ -6,12 +6,19 @@
       "conditions": [
         {
           "condition": "minecraft:survives_explosion"
+        },
+        {
+          "block": "alchemia:mushroom_rainbow_cap_seed",
+          "condition": "minecraft:block_state_property",
+          "properties": {
+            "age": "3"
+          }
         }
       ],
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "alchemia:mushroom_rainbow_cap_seed"
+          "name": "alchemia:mushroom_rainbow_cap"
         }
       ],
       "functions": [
@@ -23,6 +30,31 @@
             "min": 1.0
           },
           "function": "minecraft:set_count"
+        }
+      ],
+      "rolls": 1.0
+    },
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        },
+        {
+          "condition": "minecraft:inverted",
+          "term": {
+            "block": "alchemia:mushroom_rainbow_cap_seed",
+            "condition": "minecraft:block_state_property",
+            "properties": {
+              "age": "3"
+            }
+          }
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "alchemia:mushroom_rainbow_cap_seed"
         }
       ],
       "rolls": 1.0
