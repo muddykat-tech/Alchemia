@@ -9,6 +9,7 @@ import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyMachineCore;
 import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyMachineUpgrade;
 import muddykat.alchemia.registration.registers.BlockRegistry;
 import muddykat.alchemia.registration.registers.ItemRegistry;
+import net.minecraft.advancements.predicates.StatePropertiesPredicate;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.world.flag.FeatureFlags;
@@ -20,6 +21,8 @@ import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
 import net.minecraft.world.level.storage.loot.predicates.ExplosionCondition;
+import net.minecraft.world.level.storage.loot.predicates.LootItemBlockStatePropertyCondition;
+import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import net.minecraft.world.level.storage.loot.providers.number.NumberProvider;
 import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
@@ -38,7 +41,7 @@ public class BlockLoot extends BlockLootSubProvider {
     protected void generate() {
         for (Block block : getKnownBlocks()) {
             if (block instanceof BlockIngredient ingredient) {
-                add(block, LootTable.lootTable().withPool(randomAmountItem(ItemRegistry.getSeedByIngredient(ingredient.getIngredient()), 1, 4)));
+                add(block, ingredientDrops(block, ingredient));
             } else if (block instanceof BlockAlchemyCauldron) {
                 add(block, LootTable.lootTable().withPool(singleItem(Blocks.CAULDRON)).withPool(singleItem(Blocks.CAMPFIRE)));
             } else if (block instanceof BlockAlchemyMachineCore || block instanceof BlockAlchemyMachineUpgrade) {
@@ -78,17 +81,23 @@ public class BlockLoot extends BlockLootSubProvider {
         return blocks;
     }
 
+    private LootTable.Builder ingredientDrops(Block block, BlockIngredient ingredient) {
+        LootItemCondition.Builder mature = LootItemBlockStatePropertyCondition.hasBlockStateProperties(block)
+                .setProperties(StatePropertiesPredicate.Builder.properties()
+                        .hasProperty(ingredient.getAgeProperty(), ingredient.getMaxAge()));
+
+        return LootTable.lootTable()
+                .withPool(createPoolBuilder()
+                        .setRolls(ConstantValue.exactly(1))
+                        .when(mature)
+                        .add(LootItem.lootTableItem(ItemRegistry.getItemFromRegistry(ingredient.getIngredient().getRegistryName()))
+                                .apply(SetItemCountFunction.setCount(UniformGenerator.between(1, 2)))));
+    }
+
     private LootPool.Builder singleItem(ItemLike item) {
         return createPoolBuilder()
                 .setRolls(ConstantValue.exactly(1))
                 .add(LootItem.lootTableItem(item));
-    }
-
-    private LootPool.Builder randomAmountItem(ItemLike item, int min, int max) {
-        return createPoolBuilder()
-                .setRolls(ConstantValue.exactly(1))
-                .add(LootItem.lootTableItem(item))
-                .apply(SetItemCountFunction.setCount(UniformGenerator.between(min, max)));
     }
 
     private LootPool.Builder createPoolBuilder() {

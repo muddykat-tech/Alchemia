@@ -5,22 +5,29 @@
       "conditions": [
         {
           "condition": "minecraft:survives_explosion"
+        },
+        {
+          "block": "alchemia:flower_featherbloom_seed",
+          "condition": "minecraft:block_state_property",
+          "properties": {
+            "age": "3"
+          }
         }
       ],
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "alchemia:flower_featherbloom_seed"
-        }
-      ],
-      "functions": [
-        {
-          "count": {
-            "type": "minecraft:uniform",
-            "max": 4.0,
-            "min": 1.0
-          },
-          "function": "minecraft:set_count"
+          "functions": [
+            {
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 2.0,
+                "min": 1.0
+              },
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "alchemia:flower_featherbloom"
         }
       ],
       "rolls": 1.0
