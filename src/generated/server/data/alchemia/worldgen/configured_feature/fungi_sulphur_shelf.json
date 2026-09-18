@@ -38,8 +38,8 @@
               {
                 "type": "minecraft:matching_blocks",
                 "blocks": [
-                  "minecraft:sulfur",
-                  "minecraft:potent_sulfur"
+                  "minecraft:magma_block",
+                  "minecraft:basalt"
                 ],
                 "offset": [
                   0,
@@ -80,8 +80,8 @@
               {
                 "type": "minecraft:matching_blocks",
                 "blocks": [
-                  "minecraft:sulfur",
-                  "minecraft:potent_sulfur"
+                  "minecraft:magma_block",
+                  "minecraft:basalt"
                 ],
                 "offset": [
                   0,

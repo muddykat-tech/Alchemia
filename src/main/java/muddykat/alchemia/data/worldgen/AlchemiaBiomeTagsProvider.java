@@ -46,11 +46,21 @@ public class AlchemiaBiomeTagsProvider extends BiomeTagsProvider {
         wildPlantTag(AlchemiaBiomeTags.HAS_FROST_SAPPHIRE)
                 .addTag(Tags.Biomes.IS_COLD_OVERWORLD);
 
+        rootTag(AlchemiaBiomeTags.HAS_LAVA_ROOT, AlchemiaBiomeTags.HAS_FIRE_PLANTS);
+        rootTag(AlchemiaBiomeTags.HAS_TERRARIA, AlchemiaBiomeTags.HAS_EARTH_PLANTS);
+        rootTag(AlchemiaBiomeTags.HAS_DREAMBEET, AlchemiaBiomeTags.HAS_AIR_PLANTS);
+
         tag(AlchemiaBiomeTags.HAS_SULPHUR_SHELF)
-                .add(ResourceKey.create(Registries.BIOME, Identifier.withDefaultNamespace("sulfur_caves")));
+                .add(ResourceKey.create(Registries.BIOME, Identifier.withDefaultNamespace("basalt_deltas")));
     }
 
-    private net.minecraft.data.tags.TagAppender<Biome> wildPlantTag(TagKey<Biome> tag) {
+    private void rootTag(TagKey<Biome> tag, TagKey<Biome> alignment) {
+        tag(tag)
+                .addTag(alignment)
+                .add(ResourceKey.create(Registries.BIOME, Identifier.withDefaultNamespace("lush_caves")));
+    }
+
+    private net.minecraft.data.tags.TagAppender<ResourceKey<Biome>, Biome> wildPlantTag(TagKey<Biome> tag) {
         return tag(tag)
                 .remove(Tags.Biomes.IS_MUSHROOM)
                 .remove(Tags.Biomes.IS_MOUNTAIN);

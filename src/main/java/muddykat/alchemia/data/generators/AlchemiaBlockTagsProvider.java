@@ -8,13 +8,13 @@ import muddykat.alchemia.registration.registers.BlockRegistry;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
-import net.minecraft.data.tags.TagsProvider;
+import net.minecraft.data.tags.KeyTagProvider;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.block.Block;
 
 import java.util.concurrent.CompletableFuture;
 
-public class AlchemiaBlockTagsProvider extends TagsProvider<Block> {
+public class AlchemiaBlockTagsProvider extends KeyTagProvider<Block> {
 
     public AlchemiaBlockTagsProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
         super(output, Registries.BLOCK, registries, Alchemia.MODID);

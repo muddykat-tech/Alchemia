@@ -40,6 +40,10 @@ public class AlchemiaBiomeModifiers {
         BIOME_OVERRIDES.put(Ingredients.Firebell, Tags.Biomes.IS_FOREST);
         BIOME_OVERRIDES.put(Ingredients.Sulphur_Shelf, AlchemiaBiomeTags.HAS_SULPHUR_SHELF);
 
+        BIOME_OVERRIDES.put(Ingredients.Lava_Root, AlchemiaBiomeTags.HAS_LAVA_ROOT);
+        BIOME_OVERRIDES.put(Ingredients.Terraria, AlchemiaBiomeTags.HAS_TERRARIA);
+        BIOME_OVERRIDES.put(Ingredients.Dreambeet, AlchemiaBiomeTags.HAS_DREAMBEET);
+
         BIOME_OVERRIDES.put(Ingredients.Spellbloom, AlchemiaBiomeTags.HAS_SPELLBLOOM);
         BIOME_OVERRIDES.put(Ingredients.Boombloom, Tags.Biomes.IS_DARK_FOREST);
         BIOME_OVERRIDES.put(Ingredients.Arcane_Crystal, Tags.Biomes.IS_DARK_FOREST);

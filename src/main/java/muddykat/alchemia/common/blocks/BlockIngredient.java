@@ -26,12 +26,21 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.neoforged.neoforge.common.CommonHooks;
 
 public class BlockIngredient extends CropBlock {
 
     public static final MapCodec<BlockIngredient> CODEC = simpleCodec(properties -> new BlockIngredient(Ingredients.Firebell, IngredientType.Flower, properties));
 
     public static final IntegerProperty AGE = BlockStateProperties.AGE_3;
+
+    private static final VoxelShape[] ROOT_SHAPE_BY_AGE = new VoxelShape[]{
+            Block.box(0.0D, 12.0D, 0.0D, 16.0D, 16.0D, 16.0D),
+            Block.box(0.0D, 4.0D, 0.0D, 16.0D, 16.0D, 16.0D),
+            Block.box(0.0D, 1.0D, 0.0D, 16.0D, 16.0D, 16.0D),
+            Block.box(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D)};
 
     protected final Ingredients ingredientData;
     protected final IngredientType type;
@@ -98,6 +107,13 @@ public class BlockIngredient extends CropBlock {
     }
 
     @Override
+    protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+        return IngredientHabitat.of(ingredientData) == IngredientHabitat.CEILING
+                ? ROOT_SHAPE_BY_AGE[this.getAge(state)]
+                : super.getShape(state, level, pos, context);
+    }
+
+    @Override
     protected boolean mayPlaceOn(BlockState state, BlockGetter level, BlockPos pos) {
         return switch (IngredientHabitat.of(ingredientData)) {
             case SURFACE -> state.is(BlockTags.SUPPORTS_VEGETATION);
@@ -115,11 +131,15 @@ public class BlockIngredient extends CropBlock {
     }
 
     private static boolean isSulfur(BlockState state) {
-        return state.is(Blocks.SULFUR) || state.is(Blocks.POTENT_SULFUR);
+        return state.is(Blocks.MAGMA_BLOCK) || state.is(Blocks.BASALT);
+    }
+
+    public static boolean isRootCeiling(BlockState state) {
+        return state.is(BlockTags.DIRT) || state.is(BlockTags.BASE_STONE_OVERWORLD);
     }
 
     private boolean hasRootSupport(BlockGetter level, BlockPos pos) {
-        return level.getBlockState(pos.below()).isAir() && level.getBlockState(pos.above()).is(BlockTags.DIRT);
+        return level.getBlockState(pos.below()).isAir() && isRootCeiling(level.getBlockState(pos.above()));
     }
 
     @Override
@@ -140,6 +160,24 @@ public class BlockIngredient extends CropBlock {
         }
 
         return this.mayPlaceOn(level.getBlockState(below), level, below);
+    }
+
+    @Override
+    protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        if (!IngredientHabitat.of(ingredientData).isUnderground()) {
+            super.randomTick(state, level, pos, random);
+            return;
+        }
+
+        if (!level.isAreaLoaded(pos, 1)) return;
+
+        int age = this.getAge(state);
+        if (age >= this.getMaxAge()) return;
+
+        if (CommonHooks.canCropGrow(level, pos, state, random.nextInt(12) == 0)) {
+            level.setBlock(pos, state.setValue(AGE, age + 1), 2);
+            CommonHooks.fireCropGrowPost(level, pos, state);
+        }
     }
 
     @Override

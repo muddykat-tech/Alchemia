@@ -10,7 +10,7 @@ import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementRequirements;
 import net.minecraft.advancements.AdvancementType;
-import net.minecraft.advancements.triggers.InventoryChangeTrigger;
+import net.minecraft.advancements.criterion.InventoryChangeTrigger;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.advancements.AdvancementSubProvider;
 import net.minecraft.network.chat.Component;
@@ -89,7 +89,7 @@ public class AlchemiaAdvancementProvider implements AdvancementSubProvider {
 
     private AdvancementHolder child(Consumer<AdvancementHolder> output, AdvancementHolder parent, ItemLike icon,
                                     String name, AdvancementType type,
-                                    net.minecraft.advancements.triggers.Criterion<?> criterion) {
+                                    net.minecraft.advancements.Criterion<?> criterion) {
         return Advancement.Builder.advancement()
                 .parent(parent)
                 .display(icon, title(name), description(name), null, type, true, true, false)
@@ -97,8 +97,8 @@ public class AlchemiaAdvancementProvider implements AdvancementSubProvider {
                 .save(output, id(name));
     }
 
-    private static net.minecraft.advancements.predicates.ItemPredicate.Builder anyIngredient(HolderLookup.Provider registries) {
-        return net.minecraft.advancements.predicates.ItemPredicate.Builder.item()
+    private static net.minecraft.advancements.criterion.ItemPredicate.Builder anyIngredient(HolderLookup.Provider registries) {
+        return net.minecraft.advancements.criterion.ItemPredicate.Builder.item()
                 .of(registries.lookupOrThrow(net.minecraft.core.registries.Registries.ITEM), AlchemiaItemTags.INGREDIENTS);
     }
 

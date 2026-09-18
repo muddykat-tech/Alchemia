@@ -1,5 +1,6 @@
 {
   "type": "minecraft:crafting_shapeless",
+  "category": "misc",
   "ingredients": [
     "alchemia:mushroom_witch_mushroom",
     "minecraft:shears"

@@ -15,6 +15,9 @@ public class AlchemiaBiomeTags {
     public static final TagKey<Biome> HAS_SPELLBLOOM = tag("has_spellbloom");
     public static final TagKey<Biome> HAS_FROST_SAPPHIRE = tag("has_frost_sapphire");
     public static final TagKey<Biome> HAS_SULPHUR_SHELF = tag("has_sulphur_shelf");
+    public static final TagKey<Biome> HAS_LAVA_ROOT = tag("has_lava_root");
+    public static final TagKey<Biome> HAS_TERRARIA = tag("has_terraria");
+    public static final TagKey<Biome> HAS_DREAMBEET = tag("has_dreambeet");
 
     public static TagKey<Biome> forAlignment(IngredientAlignment alignment) {
         return switch (alignment) {

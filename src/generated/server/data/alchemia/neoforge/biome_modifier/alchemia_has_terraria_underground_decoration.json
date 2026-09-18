@@ -1,0 +1,6 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "#alchemia:has_terraria",
+  "features": "alchemia:roots_terraria",
+  "step": "underground_decoration"
+}

@@ -7,6 +7,6 @@ import net.minecraft.world.item.ItemStack;
 
 public class ClientHooks {
     public static void openGuide(ItemStack guide, InteractionHand hand) {
-        Minecraft.getInstance().gui.setScreen(new GuideScreen(guide, hand));
+        Minecraft.getInstance().setScreen(new GuideScreen(guide, hand));
     }
 }

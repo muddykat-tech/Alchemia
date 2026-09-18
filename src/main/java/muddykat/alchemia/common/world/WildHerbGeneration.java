@@ -11,6 +11,7 @@ import muddykat.alchemia.registration.registers.BlockRegistry;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderSet;
+import net.minecraft.tags.TagKey;
 import net.minecraft.core.Vec3i;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.BootstrapContext;
@@ -113,13 +114,15 @@ public class WildHerbGeneration {
                 case SURFACE -> BlockPredicate.matchesTag(BLOCK_BELOW, BlockTags.SUPPORTS_VEGETATION);
                 case SAND -> BlockPredicate.matchesTag(BLOCK_BELOW, BlockTags.SAND);
                 case UNDERGROUND -> BlockPredicate.matchesTag(BLOCK_BELOW, BlockTags.BASE_STONE_OVERWORLD);
-                case SULFUR -> BlockPredicate.matchesBlocks(BLOCK_BELOW, Blocks.SULFUR, Blocks.POTENT_SULFUR);
+                case SULFUR -> BlockPredicate.matchesBlocks(BLOCK_BELOW, Blocks.MAGMA_BLOCK, Blocks.BASALT);
                 case AQUATIC -> BlockPredicate.anyOf(
                         BlockPredicate.matchesTag(BLOCK_BELOW, BlockTags.SAND),
                         BlockPredicate.matchesTag(BLOCK_BELOW, BlockTags.DIRT),
                         BlockPredicate.matchesBlocks(BLOCK_BELOW, Blocks.GRAVEL, Blocks.CLAY));
                 case CEILING -> BlockPredicate.allOf(
-                        BlockPredicate.matchesTag(BLOCK_ABOVE, BlockTags.DIRT),
+                        BlockPredicate.anyOf(
+                                BlockPredicate.matchesTag(BLOCK_ABOVE, BlockTags.DIRT),
+                                BlockPredicate.matchesTag(BLOCK_ABOVE, BlockTags.BASE_STONE_OVERWORLD)),
                         BlockPredicate.matchesTag(BLOCK_BELOW, BlockTags.AIR));
                 case GEODE -> BlockPredicate.alwaysTrue();
             };
@@ -158,7 +161,7 @@ public class WildHerbGeneration {
                         PlacementUtils.HEIGHTMAP_TOP_SOLID, BiomeFilter.biome());
                 case CEILING -> List.of(RarityFilter.onAverageOnceEvery(Math.max(1, chance / 4)),
                         CountPlacement.of(24), InSquarePlacement.spread(),
-                        HeightRangePlacement.uniform(VerticalAnchor.absolute(30), VerticalAnchor.absolute(110)),
+                        HeightRangePlacement.uniform(VerticalAnchor.aboveBottom(8), VerticalAnchor.absolute(110)),
                         EnvironmentScanPlacement.scanningFor(Direction.UP, BlockPredicate.solid(), BlockPredicate.ONLY_IN_AIR_PREDICATE, 12),
                         RandomOffsetPlacement.vertical(ConstantInt.of(-1)),
                         BiomeFilter.biome());
@@ -222,8 +225,8 @@ public class WildHerbGeneration {
             .build());
 
     public static GeodeConfiguration crystalGeodeConfig(Ingredients ingredient, HolderGetter<Block> blocks) {
-        HolderSet<Block> cannotReplace = blocks.getOrThrow(BlockTags.FEATURES_CANNOT_REPLACE);
-        HolderSet<Block> invalidBlocks = blocks.getOrThrow(BlockTags.GEODE_INVALID_BLOCKS);
+        TagKey<Block> cannotReplace = BlockTags.FEATURES_CANNOT_REPLACE;
+        TagKey<Block> invalidBlocks = BlockTags.GEODE_INVALID_BLOCKS;
 
         return new GeodeConfiguration(
                 new GeodeBlockSettings(

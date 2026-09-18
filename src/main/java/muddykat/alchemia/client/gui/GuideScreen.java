@@ -14,7 +14,7 @@ import muddykat.alchemia.common.network.packets.PacketDiscover;
 import muddykat.alchemia.common.items.ItemIngredient;
 import java.util.Comparator;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.client.gui.Hud;
+import net.minecraft.client.gui.Gui;
 import muddykat.alchemia.common.items.helper.Ingredients;
 import muddykat.alchemia.common.items.helper.IngredientPath;
 import muddykat.alchemia.common.items.helper.IngredientAlignment;
@@ -556,7 +556,7 @@ public class GuideScreen extends Screen {
             return;
         }
 
-        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, Hud.getMobEffectSprite(selectedEffect.getEffect()), x, y - 2, 16, 16);
+        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, Gui.getMobEffectSprite(selectedEffect.getEffect()), x, y - 2, 16, 16);
         drawWrapped(graphics, selectedEffect.getEffect().value().getDisplayName(), x + 20, y + 2, RIGHT_PAGE_W - 20, INK_HEAD);
         y += 22;
 

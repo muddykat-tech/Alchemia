@@ -15,7 +15,7 @@ import org.joml.Matrix3x2fStack;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.input.KeyEvent;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
-import net.minecraft.client.gui.Hud;
+import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -536,7 +536,7 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
                 int ahead = index - filled.size();
                 if (ahead < incoming.size()) {
                     double beat = (Math.sin(Util.getMillis() / 300.0) + 1.0) * 0.5;
-                    graphics.blitSprite(RenderPipelines.GUI_TEXTURED, Hud.getMobEffectSprite(incoming.get(ahead)),
+                    graphics.blitSprite(RenderPipelines.GUI_TEXTURED, Gui.getMobEffectSprite(incoming.get(ahead)),
                             x + 1, y + 1, 16, 16, ARGB.color((int) Math.round(70 + beat * 110), 0xFFFFFF));
                 }
                 continue;
@@ -546,7 +546,7 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
             if (slot.redstone()) {
                 graphics.item(new ItemStack(Items.REDSTONE), x + 1, y + 1);
             } else {
-                graphics.blitSprite(RenderPipelines.GUI_TEXTURED, Hud.getMobEffectSprite(slot.effect()),
+                graphics.blitSprite(RenderPipelines.GUI_TEXTURED, Gui.getMobEffectSprite(slot.effect()),
                         x + 1, y + 1, 16, 16);
             }
 
@@ -741,7 +741,7 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
             drawThread(graphics, (int) Math.round(originX), (int) Math.round(originY), nx, ny, thickness);
 
             if (discovered) {
-                graphics.blitSprite(RenderPipelines.GUI_TEXTURED, Hud.getMobEffectSprite(entry.effect().getEffect()),
+                graphics.blitSprite(RenderPipelines.GUI_TEXTURED, Gui.getMobEffectSprite(entry.effect().getEffect()),
                         nx - half, ny - half, node, node, -1);
             } else {
                 drawUnknownSymbol(graphics, nx, ny, node);
