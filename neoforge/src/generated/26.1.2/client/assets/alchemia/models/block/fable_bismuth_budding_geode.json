@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "alchemia:block/minerals/fable_bismuth/fable_bismuth_budding_geode"
+  }
+}

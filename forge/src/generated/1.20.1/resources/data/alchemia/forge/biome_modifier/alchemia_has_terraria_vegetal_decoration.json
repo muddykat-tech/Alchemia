@@ -1,0 +1,6 @@
+{
+  "type": "forge:add_features",
+  "biomes": "#alchemia:has_terraria",
+  "features": "alchemia:roots_terraria",
+  "step": "vegetal_decoration"
+}

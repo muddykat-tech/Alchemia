@@ -1,0 +1,25 @@
+{
+  "render_type": "minecraft:cutout",
+  "loader": "forge:obj",
+  "model": "alchemia:models/alchemy_machine_top_upgrade.obj",
+  "emissive_ambient": false,
+  "flip_v": true,
+  "automatic_culling": false,
+  "gui_light": "side",
+  "transform": {
+    "translation": [0.34375, -1.3125, 0.15625]
+  },
+  "textures": {
+    "alchemy_machine": "alchemia:block/alchemy/alchemy_machine",
+    "particle": "alchemia:block/alchemy/alchemy_machine"
+  },
+  "display": {
+    "gui": { "rotation": [30, 225, 0], "translation": [0, 0, 0], "scale": [0.172, 0.172, 0.172] },
+    "ground": { "rotation": [0, 0, 0], "translation": [0, 3, 0], "scale": [0.069, 0.069, 0.069] },
+    "fixed": { "rotation": [0, 0, 0], "translation": [0, 0, 0], "scale": [0.138, 0.138, 0.138] },
+    "thirdperson_righthand": { "rotation": [75, 45, 0], "translation": [0, 2.5, 0], "scale": [0.103, 0.103, 0.103] },
+    "thirdperson_lefthand": { "rotation": [75, 45, 0], "translation": [0, 2.5, 0], "scale": [0.103, 0.103, 0.103] },
+    "firstperson_righthand": { "rotation": [0, 45, 0], "translation": [0, 0, 0], "scale": [0.11, 0.11, 0.11] },
+    "firstperson_lefthand": { "rotation": [0, 225, 0], "translation": [0, 0, 0], "scale": [0.11, 0.11, 0.11] }
+  }
+}

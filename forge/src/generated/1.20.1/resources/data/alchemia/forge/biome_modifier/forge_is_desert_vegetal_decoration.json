@@ -1,0 +1,6 @@
+{
+  "type": "forge:add_features",
+  "biomes": "#forge:is_desert",
+  "features": "alchemia:patch_wild_thornstick",
+  "step": "vegetal_decoration"
+}

@@ -1,0 +1,6 @@
+{
+  "type": "forge:add_features",
+  "biomes": "#minecraft:is_forest",
+  "features": "alchemia:patch_wild_firebell",
+  "step": "vegetal_decoration"
+}

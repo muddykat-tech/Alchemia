@@ -1,0 +1,39 @@
+{
+  "parent": "alchemia:cauldron",
+  "criteria": {
+    "unlocked": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "alchemia:nigredo"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.alchemia.nigredo.description"
+    },
+    "frame": "task",
+    "hidden": false,
+    "icon": {
+      "item": "alchemia:nigredo",
+      "nbt": "{Damage:0}"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.alchemia.nigredo.title"
+    }
+  },
+  "requirements": [
+    [
+      "unlocked"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

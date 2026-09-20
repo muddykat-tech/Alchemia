@@ -1,0 +1,6 @@
+{
+  "type": "forge:add_features",
+  "biomes": "#forge:is_mushroom",
+  "features": "alchemia:geode_fable_bismuth",
+  "step": "underground_decoration"
+}

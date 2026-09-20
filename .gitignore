@@ -23,4 +23,12 @@ run
 
 # Files from Forge MDK
 forge*changelog.txt
-/tools/
+/tools
+
+# Multi-version build outputs
+run-data
+run-*/
+common/build/
+forge/build/
+neoforge/build/
+local.properties

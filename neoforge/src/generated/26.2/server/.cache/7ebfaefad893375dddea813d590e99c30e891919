@@ -1,0 +1,4 @@
+// 26.2	2026-09-19T21:04:42.885463226	Tags for minecraft:block mod id alchemia
+4bd3bcdfce0ad5aad4393e8d5298676a0b696bcf data/minecraft/tags/block/mineable/pickaxe.json
+edba68045464d3e2dbd692072b160956119671c3 data/minecraft/tags/block/needs_iron_tool.json
+fa7157ee6aa1864024cc77653299fc8c94eeea68 data/minecraft/tags/block/sword_efficient.json

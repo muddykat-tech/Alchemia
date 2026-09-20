@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cross",
+  "textures": {
+    "cross": "alchemia:block/growth/flower/growth_stage_0"
+  }
+}

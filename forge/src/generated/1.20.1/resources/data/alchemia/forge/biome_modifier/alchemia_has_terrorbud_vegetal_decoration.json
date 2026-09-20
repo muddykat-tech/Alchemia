@@ -1,0 +1,6 @@
+{
+  "type": "forge:add_features",
+  "biomes": "#alchemia:has_terrorbud",
+  "features": "alchemia:patch_wild_terrorbud",
+  "step": "vegetal_decoration"
+}

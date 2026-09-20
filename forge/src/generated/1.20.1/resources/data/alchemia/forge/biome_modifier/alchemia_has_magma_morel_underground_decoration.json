@@ -1,0 +1,6 @@
+{
+  "type": "forge:add_features",
+  "biomes": "#alchemia:has_magma_morel",
+  "features": "alchemia:fungi_magma_morel",
+  "step": "underground_decoration"
+}

@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "alchemia:block/minerals/frost_sapphire/frost_sapphire_geode"
+  }
+}

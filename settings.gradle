@@ -1,6 +1,10 @@
 pluginManagement {
     repositories {
         gradlePluginPortal()
+        maven { name = 'NeoForged'; url = 'https://maven.neoforged.net/releases' }
+        maven { name = 'MinecraftForge'; url = 'https://maven.minecraftforge.net/' }
+        maven { name = 'Architectury'; url = 'https://maven.architectury.dev/' }
+        maven { name = 'Fabric'; url = 'https://maven.fabricmc.net/' }
     }
 }
 
@@ -9,3 +13,36 @@ plugins {
 }
 
 rootProject.name = 'Alchemia'
+
+def localProps = new Properties()
+def localFile = file('local.properties')
+if (localFile.exists()) localFile.withInputStream { localProps.load(it) }
+
+def activeMc = (settings.hasProperty('mc') ? settings.mc
+        : localProps.getProperty('mc') ?: settings.ext.has('default_mc') ? settings.default_mc : '26.1.2').toString()
+
+def propsFile = file("props/${activeMc}.properties")
+if (!propsFile.exists()) {
+    def available = file('props').listFiles()
+            .findAll { it.name.endsWith('.properties') }
+            .collect { it.name - '.properties' }
+            .sort()
+    throw new GradleException(
+            "Unknown Minecraft target '${activeMc}'. Available: ${available.join(', ')}. " +
+            "Select one with -Pmc=<version>.")
+}
+
+def mcProps = new Properties()
+propsFile.withInputStream { mcProps.load(it) }
+
+gradle.ext.activeMc = activeMc
+gradle.ext.mcProps = mcProps
+gradle.ext.loaderModule = mcProps.getProperty('loader_module')
+gradle.ext.allTargets = file('props').listFiles()
+        .findAll { it.name.endsWith('.properties') }
+        .collect { it.name - '.properties' }
+        .sort()
+
+include gradle.ext.loaderModule
+
+println "> Alchemia target: Minecraft ${activeMc} (${mcProps.getProperty('loader')}), Java ${mcProps.getProperty('java_version')}"

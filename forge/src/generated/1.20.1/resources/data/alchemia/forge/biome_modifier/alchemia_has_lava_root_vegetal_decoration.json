@@ -1,0 +1,6 @@
+{
+  "type": "forge:add_features",
+  "biomes": "#alchemia:has_lava_root",
+  "features": "alchemia:roots_lava_root",
+  "step": "vegetal_decoration"
+}

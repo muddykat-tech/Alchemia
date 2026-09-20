@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_evergreen_fern_ingredient": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:herb_evergreen_fern"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "alchemia:evergreen_fern_seeds_from_ingredient"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_evergreen_fern_ingredient"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "alchemia:evergreen_fern_seeds_from_ingredient"
+    ]
+  }
+}

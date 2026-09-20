@@ -1,0 +1,9 @@
+{
+  "type": "forge:add_features",
+  "biomes": "#minecraft:is_ocean",
+  "features": [
+    "alchemia:seabed_tangleweed",
+    "alchemia:seabed_flameweed"
+  ],
+  "step": "vegetal_decoration"
+}

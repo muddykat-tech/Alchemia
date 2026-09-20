@@ -1,0 +1,6 @@
+{
+  "type": "forge:add_features",
+  "biomes": "#alchemia:has_frost_sapphire",
+  "features": "alchemia:geode_frost_sapphire",
+  "step": "underground_decoration"
+}

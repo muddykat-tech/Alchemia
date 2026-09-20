@@ -1,0 +1,9 @@
+{
+  "type": "forge:add_features",
+  "biomes": "#alchemia:has_fire_plants",
+  "features": [
+    "alchemia:patch_wild_bloodthorn",
+    "alchemia:patch_wild_dragon_pepper"
+  ],
+  "step": "vegetal_decoration"
+}

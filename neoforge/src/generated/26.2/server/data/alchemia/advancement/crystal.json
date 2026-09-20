@@ -1,0 +1,47 @@
+{
+  "parent": "alchemia:cauldron",
+  "criteria": {
+    "unlocked": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:mineral_cloud_crystal"
+          },
+          {
+            "items": "alchemia:mineral_earth_pyrite"
+          },
+          {
+            "items": "alchemia:mineral_frost_sapphire"
+          },
+          {
+            "items": "alchemia:mineral_fire_citrine"
+          },
+          {
+            "items": "alchemia:mineral_arcane_crystal"
+          },
+          {
+            "items": "alchemia:mineral_fable_bismuth"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.alchemia.crystal.description"
+    },
+    "icon": {
+      "id": "alchemia:mineral_cloud_crystal"
+    },
+    "title": {
+      "translate": "advancements.alchemia.crystal.title"
+    }
+  },
+  "requirements": [
+    [
+      "unlocked"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

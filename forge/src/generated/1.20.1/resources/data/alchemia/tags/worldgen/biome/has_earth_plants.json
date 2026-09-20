@@ -1,0 +1,11 @@
+{
+  "remove": [
+    "#forge:is_mushroom",
+    "#forge:is_mountain",
+    "#forge:is_spooky"
+  ],
+  "values": [
+    "#minecraft:is_forest",
+    "#forge:is_plains"
+  ]
+}

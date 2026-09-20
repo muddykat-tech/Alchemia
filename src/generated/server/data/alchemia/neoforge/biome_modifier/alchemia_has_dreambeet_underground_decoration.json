@@ -1,6 +1,0 @@
-{
-  "type": "neoforge:add_features",
-  "biomes": "#alchemia:has_dreambeet",
-  "features": "alchemia:roots_dreambeet",
-  "step": "underground_decoration"
-}

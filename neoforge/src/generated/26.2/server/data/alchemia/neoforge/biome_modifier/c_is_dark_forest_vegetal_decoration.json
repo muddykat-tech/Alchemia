@@ -1,0 +1,6 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "#c:is_dark_forest",
+  "features": "alchemia:patch_wild_boombloom",
+  "step": "vegetal_decoration"
+}

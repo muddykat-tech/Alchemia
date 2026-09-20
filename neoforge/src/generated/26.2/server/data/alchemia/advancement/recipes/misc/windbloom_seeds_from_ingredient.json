@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "alchemia:windbloom_seeds_from_ingredient"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_windbloom_ingredient": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:flower_windbloom"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_windbloom_ingredient"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "alchemia:windbloom_seeds_from_ingredient"
+    ]
+  }
+}

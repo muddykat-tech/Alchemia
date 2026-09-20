@@ -1,0 +1,6 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "#alchemia:has_sulphur_shelf",
+  "features": "alchemia:fungi_sulphur_shelf",
+  "step": "underground_decoration"
+}

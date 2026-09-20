@@ -1,0 +1,9 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "#c:is_ocean",
+  "features": [
+    "alchemia:seabed_tangleweed",
+    "alchemia:seabed_flameweed"
+  ],
+  "step": "vegetal_decoration"
+}

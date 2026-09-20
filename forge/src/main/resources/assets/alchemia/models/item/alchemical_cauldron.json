@@ -1,0 +1,126 @@
+{
+  "render_type": "minecraft:cutout",
+  "parent": "alchemia:block/alchemical_cauldron",
+  "gui_light": "side",
+  "display": {
+    "thirdperson_righthand": {
+      "rotation": [
+        75,
+        45,
+        0
+      ],
+      "translation": [
+        0.455,
+        2.033,
+        -0.959
+      ],
+      "scale": [
+        0.233,
+        0.233,
+        0.233
+      ]
+    },
+    "firstperson_righthand": {
+      "rotation": [
+        0,
+        45,
+        0
+      ],
+      "translation": [
+        0.486,
+        -1.117,
+        0.216
+      ],
+      "scale": [
+        0.248,
+        0.248,
+        0.248
+      ]
+    },
+    "firstperson_lefthand": {
+      "rotation": [
+        0,
+        225,
+        0
+      ],
+      "translation": [
+        -0.486,
+        -1.117,
+        -0.216
+      ],
+      "scale": [
+        0.248,
+        0.248,
+        0.248
+      ]
+    },
+    "gui": {
+      "rotation": [
+        30,
+        225,
+        0
+      ],
+      "translation": [
+        -0.759,
+        -1.342,
+        -1.165
+      ],
+      "scale": [
+        0.388,
+        0.388,
+        0.388
+      ]
+    },
+    "ground": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "translation": [
+        0.119,
+        2.302,
+        0.31
+      ],
+      "scale": [
+        0.155,
+        0.155,
+        0.155
+      ]
+    },
+    "fixed": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "translation": [
+        0.238,
+        -1.396,
+        0.62
+      ],
+      "scale": [
+        0.31,
+        0.31,
+        0.31
+      ]
+    },
+    "on_shelf": {
+      "rotation": [
+        0,
+        180,
+        0
+      ],
+      "translation": [
+        -0.476,
+        -2.791,
+        -1.241
+      ],
+      "scale": [
+        0.62,
+        0.62,
+        0.62
+      ]
+    }
+  }
+}

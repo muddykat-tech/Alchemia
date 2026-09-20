@@ -1,0 +1,38 @@
+{
+  "parent": "alchemia:citrinitas",
+  "criteria": {
+    "unlocked": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "alchemia:rubedo"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.alchemia.rubedo.description"
+    },
+    "frame": "task",
+    "hidden": false,
+    "icon": {
+      "item": "alchemia:rubedo"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.alchemia.rubedo.title"
+    }
+  },
+  "requirements": [
+    [
+      "unlocked"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

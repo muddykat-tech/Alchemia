@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "alchemia:block/minerals/arcane_crystal/arcane_crystal_geode"
+  }
+}

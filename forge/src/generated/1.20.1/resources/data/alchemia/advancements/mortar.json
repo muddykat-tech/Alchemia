@@ -1,0 +1,38 @@
+{
+  "parent": "alchemia:guide",
+  "criteria": {
+    "unlocked": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "alchemia:mortar_and_pestle"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.alchemia.mortar.description"
+    },
+    "frame": "task",
+    "hidden": false,
+    "icon": {
+      "item": "alchemia:mortar_and_pestle"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.alchemia.mortar.title"
+    }
+  },
+  "requirements": [
+    [
+      "unlocked"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
