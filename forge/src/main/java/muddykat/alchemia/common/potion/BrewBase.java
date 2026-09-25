@@ -26,6 +26,24 @@ public final class BrewBase {
     public static final int MAX_FILL_LEVEL = 4;
     public static final int DEFAULT_TINT = 0xFFFFFF;
 
+    public enum DeadSpace {
+        RINGS,
+        FIELD;
+
+        public static final Codec<DeadSpace> CODEC = Codec.STRING.comapFlatMap(DeadSpace::parse, DeadSpace::key);
+
+        public String key() {
+            return name().toLowerCase(Locale.ROOT);
+        }
+
+        private static DataResult<DeadSpace> parse(String value) {
+            for (DeadSpace style : values()) {
+                if (style.key().equalsIgnoreCase(value.trim())) return DataResult.success(style);
+            }
+            return DataResult.error(() -> "Unknown dead space style: " + value);
+        }
+    }
+
     public static final Codec<Integer> COLOR_CODEC = Codec.either(Codec.STRING, Codec.INT)
             .comapFlatMap(either -> either.map(BrewBase::parseColor, DataResult::success),
                     color -> Either.left(String.format("#%06X", color & 0xFFFFFF)));
@@ -94,7 +112,8 @@ public final class BrewBase {
             ResourceLocation.CODEC.optionalFieldOf("texture").forGetter(BrewBase::texture),
             ResourceLocation.CODEC.optionalFieldOf("fluid").forGetter(BrewBase::fluid),
             ResourceLocation.CODEC.optionalFieldOf("unbrewed_result").forGetter(BrewBase::unbrewedResult),
-            Codec.STRING.listOf().optionalFieldOf("effects").forGetter(BrewBase::effects)
+            Codec.STRING.listOf().optionalFieldOf("effects").forGetter(BrewBase::effects),
+            DeadSpace.CODEC.optionalFieldOf("dead_space", DeadSpace.RINGS).forGetter(BrewBase::deadSpace)
     ).apply(instance, BrewBase::new)).flatXmap(BrewBase::verify, BrewBase::verify);
 
     public static final Codec<List<BrewBase>> LIST_CODEC = CODEC.listOf();
@@ -108,11 +127,12 @@ public final class BrewBase {
     private final Optional<ResourceLocation> fluid;
     private final Optional<ResourceLocation> unbrewedResult;
     private final Optional<List<String>> effects;
+    private final DeadSpace deadSpace;
     private final @Nullable Set<String> allowedEffects;
 
     public BrewBase(String id, List<Fill> fills, int instabilityCap, Optional<Integer> tint, boolean biomeTint,
                     Optional<ResourceLocation> texture, Optional<ResourceLocation> fluid, Optional<ResourceLocation> unbrewedResult,
-                    Optional<List<String>> effects) {
+                    Optional<List<String>> effects, DeadSpace deadSpace) {
         this.id = id;
         this.fills = List.copyOf(fills);
         this.instabilityCap = instabilityCap;
@@ -122,6 +142,7 @@ public final class BrewBase {
         this.fluid = fluid;
         this.unbrewedResult = unbrewedResult;
         this.effects = effects.map(List::copyOf);
+        this.deadSpace = deadSpace;
         this.allowedEffects = this.effects
                 .map(names -> names.stream().map(name -> name.toLowerCase(Locale.ROOT)).collect(Collectors.toSet()))
                 .orElse(null);
@@ -177,6 +198,10 @@ public final class BrewBase {
 
     public Optional<List<String>> effects() {
         return effects;
+    }
+
+    public DeadSpace deadSpace() {
+        return deadSpace;
     }
 
     public ItemStack unbrewedStack() {

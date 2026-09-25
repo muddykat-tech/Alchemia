@@ -1,5 +1,6 @@
 package muddykat.alchemia.common.items;
 
+import muddykat.alchemia.common.items.helper.IngredientPath;
 import net.minecraft.world.item.ItemStack;
 
 public class ItemNigredo extends ItemPathTool {
@@ -9,7 +10,7 @@ public class ItemNigredo extends ItemPathTool {
     }
 
     @Override
-    protected boolean canApply(ItemStack target) {
+    public boolean canApply(ItemStack target) {
         return ItemIngredient.canTrim(target);
     }
 
@@ -31,5 +32,17 @@ public class ItemNigredo extends ItemPathTool {
     @Override
     public String progressKey() {
         return "alchemia.tooltip.nigredo.progress";
+    }
+
+    @Override
+    public String actionKey() {
+        return "alchemia.gui.tool.erase";
+    }
+
+    @Override
+    public float progress(ItemStack target) {
+        double trimmed = ItemIngredient.trimOf(target) * IngredientPath.TRIM_STEP;
+        double remaining = ItemIngredient.pathLength(target);
+        return trimmed + remaining <= 0.0 ? 0.0F : (float) (trimmed / (trimmed + remaining));
     }
 }

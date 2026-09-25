@@ -7,6 +7,7 @@ import muddykat.alchemia.common.items.ItemMortarPestle;
 import muddykat.alchemia.common.items.helper.Ingredients;
 import muddykat.alchemia.common.potion.BrewBase;
 import muddykat.alchemia.common.potion.BrewBases;
+import muddykat.alchemia.common.items.helper.PathPoint;
 import muddykat.alchemia.common.potion.PotionMap;
 import muddykat.alchemia.common.utility.ParticleUtils;
 import muddykat.alchemia.common.utility.TextUtils;
@@ -101,6 +102,8 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
     private final int maxWaterLevel = BrewBase.MAX_FILL_LEVEL;
     private ItemStackHandler inventory;
 
+    private static final int ALIGNMENT_SPACE = 1;
+
     private int xAlignment;
     private int yAlignment;
 
@@ -152,6 +155,11 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         waterLevel = tag.getInt("waterLevel");
         xAlignment = tag.contains("xAlignment") ? tag.getInt("xAlignment") : balanceAlignment;
         yAlignment = tag.contains("yAlignment") ? tag.getInt("yAlignment") : balanceAlignment;
+
+        if (tag.getInt("alignmentSpace") < ALIGNMENT_SPACE) {
+            xAlignment = (int) Math.round(xAlignment * PotionMap.CELL);
+            yAlignment = (int) Math.round(yAlignment * PotionMap.CELL);
+        }
         needsUpdate = tag.getBoolean("needsUpdate");
         cooldown = tag.getInt("cooldown");
 
@@ -182,6 +190,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         tag.putInt("waterLevel", waterLevel);
         tag.putInt("xAlignment", xAlignment);
         tag.putInt("yAlignment", yAlignment);
+        tag.putInt("alignmentSpace", ALIGNMENT_SPACE);
         tag.putBoolean("needsUpdate", needsUpdate);
         tag.putInt("cooldown", cooldown);
 
@@ -590,9 +599,16 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
             inventory.setStackInSlot(slot, ItemStack.EMPTY);
         }
 
-        for (ItemStack queuedStack : queued) {
-            if (!level.isClientSide()) IngredientDiscovery.record(player, queuedStack);
-            addIngredient(queuedStack);
+        for (PotionMap.RouteLeg leg : map().route(xAlignment, yAlignment, queued)) {
+            IngredientDiscovery.record(player, leg.stack());
+
+            if (leg.stack().is(Items.REDSTONE)) {
+                addRedstoneCharge();
+                continue;
+            }
+
+            applyLeg(leg.stack(), leg.path());
+            if (spoiled) break;
         }
 
         applyRedstone();
@@ -644,14 +660,13 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
     }
 
     public int[] previewAlignment(List<ItemStack> queued) {
-        int x = xAlignment;
-        int y = yAlignment;
-        for (ItemStack queuedStack : queued) {
-            int[] landing = map().step(x, y, queuedStack);
-            x = landing[0];
-            y = landing[1];
+        if (!PotionMap.isReady()) return new int[]{xAlignment, yAlignment};
+
+        PathPoint at = new PathPoint(xAlignment, yAlignment);
+        for (PotionMap.RouteLeg leg : map().route(xAlignment, yAlignment, queued)) {
+            at = leg.end(at.x(), at.y());
         }
-        return new int[]{x, y};
+        return new int[]{at.roundedX(), at.roundedY()};
     }
 
     public List<String> getAddedIngredients() {
@@ -690,8 +705,11 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
 
         if (!isBrewingInput(stack)) return;
 
+        applyLeg(stack, map().walk(this.xAlignment, this.yAlignment, stack));
+    }
+
+    private void applyLeg(ItemStack stack, PotionMap.PotionPath path) {
         BlockPos here = getBlockPos();
-        PotionMap.PotionPath path = map().walk(this.xAlignment, this.yAlignment, stack);
 
         if (path.dead()) {
             String deadEntry = encodeOf(stack);
@@ -699,9 +717,9 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
 
             if (!destabilise()) return;
 
-            int[] stranded = path.cells().get(0);
-            this.xAlignment = stranded[0];
-            this.yAlignment = stranded[1];
+            PathPoint stranded = path.end();
+            this.xAlignment = stranded.roundedX();
+            this.yAlignment = stranded.roundedY();
             alchemicalCauldronData.set(1, xAlignment);
             alchemicalCauldronData.set(2, yAlignment);
 
@@ -721,15 +739,13 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         String entry = encodeOf(stack);
         if (entry != null) addedIngredients.add(entry);
 
-        List<int[]> cells = path.cells();
-        for (int i = 0; i < cells.size() - 1; i++) {
-            PotionMap.PotionEffectPosition passed = map().getEffectAt(cells.get(i)[0], cells.get(i)[1]);
-            if (passed != null) applyEffectPosition(passed);
+        for (PotionMap.MapEntry passed : map().touched(path.points(), false)) {
+            applyEffectPosition(passed.effect());
         }
 
-        int[] landing = cells.get(cells.size() - 1);
-        this.xAlignment = landing[0];
-        this.yAlignment = landing[1];
+        PathPoint landing = path.end();
+        this.xAlignment = landing.roundedX();
+        this.yAlignment = landing.roundedY();
 
         updateEffectList();
         BlockPos pos = getBlockPos();
@@ -754,9 +770,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         alchemicalCauldronData.set(1, xAlignment);
         alchemicalCauldronData.set(2, yAlignment);
 
-        int[] alignment = {getXAlignment(), getYAlignment()};
-
-        applyEffectPosition(map().getEffectPotion(alignment));
+        applyEffectPosition(map().getEffectPotion(xAlignment, yAlignment));
 
         BlockPos pos = getBlockPos();
         if (level.isClientSide() && additionTimer < 1) {
@@ -845,34 +859,31 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         int y = yAlignment;
         int simulated = instability;
 
-        for (ItemStack stack : queued) {
-            if (stack.is(Items.REDSTONE)) continue;
+        for (PotionMap.RouteLeg leg : map().route(xAlignment, yAlignment, queued)) {
+            if (leg.stack().is(Items.REDSTONE)) continue;
 
-            PotionMap.PotionPath path = map().walk(x, y, stack);
+            PotionMap.PotionPath path = leg.path();
             if (path.dead()) {
                 simulated++;
                 if (simulated >= getInstabilityCap()) return null;
 
-                int[] stranded = path.cells().get(0);
-                x = stranded[0];
-                y = stranded[1];
+                PathPoint stranded = path.end();
+                x = stranded.roundedX();
+                y = stranded.roundedY();
                 continue;
             }
             if (path.stalled()) continue;
 
-            List<int[]> cells = path.cells();
-            for (int i = 0; i < cells.size() - 1; i++) {
-                PotionMap.PotionEffectPosition passed = map().getEffectAt(cells.get(i)[0], cells.get(i)[1]);
-                if (passed != null && passed.getEffect() != null) {
-                    potencies.put(passed.getEffect(), passed.getStrength() + 1);
-                }
+            for (PotionMap.MapEntry passed : map().touched(path.points(), false)) {
+                if (passed.effect().getEffect() == null) continue;
+                potencies.put(passed.effect().getEffect(), passed.effect().getStrength() + 1);
             }
 
-            int[] end = path.end(x, y);
-            x = end[0];
-            y = end[1];
+            PathPoint end = path.end(x, y);
+            x = end.roundedX();
+            y = end.roundedY();
 
-            PotionMap.PotionEffectPosition landing = map().getEffectPotion(new int[]{x, y});
+            PotionMap.PotionEffectPosition landing = map().getEffectPotion(x, y);
             if (landing.getEffect() != null) {
                 potencies.put(landing.getEffect(), landing.getStrength() + 1);
             }

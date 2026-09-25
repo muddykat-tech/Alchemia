@@ -23,9 +23,16 @@ import java.util.concurrent.CompletableFuture;
 
 public class AlchemiaRecipeProvider extends RecipeProvider {
 
+#if MC_VER >= 26300
+    public AlchemiaRecipeProvider(net.minecraft.data.worldgen.BootstrapContext<Recipe<?>> recipeOutput,
+                                  net.minecraft.data.worldgen.BootstrapContext<net.minecraft.advancements.Advancement> advancementOutput) {
+        super(recipeOutput, advancementOutput);
+    }
+#else
     public AlchemiaRecipeProvider(HolderLookup.Provider registries, RecipeOutput output) {
         super(registries, output);
     }
+#endif
 
     @Override
     protected void buildRecipes() {
@@ -90,6 +97,11 @@ public class AlchemiaRecipeProvider extends RecipeProvider {
         return ResourceKey.create(Registries.RECIPE, Identifier.fromNamespaceAndPath(Alchemia.MODID, name));
     }
 
+#if MC_VER >= 26300
+    public static net.minecraft.core.registries.MultiRegistryBootstrap bootstrap() {
+        return RecipeProvider.asBootstrap(AlchemiaRecipeProvider::new);
+    }
+#else
     public static class Runner extends RecipeProvider.Runner {
         public Runner(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
             super(output, registries);
@@ -105,4 +117,5 @@ public class AlchemiaRecipeProvider extends RecipeProvider {
             return "Alchemia Recipes";
         }
     }
+#endif
 }

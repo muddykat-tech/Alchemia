@@ -10,7 +10,13 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 public class AlchemiaLootProvider extends LootTableProvider {
+#if MC_VER >= 26300
+    public AlchemiaLootProvider() {
+        super(Set.of(), List.of(new SubProviderEntry(BlockLoot::new, LootContextParamSets.BLOCK)));
+    }
+#else
     public AlchemiaLootProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
         super(output, Set.of(), List.of(new SubProviderEntry(BlockLoot::new, LootContextParamSets.BLOCK)), registries);
     }
+#endif
 }

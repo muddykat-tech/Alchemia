@@ -4,9 +4,11 @@ import muddykat.alchemia.common.blocks.tileentity.container.AlchemicalCauldronMe
 import muddykat.alchemia.common.items.ItemIngredient;
 import muddykat.alchemia.common.items.ItemRubedo;
 import muddykat.alchemia.common.items.ItemMortarPestle;
+import muddykat.alchemia.common.items.helper.IngredientTool;
 import muddykat.alchemia.common.items.helper.Ingredients;
 import muddykat.alchemia.common.potion.BrewBase;
 import muddykat.alchemia.common.potion.BrewBases;
+import muddykat.alchemia.common.items.helper.PathPoint;
 import muddykat.alchemia.common.potion.PotionMap;
 import muddykat.alchemia.common.utility.ParticleUtils;
 import muddykat.alchemia.common.utility.TextUtils;
@@ -27,10 +29,12 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
+import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
@@ -89,10 +93,19 @@ import static net.minecraft.world.InteractionResult.SUCCESS;
 
 public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements MenuProvider, Nameable {
 
-    private static final int INGREDIENT_SLOT_COUNT = 6;
-    public static final int REDSTONE_SLOT = 6;
-    public static final int GUNPOWDER_SLOT = 7;
-    private static final int INVENTORY_SLOT_COUNT = 8;
+    public static final int ACTIVE_SLOT = 0;
+    public static final int REDSTONE_SLOT = 1;
+    public static final int GUNPOWDER_SLOT = 2;
+    public static final int TOOL_SLOT = 3;
+    private static final int INVENTORY_SLOT_COUNT = 4;
+    public static final int MAX_QUEUE = 12;
+
+    private static final int ALIGNMENT_SPACE = 1;
+
+
+    private static final int LEGACY_SLOT_COUNT = 8;
+    private static final int LEGACY_REDSTONE_SLOT = 6;
+    private static final int LEGACY_GUNPOWDER_SLOT = 7;
     public static final int REDSTONE_DURATION_BONUS = 1200;
 
     private int waterLevel;
@@ -112,6 +125,8 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
     private int additionTimer = 20;
     private boolean needsUpdate = false;
     private final List<String> addedIngredients = new ArrayList<>();
+    private final List<ItemStack> queue = new ArrayList<>();
+    private long lastApply = Long.MIN_VALUE;
     private String brewName = "";
     private boolean spoiled = false;
     private BrewBase base = BrewBases.defaultBase();
@@ -143,6 +158,12 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
+
+        queue.clear();
+        for (ItemStack stack : input.read("queue", ItemStack.CODEC.listOf()).orElse(List.of())) {
+            if (!stack.isEmpty() && queue.size() < MAX_QUEUE) queue.add(stack);
+        }
+
         input.child("Inventory").ifPresent(saved -> {
             inventory.deserialize(saved);
             inventory = resizeInventory(inventory);
@@ -150,6 +171,11 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         waterLevel = input.getIntOr("waterLevel", 0);
         xAlignment = input.getIntOr("xAlignment", balanceAlignment);
         yAlignment = input.getIntOr("yAlignment", balanceAlignment);
+
+        if (input.getIntOr("alignmentSpace", 0) < ALIGNMENT_SPACE) {
+            xAlignment = (int) Math.round(xAlignment * PotionMap.CELL);
+            yAlignment = (int) Math.round(yAlignment * PotionMap.CELL);
+        }
         needsUpdate = input.getBooleanOr("needsUpdate", false);
         cooldown = input.getIntOr("cooldown", 0);
 
@@ -174,9 +200,11 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         output.putInt("waterLevel", waterLevel);
         output.putInt("xAlignment", xAlignment);
         output.putInt("yAlignment", yAlignment);
+        output.putInt("alignmentSpace", ALIGNMENT_SPACE);
         output.putBoolean("needsUpdate", needsUpdate);
         output.putInt("cooldown", cooldown);
         output.store("addedIngredients", Codec.STRING.listOf(), List.copyOf(addedIngredients));
+        output.store("queue", ItemStack.CODEC.listOf(), List.copyOf(queue));
         output.store("effects", MobEffectInstance.CODEC.listOf(), List.copyOf(effectList));
         output.putString("brewName", brewName);
         output.putBoolean("spoiled", spoiled);
@@ -313,7 +341,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
             return InteractionResult.FAIL;
         }
 
-        if (recipe.requiresGrinding() && !hasMortar(player)) {
+        if (recipe.requiresGrinding() && !playerHasMortar(player)) {
             serverPlayer.sendOverlayMessage(Component.translatable("alchemia.brew.needs_mortar"));
             return InteractionResult.FAIL;
         }
@@ -366,7 +394,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         return required;
     }
 
-    private static boolean hasMortar(Player player) {
+    private static boolean playerHasMortar(Player player) {
         for (ItemStack stack : player.getInventory()) {
             if (stack.getItem() instanceof ItemMortarPestle) return true;
         }
@@ -415,11 +443,28 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
     }
 
     private ItemStacksResourceHandler resizeInventory(ItemStacksResourceHandler saved) {
-        if (saved.size() >= INVENTORY_SLOT_COUNT) return saved;
+        if (saved.size() == INVENTORY_SLOT_COUNT) return saved;
 
         ItemStacksResourceHandler resized = createHandler();
-        for (int slot = 0; slot < saved.size(); slot++) {
-            resized.set(slot, saved.getResource(slot), saved.getAmountAsInt(slot));
+        if (saved.size() < LEGACY_SLOT_COUNT) {
+            for (int slot = 0; slot < Math.min(saved.size(), INVENTORY_SLOT_COUNT); slot++) {
+                resized.set(slot, saved.getResource(slot), saved.getAmountAsInt(slot));
+            }
+            return resized;
+        }
+
+        resized.set(ACTIVE_SLOT, saved.getResource(0), saved.getAmountAsInt(0));
+        resized.set(REDSTONE_SLOT, saved.getResource(LEGACY_REDSTONE_SLOT), saved.getAmountAsInt(LEGACY_REDSTONE_SLOT));
+        resized.set(GUNPOWDER_SLOT, saved.getResource(LEGACY_GUNPOWDER_SLOT), saved.getAmountAsInt(LEGACY_GUNPOWDER_SLOT));
+
+        for (int slot = 1; slot < LEGACY_REDSTONE_SLOT; slot++) {
+            ItemResource resource = saved.getResource(slot);
+            if (resource.isEmpty()) continue;
+
+            int amount = saved.getAmountAsInt(slot);
+            for (int copy = 0; copy < amount && queue.size() < MAX_QUEUE; copy++) {
+                queue.add(resource.toStack(1));
+            }
         }
         return resized;
     }
@@ -428,7 +473,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         return new ItemStacksResourceHandler(INVENTORY_SLOT_COUNT) {
             @Override
             protected int getCapacity(int index, ItemResource resource) {
-                return index == REDSTONE_SLOT ? 64 : 1;
+                return index == REDSTONE_SLOT || index == ACTIVE_SLOT ? 64 : 1;
             }
         };
     }
@@ -545,16 +590,115 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
     }
 
     public List<ItemStack> getQueuedIngredients() {
-        List<ItemStack> queued = new ArrayList<>();
-        for (int slot = 0; slot < INGREDIENT_SLOT_COUNT; slot++) {
-            int amount = inventory.getAmountAsInt(slot);
-            if (amount <= 0) continue;
-            ItemResource resource = inventory.getResource(slot);
-            if (isBrewingInput(resource.toStack(1))) {
-                for (int i = 0; i < amount; i++) queued.add(resource.toStack(1));
-            }
-        }
+        List<ItemStack> queued = new ArrayList<>(queue.size());
+        for (ItemStack stack : queue) queued.add(stack.copy());
         return queued;
+    }
+
+    public int queueSize() {
+        return queue.size();
+    }
+
+    public boolean queueFull() {
+        return queue.size() >= MAX_QUEUE;
+    }
+
+    public ItemStack getActiveIngredient() {
+        int amount = inventory.getAmountAsInt(ACTIVE_SLOT);
+        return amount <= 0 ? ItemStack.EMPTY : inventory.getResource(ACTIVE_SLOT).toStack(amount);
+    }
+
+    public ItemStack getTool() {
+        int amount = inventory.getAmountAsInt(TOOL_SLOT);
+        return amount <= 0 ? ItemStack.EMPTY : inventory.getResource(TOOL_SLOT).toStack(amount);
+    }
+
+    public boolean hasTool() {
+        return IngredientTool.of(getTool()) != null;
+    }
+
+    public boolean canApplyTool() {
+        IngredientTool tool = IngredientTool.of(getTool());
+        return tool != null && tool.canApply(getActiveIngredient());
+    }
+
+    public boolean canQueue() {
+        return !spoiled && !queueFull() && isBrewingInput(getActiveIngredient());
+    }
+
+    private void setActive(ItemStack stack) {
+        if (stack.isEmpty()) {
+            inventory.set(ACTIVE_SLOT, ItemResource.EMPTY, 0);
+        } else {
+            inventory.set(ACTIVE_SLOT, ItemResource.of(stack), stack.getCount());
+        }
+    }
+
+    public InteractionResult queueActive(Player player) {
+        if (level == null || level.isClientSide()) return InteractionResult.SUCCESS;
+
+        ItemStack active = getActiveIngredient();
+        if (!isBrewingInput(active)) {
+            message(player, "alchemia.brew.no_ingredient");
+            return InteractionResult.FAIL;
+        }
+        if (queueFull()) {
+            message(player, "alchemia.brew.queue_full");
+            return InteractionResult.FAIL;
+        }
+
+        queue.add(active.copyWithCount(1));
+        active.shrink(1);
+        setActive(active);
+
+        BlockPos pos = getBlockPos();
+        level.playSound(null, pos, SoundEvents.BREWING_STAND_BREW, SoundSource.BLOCKS, 0.4F, 1.5F);
+        setChanged();
+        sync();
+        return InteractionResult.SUCCESS;
+    }
+
+    public InteractionResult unqueue(Player player, int index) {
+        if (level == null || level.isClientSide()) return InteractionResult.SUCCESS;
+        if (index < 0 || index >= queue.size()) return InteractionResult.FAIL;
+
+        ItemStack removed = queue.remove(index);
+        if (!player.getInventory().add(removed)) {
+            Containers.dropItemStack(level, player.getX(), player.getY(), player.getZ(), removed);
+        }
+
+        setChanged();
+        sync();
+        return InteractionResult.SUCCESS;
+    }
+
+    public boolean applyTool(Player player) {
+        if (!(level instanceof ServerLevel server)) return false;
+
+        ItemStack held = getTool();
+        IngredientTool tool = IngredientTool.of(held);
+        if (tool == null) return false;
+
+        ItemStack active = getActiveIngredient();
+        if (!tool.canApply(active)) return false;
+
+        long now = server.getGameTime();
+        if (now < lastApply + Math.max(1, tool.ticksPerStep() / 2)) return false;
+        lastApply = now;
+
+        tool.applyStep(active, held, server, player);
+        setActive(active);
+
+        if (held.isEmpty()) {
+            inventory.set(TOOL_SLOT, ItemResource.EMPTY, 0);
+        } else {
+            inventory.set(TOOL_SLOT, ItemResource.of(held), held.getCount());
+        }
+
+        tool.playStep(server, getBlockPos());
+        setChanged();
+        sync();
+        return true;
     }
 
     public InteractionResult commitQueue(Player player) {
@@ -570,13 +714,18 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
             return InteractionResult.FAIL;
         }
 
-        for (int slot = 0; slot < INGREDIENT_SLOT_COUNT; slot++) {
-            inventory.set(slot, ItemResource.EMPTY, 0);
-        }
+        queue.clear();
 
-        for (ItemStack queuedStack : queued) {
-            if (!level.isClientSide()) IngredientDiscovery.record(player, queuedStack);
-            addIngredient(queuedStack);
+        for (PotionMap.RouteLeg leg : map().route(xAlignment, yAlignment, queued)) {
+            IngredientDiscovery.record(player, leg.stack());
+
+            if (leg.stack().is(Items.REDSTONE)) {
+                addRedstoneCharge();
+                continue;
+            }
+
+            applyLeg(leg.stack(), leg.path());
+            if (spoiled) break;
         }
 
         applyRedstone();
@@ -628,14 +777,13 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
     }
 
     public int[] previewAlignment(List<ItemStack> queued) {
-        int x = xAlignment;
-        int y = yAlignment;
-        for (ItemStack queuedStack : queued) {
-            int[] landing = map().step(x, y, queuedStack);
-            x = landing[0];
-            y = landing[1];
+        if (!PotionMap.isReady()) return new int[]{xAlignment, yAlignment};
+
+        PathPoint at = new PathPoint(xAlignment, yAlignment);
+        for (PotionMap.RouteLeg leg : map().route(xAlignment, yAlignment, queued)) {
+            at = leg.end(at.x(), at.y());
         }
-        return new int[]{x, y};
+        return new int[]{at.roundedX(), at.roundedY()};
     }
 
     public List<String> getAddedIngredients() {
@@ -674,8 +822,11 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
 
         if (!isBrewingInput(stack)) return;
 
+        applyLeg(stack, map().walk(this.xAlignment, this.yAlignment, stack));
+    }
+
+    private void applyLeg(ItemStack stack, PotionMap.PotionPath path) {
         BlockPos here = getBlockPos();
-        PotionMap.PotionPath path = map().walk(this.xAlignment, this.yAlignment, stack);
 
         if (path.dead()) {
             String deadEntry = encodeOf(stack);
@@ -683,9 +834,9 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
 
             if (!destabilise()) return;
 
-            int[] stranded = path.cells().get(0);
-            this.xAlignment = stranded[0];
-            this.yAlignment = stranded[1];
+            PathPoint stranded = path.end();
+            this.xAlignment = stranded.roundedX();
+            this.yAlignment = stranded.roundedY();
             alchemicalCauldronData.set(1, xAlignment);
             alchemicalCauldronData.set(2, yAlignment);
 
@@ -705,15 +856,13 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         String entry = encodeOf(stack);
         if (entry != null) addedIngredients.add(entry);
 
-        List<int[]> cells = path.cells();
-        for (int i = 0; i < cells.size() - 1; i++) {
-            PotionMap.PotionEffectPosition passed = map().getEffectAt(cells.get(i)[0], cells.get(i)[1]);
-            if (passed != null) applyEffectPosition(passed);
+        for (PotionMap.MapEntry passed : map().touched(path.points(), false)) {
+            applyEffectPosition(passed.effect());
         }
 
-        int[] landing = cells.get(cells.size() - 1);
-        this.xAlignment = landing[0];
-        this.yAlignment = landing[1];
+        PathPoint landing = path.end();
+        this.xAlignment = landing.roundedX();
+        this.yAlignment = landing.roundedY();
 
         updateEffectList();
         BlockPos pos = getBlockPos();
@@ -738,9 +887,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         alchemicalCauldronData.set(1, xAlignment);
         alchemicalCauldronData.set(2, yAlignment);
 
-        int[] alignment = {getXAlignment(), getYAlignment()};
-
-        applyEffectPosition(map().getEffectPotion(alignment));
+        applyEffectPosition(map().getEffectPotion(xAlignment, yAlignment));
 
         BlockPos pos = getBlockPos();
         if (level.isClientSide() && additionTimer < 1) {
@@ -830,34 +977,31 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         int y = yAlignment;
         int simulated = instability;
 
-        for (ItemStack stack : queued) {
-            if (stack.is(Items.REDSTONE)) continue;
+        for (PotionMap.RouteLeg leg : map().route(xAlignment, yAlignment, queued)) {
+            if (leg.stack().is(Items.REDSTONE)) continue;
 
-            PotionMap.PotionPath path = map().walk(x, y, stack);
+            PotionMap.PotionPath path = leg.path();
             if (path.dead()) {
                 simulated++;
                 if (simulated >= getInstabilityCap()) return null;
 
-                int[] stranded = path.cells().get(0);
-                x = stranded[0];
-                y = stranded[1];
+                PathPoint stranded = path.end();
+                x = stranded.roundedX();
+                y = stranded.roundedY();
                 continue;
             }
             if (path.stalled()) continue;
 
-            List<int[]> cells = path.cells();
-            for (int i = 0; i < cells.size() - 1; i++) {
-                PotionMap.PotionEffectPosition passed = map().getEffectAt(cells.get(i)[0], cells.get(i)[1]);
-                if (passed != null && passed.getEffect() != null) {
-                    potencies.put(passed.getEffect(), passed.getStrength() + 1);
-                }
+            for (PotionMap.MapEntry passed : map().touched(path.points(), false)) {
+                if (passed.effect().getEffect() == null) continue;
+                potencies.put(passed.effect().getEffect(), passed.effect().getStrength() + 1);
             }
 
-            int[] end = path.end(x, y);
-            x = end[0];
-            y = end[1];
+            PathPoint end = path.end(x, y);
+            x = end.roundedX();
+            y = end.roundedY();
 
-            PotionMap.PotionEffectPosition landing = map().getEffectPotion(new int[]{x, y});
+            PotionMap.PotionEffectPosition landing = map().getEffectPotion(x, y);
             if (landing.getEffect() != null) {
                 potencies.put(landing.getEffect(), landing.getStrength() + 1);
             }

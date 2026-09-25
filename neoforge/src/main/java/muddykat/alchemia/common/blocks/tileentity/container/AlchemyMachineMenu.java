@@ -75,7 +75,11 @@ public class AlchemyMachineMenu extends AbstractContainerMenu {
         addSlot(new ResourceHandlerSlot(handler, handler::set, TileEntityAlchemyMachineCore.FUEL_SLOT, FUEL_X, FUEL_Y) {
             @Override
             public boolean mayPlace(ItemStack stack) {
+#if MC_VER >= 26300
+                return core.getLevel() != null && stack.has(net.minecraft.core.component.DataComponents.COOKING_FUEL);
+#else
                 return core.getLevel() != null && core.getLevel().fuelValues().isFuel(stack);
+#endif
             }
         });
 
@@ -195,7 +199,11 @@ public class AlchemyMachineMenu extends AbstractContainerMenu {
             if (!moveItemStackTo(stack, machineSlots, this.slots.size(), true)) return ItemStack.EMPTY;
         } else if (potionSlots > 0 && TileEntityAlchemyMachineUpgrade.isPotion(stack)) {
             if (!moveItemStackTo(stack, potionStart, potionStart + potionSlots, false)) return ItemStack.EMPTY;
+#if MC_VER >= 26300
+        } else if (core.getLevel() != null && stack.has(net.minecraft.core.component.DataComponents.COOKING_FUEL)) {
+#else
         } else if (core.getLevel() != null && core.getLevel().fuelValues().isFuel(stack)) {
+#endif
             if (!moveItemStackTo(stack, TileEntityAlchemyMachineCore.FUEL_SLOT, TileEntityAlchemyMachineCore.FUEL_SLOT + 1, false)) return ItemStack.EMPTY;
         } else {
             if (!moveItemStackTo(stack, TileEntityAlchemyMachineCore.INPUT_SLOT, TileEntityAlchemyMachineCore.INPUT_SLOT + 1, false)) return ItemStack.EMPTY;

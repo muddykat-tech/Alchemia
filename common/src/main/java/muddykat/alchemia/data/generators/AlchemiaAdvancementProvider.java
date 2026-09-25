@@ -26,19 +26,42 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+#if MC_VER >= 26300
+public class AlchemiaAdvancementProvider extends AdvancementSubProvider {
+
+    public AlchemiaAdvancementProvider(net.minecraft.data.worldgen.BootstrapContext<Advancement> output) {
+        super(output);
+    }
+
+    @Override
+    public void generate() {
+        generate(this.output, this.output.lookup(net.minecraft.core.registries.Registries.ITEM));
+    }
+
+    private void generate(net.minecraft.data.worldgen.BootstrapContext<Advancement> output,
+                          net.minecraft.core.HolderGetter<Item> itemLookup) {
+#else
 public class AlchemiaAdvancementProvider implements AdvancementSubProvider {
 
     @Override
     public void generate(HolderLookup.Provider registries, Consumer<AdvancementHolder> output) {
+        net.minecraft.core.HolderGetter<Item> itemLookup = registries.lookupOrThrow(net.minecraft.core.registries.Registries.ITEM);
+#endif
         Item guide = ItemRegistry.getItemFromRegistry("alchemia_guide").asItem();
         Item mortar = ItemRegistry.getItemFromRegistry("mortar_and_pestle").asItem();
         Item cauldron = ItemRegistry.getItemFromRegistry("alchemical_cauldron").asItem();
 
         AdvancementHolder root = Advancement.Builder.advancement()
+#if MC_VER >= 26300
+                .rootDisplay(guide, title("root"), description("root"),
+                        Identifier.withDefaultNamespace("block/dark_oak_log"),
+                        AdvancementType.TASK, true, true, false)
+#else
                 .display(guide, title("root"), description("root"),
                         Identifier.withDefaultNamespace("block/dark_oak_log"),
                         AdvancementType.TASK, true, true, false)
-                .addCriterion("has_ingredient", InventoryChangeTrigger.TriggerInstance.hasItems(anyIngredient(registries)))
+#endif
+                .addCriterion("has_ingredient", InventoryChangeTrigger.TriggerInstance.hasItems(anyIngredient(itemLookup)))
                 .save(output, id("root"));
 
         AdvancementHolder book = child(output, root, guide, "guide", AdvancementType.TASK,
@@ -57,8 +80,13 @@ public class AlchemiaAdvancementProvider implements AdvancementSubProvider {
 
         Advancement.Builder spectrum = Advancement.Builder.advancement()
                 .parent(crystal)
+#if MC_VER >= 26300
+                .display(crystals[crystals.length - 1], title("spectrum"), description("spectrum"),
+                        AdvancementType.GOAL, true, true, false);
+#else
                 .display(crystals[crystals.length - 1], title("spectrum"), description("spectrum"), null,
                         AdvancementType.GOAL, true, true, false);
+#endif
         for (Item item : crystals) {
             spectrum.addCriterion(key(item), InventoryChangeTrigger.TriggerInstance.hasItems(item));
         }
@@ -75,24 +103,39 @@ public class AlchemiaAdvancementProvider implements AdvancementSubProvider {
         Item philosopherStone = ItemRegistry.getItemFromRegistry("philosopher_stone").asItem();
         Advancement.Builder.advancement()
                 .parent(stage)
+#if MC_VER >= 26300
+                .display(philosopherStone, title("philosopher_stone"), description("philosopher_stone"),
+                        AdvancementType.CHALLENGE, true, true, false)
+#else
                 .display(philosopherStone, title("philosopher_stone"), description("philosopher_stone"), null,
                         AdvancementType.CHALLENGE, true, true, false)
+#endif
                 .addCriterion("unlocked", InventoryChangeTrigger.TriggerInstance.hasItems(philosopherStone))
                 .save(output, id("philosopher_stone"));
 
         Item[] everything = allIngredients();
         Advancement.Builder herbalist = Advancement.Builder.advancement()
                 .parent(pestle)
+#if MC_VER >= 26300
+                .display(everything[0], title("herbalist"), description("herbalist"),
+                        AdvancementType.CHALLENGE, true, true, false);
+#else
                 .display(everything[0], title("herbalist"), description("herbalist"), null,
                         AdvancementType.CHALLENGE, true, true, false);
+#endif
         for (Item item : everything) {
             herbalist.addCriterion(key(item), InventoryChangeTrigger.TriggerInstance.hasItems(item));
         }
         herbalist.requirements(AdvancementRequirements.allOf(names(everything))).save(output, id("herbalist"));
     }
 
+#if MC_VER >= 26300
+    private AdvancementHolder child(net.minecraft.data.worldgen.BootstrapContext<Advancement> output, AdvancementHolder parent, ItemLike icon,
+                                    String name, AdvancementType type,
+#else
     private AdvancementHolder child(Consumer<AdvancementHolder> output, AdvancementHolder parent, ItemLike icon,
                                     String name, AdvancementType type,
+#endif
 #if MC_VER >= 26200
                                     net.minecraft.advancements.triggers.Criterion<?> criterion) {
 #else
@@ -100,19 +143,23 @@ public class AlchemiaAdvancementProvider implements AdvancementSubProvider {
 #endif
         return Advancement.Builder.advancement()
                 .parent(parent)
+#if MC_VER >= 26300
+                .display(icon.asItem(), title(name), description(name), type, true, true, false)
+#else
                 .display(icon, title(name), description(name), null, type, true, true, false)
+#endif
                 .addCriterion("unlocked", criterion)
                 .save(output, id(name));
     }
 
 #if MC_VER >= 26200
-    private static net.minecraft.advancements.predicates.ItemPredicate.Builder anyIngredient(HolderLookup.Provider registries) {
+    private static net.minecraft.advancements.predicates.ItemPredicate.Builder anyIngredient(net.minecraft.core.HolderGetter<Item> items) {
         return net.minecraft.advancements.predicates.ItemPredicate.Builder.item()
 #else
-    private static net.minecraft.advancements.criterion.ItemPredicate.Builder anyIngredient(HolderLookup.Provider registries) {
+    private static net.minecraft.advancements.criterion.ItemPredicate.Builder anyIngredient(net.minecraft.core.HolderGetter<Item> items) {
         return net.minecraft.advancements.criterion.ItemPredicate.Builder.item()
 #endif
-                .of(registries.lookupOrThrow(net.minecraft.core.registries.Registries.ITEM), AlchemiaItemTags.INGREDIENTS);
+                .of(items, AlchemiaItemTags.INGREDIENTS);
     }
 
     private static Item[] crystals() {

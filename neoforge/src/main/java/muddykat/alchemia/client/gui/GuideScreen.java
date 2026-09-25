@@ -22,6 +22,8 @@ import net.minecraft.client.gui.Gui;
 import muddykat.alchemia.common.items.helper.Ingredients;
 import muddykat.alchemia.common.items.helper.IngredientPath;
 import muddykat.alchemia.common.items.helper.IngredientAlignment;
+import muddykat.alchemia.common.items.helper.PathGeometry;
+import muddykat.alchemia.common.items.helper.PathPoint;
 import muddykat.alchemia.common.potion.IngredientDiscovery;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
@@ -105,8 +107,9 @@ public class GuideScreen extends Screen {
     private static final int DELETE_W = 62;
     private static final int DELETE_H = 16;
 
-    private static final int GRID_CELL = 5;
-    private static final double PREVIEW_SCALE = 0.36;
+    private static final int PREVIEW_W = 96;
+    private static final int PREVIEW_H = 64;
+    private static final int PREVIEW_THICKNESS = 2;
     private static final int PATH_TAKEN = PathPalette.TAKEN;
     private static final int PATH_POTENTIAL = PathPalette.POTENTIAL;
     private static final int PATH_ORIGIN = PathPalette.ORIGIN;
@@ -611,44 +614,44 @@ public class GuideScreen extends Screen {
 
         if (shape.needsDirection() && dx == 0 && dy == 0) return;
 
-        List<int[]> full = shape.teleports()
-                ? shape.teleportPreview(dx, dy, selectedIngredient.getPotency(Ingredients.MAX_CRUSH), PREVIEW_SCALE)
+        List<PathPoint> full = shape.teleports()
+                ? shape.teleportPreview(dx, dy, selectedIngredient.getPotency(Ingredients.MAX_CRUSH), 1.0)
                 : IngredientPath.pathFor(selectedIngredient, dx, dy, selectedIngredient.getPotency(Ingredients.MAX_CRUSH));
-        List<int[]> base = shape.teleports()
-                ? shape.teleportPreview(dx, dy, selectedIngredient.getPotency(0), PREVIEW_SCALE)
+        List<PathPoint> base = shape.teleports()
+                ? shape.teleportPreview(dx, dy, selectedIngredient.getPotency(0), 1.0)
                 : IngredientPath.pathFor(selectedIngredient, dx, dy, selectedIngredient.getPotency(0));
 
-        drawPathGrid(graphics, full, base.size(), x, y + 4);
+        drawPathPreview(graphics, full, PathGeometry.length(base), x, y + 4, shape.teleports());
     }
 
-    private void drawPathGrid(GuiGraphicsExtractor graphics, List<int[]> cells, int taken, int x, int y) {
-        if (cells.isEmpty()) return;
+    private void drawPathPreview(GuiGraphicsExtractor graphics, List<PathPoint> points, double taken, int x, int y, boolean teleport) {
+        if (points.size() < 2) return;
 
-        int lowX = 0, highX = 0, lowY = 0, highY = 0;
-        for (int[] cell : cells) {
-            lowX = Math.min(lowX, cell[0]);
-            highX = Math.max(highX, cell[0]);
-            lowY = Math.min(lowY, cell[1]);
-            highY = Math.max(highY, cell[1]);
+        int boxWidth = Math.min(PREVIEW_W, RIGHT_PAGE_W);
+        int boxHeight = Math.min(PREVIEW_H, Math.max(8, pageBottom() - y - PREVIEW_THICKNESS * 2));
+
+        PathGeometry.Fit fit = PathGeometry.fit(points, boxWidth, boxHeight, true);
+        double originX = x + (RIGHT_PAGE_W - fit.width()) / 2.0;
+        double originY = y + PREVIEW_THICKNESS;
+
+        List<PathPoint> potential = PathGeometry.translate(fit.apply(points), originX, originY);
+        List<PathPoint> reached = PathGeometry.translate(
+                fit.apply(PathGeometry.truncate(points, taken)), originX, originY);
+
+        PathRenderer.outline(graphics, PathGeometry.tail(potential, PathGeometry.length(reached)),
+                PREVIEW_THICKNESS, PATH_POTENTIAL, teleport);
+        PathRenderer.dashes(graphics, reached, PREVIEW_THICKNESS, PATH_TAKEN, teleport);
+
+        PathPoint ending = potential.get(potential.size() - 1);
+        PathRenderer.marker(graphics, ending.x(), ending.y(), 3, PathPalette.ENDING);
+
+        if (reached.size() > 1) {
+            PathPoint landing = reached.get(reached.size() - 1);
+            PathRenderer.ending(graphics, landing.x(), landing.y(), 3, 1, PathPalette.LANDING, teleport);
         }
 
-        int columns = highX - lowX + 1;
-        int rows = highY - lowY + 1;
-        int cell = Math.max(2, Math.min(GRID_CELL, Math.min(RIGHT_PAGE_W / Math.max(1, columns),
-                (pageBottom() - y) / Math.max(1, rows))));
-
-        int gridX = x + (RIGHT_PAGE_W - columns * cell) / 2;
-        int originX = gridX + (-lowX) * cell;
-        int originY = y + (-lowY) * cell;
-
-        for (int i = 0; i < cells.size(); i++) {
-            int[] point = cells.get(i);
-            int px = gridX + (point[0] - lowX) * cell;
-            int py = y + (point[1] - lowY) * cell;
-            graphics.fill(px, py, px + cell - 1, py + cell - 1, i < taken ? PATH_TAKEN : PATH_POTENTIAL);
-        }
-
-        graphics.fill(originX, originY, originX + cell - 1, originY + cell - 1, PATH_ORIGIN);
+        PathPoint start = fit.apply(PathPoint.ORIGIN).plus(originX, originY);
+        PathRenderer.dot(graphics, start.x(), start.y(), 2, PATH_ORIGIN);
     }
 
     private static boolean hovering(int mouseX, int mouseY, int x, int y, int w, int h) {

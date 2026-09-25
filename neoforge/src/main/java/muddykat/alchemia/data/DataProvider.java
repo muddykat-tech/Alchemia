@@ -33,15 +33,29 @@ public class DataProvider {
     public static void gatherServerData(GatherDataEvent.Server event) {
         event.createProvider(AlchemiaBlockTagsProvider::new);
         event.createProvider(AlchemiaItemTagsProvider::new);
+        event.createProvider(AlchemiaBiomeTagsProvider::new);
+
+#if MC_VER >= 26300
+        event.createReloadableRegistryObjects(new RegistrySetBuilder()
+                .add(Registries.ADVANCEMENT,
+                        new net.minecraft.data.advancements.AdvancementProvider(List.of(AlchemiaAdvancementProvider::new)))
+                .add(Registries.LOOT_TABLE, new AlchemiaLootProvider())
+                .add(AlchemiaRecipeProvider.bootstrap()));
+
+        event.createWorldRegistryObjects(new RegistrySetBuilder()
+                .add(Registries.FEATURE, WildHerbGeneration::bootstrapConfiguredFeatures)
+                .add(Registries.PLACED_FEATURE, WildHerbGeneration::bootstrapPlacedFeatures)
+                .add(NeoForgeRegistries.Keys.BIOME_MODIFIERS, AlchemiaBiomeModifiers::bootstrap));
+#else
         event.createProvider((PackOutput out, CompletableFuture<HolderLookup.Provider> reg) ->
                 new net.minecraft.data.advancements.AdvancementProvider(out, reg, List.of(new AlchemiaAdvancementProvider())));
         event.createProvider(AlchemiaRecipeProvider.Runner::new);
         event.createProvider(AlchemiaLootProvider::new);
-        event.createProvider(AlchemiaBiomeTagsProvider::new);
 
         event.createDatapackRegistryObjects(new RegistrySetBuilder()
                 .add(Registries.CONFIGURED_FEATURE, WildHerbGeneration::bootstrapConfiguredFeatures)
                 .add(Registries.PLACED_FEATURE, WildHerbGeneration::bootstrapPlacedFeatures)
                 .add(NeoForgeRegistries.Keys.BIOME_MODIFIERS, AlchemiaBiomeModifiers::bootstrap));
+#endif
     }
 }

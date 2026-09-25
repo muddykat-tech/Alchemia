@@ -1,0 +1,19 @@
+{
+  "model": {
+    "type": "minecraft:range_dispatch",
+    "entries": [
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "alchemia:item/mineral_fire_citrine_crushed"
+        },
+        "threshold": 1.0
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "alchemia:item/mineral_fire_citrine"
+    },
+    "property": "alchemia:crush"
+  }
+}

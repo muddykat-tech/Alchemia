@@ -25,11 +25,18 @@ import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
 import net.minecraft.world.level.storage.loot.predicates.ExplosionCondition;
-import net.minecraft.world.level.storage.loot.predicates.LootItemBlockStatePropertyCondition;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
+#if MC_VER >= 26300
+import net.minecraft.core.Holder;
+import net.minecraft.world.level.storage.loot.predicates.MatchBlock;
+import net.minecraft.world.level.storage.loot.providers.number.ints.ContextIntProvider;
+import net.minecraft.world.level.storage.loot.providers.number.ints.ContextIntProviders;
+#else
+import net.minecraft.world.level.storage.loot.predicates.LootItemBlockStatePropertyCondition;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import net.minecraft.world.level.storage.loot.providers.number.NumberProvider;
 import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
+#endif
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,9 +44,18 @@ import java.util.Set;
 
 public class BlockLoot extends BlockLootSubProvider {
 
+#if MC_VER >= 26300
+    private final net.minecraft.data.loot.LootTableSubProvider.Context context;
+
+    public BlockLoot(net.minecraft.data.loot.LootTableSubProvider.Context context) {
+        super(Set.of(), FeatureFlags.REGISTRY.allFlags(), context);
+        this.context = context;
+    }
+#else
     public BlockLoot(HolderLookup.Provider registries) {
         super(Set.of(), FeatureFlags.REGISTRY.allFlags(), registries);
     }
+#endif
 
     @Override
     protected void generate() {
@@ -62,6 +78,15 @@ public class BlockLoot extends BlockLootSubProvider {
         }
     }
 
+#if MC_VER >= 26300
+    private static Holder<ContextIntProvider> mineralYield(BlockRegistry.BudSize size) {
+        return switch (size) {
+            case CLUSTER -> ContextIntProviders.between(3, 4);
+            case LARGE -> ContextIntProviders.exactly(2);
+            default -> ContextIntProviders.exactly(1);
+        };
+    }
+#else
     private static NumberProvider mineralYield(BlockRegistry.BudSize size) {
         return switch (size) {
             case CLUSTER -> UniformGenerator.between(3, 4);
@@ -69,6 +94,7 @@ public class BlockLoot extends BlockLootSubProvider {
             default -> ConstantValue.exactly(1);
         };
     }
+#endif
 
     @Override
     protected Iterable<Block> getKnownBlocks() {
@@ -86,21 +112,40 @@ public class BlockLoot extends BlockLootSubProvider {
     }
 
     private LootTable.Builder ingredientDrops(Block block, BlockIngredient ingredient) {
+#if MC_VER >= 26300
+        LootItemCondition.Builder mature = MatchBlock.blockMatches(
+                context.lookup(net.minecraft.core.registries.Registries.BLOCK), block,
+                StatePropertiesPredicate.Builder.properties()
+                        .hasProperty(ingredient.getAgeProperty(), ingredient.getMaxAge()));
+#else
         LootItemCondition.Builder mature = LootItemBlockStatePropertyCondition.hasBlockStateProperties(block)
                 .setProperties(StatePropertiesPredicate.Builder.properties()
                         .hasProperty(ingredient.getAgeProperty(), ingredient.getMaxAge()));
+#endif
 
         return LootTable.lootTable()
                 .withPool(createPoolBuilder()
+#if MC_VER >= 26300
+                        .setRolls(ContextIntProviders.exactly(1))
+#else
                         .setRolls(ConstantValue.exactly(1))
+#endif
                         .when(mature)
                         .add(LootItem.lootTableItem(ItemRegistry.getItemFromRegistry(ingredient.getIngredient().getRegistryName()))
+#if MC_VER >= 26300
+                                .apply(SetItemCountFunction.setCount(ContextIntProviders.between(1, 2)))));
+#else
                                 .apply(SetItemCountFunction.setCount(UniformGenerator.between(1, 2)))));
+#endif
     }
 
     private LootPool.Builder singleItem(ItemLike item) {
         return createPoolBuilder()
+#if MC_VER >= 26300
+                .setRolls(ContextIntProviders.exactly(1))
+#else
                 .setRolls(ConstantValue.exactly(1))
+#endif
                 .add(LootItem.lootTableItem(item));
     }
 

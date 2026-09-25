@@ -40,10 +40,12 @@ public class BlockAlchemyMachineUpgrade extends EntityBlockGeneric {
 
     public static final StringRepresentable.EnumCodec<UpgradeSide> SIDE_CODEC = StringRepresentable.fromEnum(UpgradeSide::values);
 
+#if MC_VER < 26300
     public static final MapCodec<BlockAlchemyMachineUpgrade> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
             SIDE_CODEC.fieldOf("side").forGetter(BlockAlchemyMachineUpgrade::getSide),
             propertiesCodec()
     ).apply(instance, BlockAlchemyMachineUpgrade::new));
+#endif
 
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
 
@@ -59,10 +61,12 @@ public class BlockAlchemyMachineUpgrade extends EntityBlockGeneric {
         return side;
     }
 
+#if MC_VER < 26300
     @Override
     protected MapCodec<? extends BaseEntityBlock> codec() {
         return CODEC;
     }
+#endif
 
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {

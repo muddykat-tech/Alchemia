@@ -3,6 +3,8 @@ package muddykat.alchemia.client;
 import muddykat.alchemia.Alchemia;
 import com.mojang.datafixers.util.Either;
 import muddykat.alchemia.common.items.helper.IngredientPathTooltip;
+import muddykat.alchemia.common.items.helper.PathGeometry;
+import muddykat.alchemia.common.items.helper.PathPoint;
 import muddykat.alchemia.common.potion.BrewBases;
 import muddykat.alchemia.common.potion.PotionMap;
 import muddykat.alchemia.common.potion.VanillaIngredients;
@@ -28,10 +30,12 @@ public class VanillaIngredientTooltip {
         event.getToolTip().add(TextUtils.brewingSource());
 
         event.getToolTip().add(Component.translatable(
-                drift.homing() ? "alchemia.tooltip.homing" : "alchemia.tooltip.bearing",
+                drift.lure() ? "alchemia.tooltip.lure" : "alchemia.tooltip.bearing",
                 drift.target().getEffect().value().getDisplayName()).withStyle(ChatFormatting.DARK_GRAY));
 
-        if (!drift.homing()) {
+        if (drift.lure()) {
+            event.getToolTip().add(Component.translatable("alchemia.tooltip.lure.hint").withStyle(ChatFormatting.DARK_GRAY));
+        } else {
             event.getToolTip().add(Component.translatable("alchemia.tooltip.path").withStyle(ChatFormatting.DARK_GRAY));
         }
     }
@@ -52,12 +56,12 @@ public class VanillaIngredientTooltip {
     @SubscribeEvent
     public static void onGatherComponents(RenderTooltipEvent.GatherComponents event) {
         VanillaIngredients.Drift drift = VanillaIngredients.driftOf(event.getItemStack());
-        if (drift == null || drift.homing() || !PotionMap.isReady()) return;
+        if (drift == null || drift.lure() || !PotionMap.isReady()) return;
 
-        List<int[]> offsets = PotionMap.get(BrewBases.defaultBase()).fixedDriftOffsets(drift.target());
-        if (offsets.isEmpty()) return;
+        List<PathPoint> offsets = PotionMap.get(BrewBases.defaultBase()).fixedDriftOffsets(drift.target());
+        if (offsets.size() < 2) return;
 
         event.getTooltipElements().add(Either.right(new IngredientPathTooltip(
-                offsets, offsets.size(), false, Component.translatable("alchemia.tooltip.label.path"))));
+                offsets, PathGeometry.length(offsets), false, Component.translatable("alchemia.tooltip.label.path"))));
     }
 }

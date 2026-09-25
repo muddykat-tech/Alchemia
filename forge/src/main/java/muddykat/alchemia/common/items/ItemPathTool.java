@@ -47,6 +47,10 @@ public abstract class ItemPathTool extends Item {
 
     public abstract int progressValue(ItemStack target);
 
+    public abstract String actionKey();
+
+    public abstract float progress(ItemStack target);
+
     public static ItemStack findTarget(LivingEntity user, ItemStack tool) {
         if (!(tool.getItem() instanceof ItemPathTool pathTool)) return ItemStack.EMPTY;
 

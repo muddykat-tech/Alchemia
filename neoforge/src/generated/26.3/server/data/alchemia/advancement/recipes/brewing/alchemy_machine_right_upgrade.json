@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_mineral_fire_citrine": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:mineral_fire_citrine"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipes": "alchemia:alchemy_machine_right_upgrade"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_mineral_fire_citrine"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "alchemia:alchemy_machine_right_upgrade"
+    ]
+  }
+}

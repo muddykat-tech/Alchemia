@@ -36,7 +36,9 @@ import java.util.Map;
 
 public class BlockAlchemyCauldron extends EntityBlockGeneric {
 
+#if MC_VER < 26300
     public static final MapCodec<BlockAlchemyCauldron> CODEC = simpleCodec(BlockAlchemyCauldron::new);
+#endif
 
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
 
@@ -47,10 +49,12 @@ public class BlockAlchemyCauldron extends EntityBlockGeneric {
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
     }
 
+#if MC_VER < 26300
     @Override
     protected MapCodec<? extends BaseEntityBlock> codec() {
         return CODEC;
     }
+#endif
 
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {

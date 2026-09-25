@@ -239,7 +239,11 @@ public class TileEntityAlchemyMachineCore extends SyncedBlockEntity implements M
         ItemStack fuel = getStack(FUEL_SLOT);
         if (fuel.isEmpty()) return false;
 
+#if MC_VER >= 26300
+        int duration = burnDuration(fuel);
+#else
         int duration = level.fuelValues().burnDuration(fuel);
+#endif
         if (duration <= 0) return false;
 
         setSlotAmount(FUEL_SLOT, inventory.getAmountAsInt(FUEL_SLOT) - 1);
@@ -248,6 +252,33 @@ public class TileEntityAlchemyMachineCore extends SyncedBlockEntity implements M
         return true;
     }
 
+#if MC_VER >= 26300
+    private int burnDuration(ItemStack fuel) {
+        if (!(level instanceof net.minecraft.server.level.ServerLevel serverLevel)) return 0;
+
+        net.minecraft.world.level.storage.loot.LootParams params =
+                new net.minecraft.world.level.storage.loot.LootParams.Builder(serverLevel)
+                        .withParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.BLOCK_STATE, getBlockState())
+                        .withParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.BLOCK_ENTITY, this)
+                        .withParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.ORIGIN,
+                                net.minecraft.world.phys.Vec3.atCenterOf(getBlockPos()))
+                        .withParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.CONTAINER,
+                                new net.minecraft.world.SimpleContainer(fuel))
+                        .withOptionalParameter(net.neoforged.neoforge.common.loot.NeoForgeLootContextParams.QUERIED_STACK, fuel)
+                        .create(net.minecraft.world.level.storage.loot.parameters.LootContextParamSets.CONTAINER_PROCESS);
+
+        net.minecraft.world.level.storage.loot.LootContext context =
+                new net.minecraft.world.level.storage.loot.LootContext.Builder(params).create(java.util.Optional.empty());
+
+        return net.minecraft.world.level.storage.loot.providers.number.ints.ResolvableInt.getFromItem(
+                fuel,
+                net.minecraft.core.component.DataComponents.COOKING_FUEL,
+                net.minecraft.world.item.component.CookingFuel::burnTime,
+                context,
+                0);
+    }
+
+#endif
     private void craft(Match match) {
         for (int index : match.assignment()) {
             PotionRef ref = match.available().get(index);

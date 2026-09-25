@@ -36,7 +36,9 @@ import org.jspecify.annotations.Nullable;
 
 public class BlockAlchemyMachineCore extends EntityBlockGeneric {
 
+#if MC_VER < 26300
     public static final MapCodec<BlockAlchemyMachineCore> CODEC = simpleCodec(BlockAlchemyMachineCore::new);
+#endif
 
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
@@ -46,10 +48,12 @@ public class BlockAlchemyMachineCore extends EntityBlockGeneric {
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(LIT, false));
     }
 
+#if MC_VER < 26300
     @Override
     protected MapCodec<? extends BaseEntityBlock> codec() {
         return CODEC;
     }
+#endif
 
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {

@@ -2,6 +2,8 @@ package muddykat.alchemia.client.gui;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import muddykat.alchemia.common.items.helper.IngredientPathTooltip;
+import muddykat.alchemia.common.items.helper.PathGeometry;
+import muddykat.alchemia.common.items.helper.PathPoint;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -12,61 +14,59 @@ import java.util.List;
 
 public class ClientIngredientPathTooltip implements ClientTooltipComponent {
 
-    private static final int CELL = 5;
+    private static final int BOX_WIDTH = 78;
+    private static final int BOX_HEIGHT = 58;
     private static final int PADDING = 4;
     private static final int LABEL_H = 11;
+    private static final int THICKNESS = 2;
 
     private static final int TAKEN = PathPalette.TAKEN;
     private static final int POTENTIAL = PathPalette.POTENTIAL;
     private static final int ORIGIN = PathPalette.ORIGIN;
+    private static final int LANDING = PathPalette.LANDING;
+    private static final int ENDING = PathPalette.ENDING;
     private static final int LABEL_INK = 0xFFC9A96E;
 
     private final IngredientPathTooltip tooltip;
-    private final int minX;
-    private final int minY;
-    private final int columns;
-    private final int rows;
+    private final PathGeometry.Fit fit;
 
     public ClientIngredientPathTooltip(IngredientPathTooltip tooltip) {
         this.tooltip = tooltip;
-
-        int lowX = 0, highX = 0, lowY = 0, highY = 0;
-        for (int[] cell : tooltip.cells()) {
-            lowX = Math.min(lowX, cell[0]);
-            highX = Math.max(highX, cell[0]);
-            lowY = Math.min(lowY, cell[1]);
-            highY = Math.max(highY, cell[1]);
-        }
-
-        this.minX = lowX;
-        this.minY = lowY;
-        this.columns = highX - lowX + 1;
-        this.rows = highY - lowY + 1;
+        this.fit = PathGeometry.fit(tooltip.points(), BOX_WIDTH, BOX_HEIGHT, true);
     }
 
     private static boolean shiftDown() {
+#if MC_VER >= 26300
+        return InputConstants.isKeyDown(InputConstants.KEY_LSHIFT)
+                || InputConstants.isKeyDown(InputConstants.KEY_RSHIFT);
+#else
         var window = Minecraft.getInstance().getWindow();
         return InputConstants.isKeyDown(window, InputConstants.KEY_LSHIFT)
                 || InputConstants.isKeyDown(window, InputConstants.KEY_RSHIFT);
+#endif
     }
 
     private boolean visible() {
-        return shiftDown() && !tooltip.cells().isEmpty();
+        return shiftDown() && tooltip.points().size() > 1;
     }
 
-    private int gridWidth() {
-        return columns * CELL;
+    private int previewWidth() {
+        return (int) Math.ceil(fit.width()) + THICKNESS * 2;
+    }
+
+    private int previewHeight() {
+        return (int) Math.ceil(fit.height()) + THICKNESS * 2;
     }
 
     @Override
     public int getWidth(Font font) {
         if (!visible()) return 0;
-        return Math.max(gridWidth(), font.width(tooltip.label())) + PADDING * 2;
+        return Math.max(previewWidth(), font.width(tooltip.label())) + PADDING * 2;
     }
 
     @Override
     public int getHeight(Font font) {
-        return visible() ? rows * CELL + LABEL_H + PADDING * 2 : 0;
+        return visible() ? previewHeight() + LABEL_H + PADDING * 2 : 0;
     }
 
     @Override
@@ -79,22 +79,25 @@ public class ClientIngredientPathTooltip implements ClientTooltipComponent {
         graphics.blitSprite(RenderPipelines.GUI_TEXTURED, AlchemiaSprites.PATH_TOOLTIP_PANEL, x, y, width, height);
         graphics.text(font, tooltip.label(), x + PADDING, y + PADDING, LABEL_INK, false);
 
-        int gridX = x + (width - gridWidth()) / 2;
-        int gridY = y + PADDING + LABEL_H;
+        double originX = x + (width - previewWidth()) / 2.0 + THICKNESS;
+        double originY = y + PADDING + LABEL_H + THICKNESS;
 
-        int originX = gridX + (-minX) * CELL;
-        int originY = gridY + (-minY) * CELL;
+        List<PathPoint> full = PathGeometry.translate(fit.apply(tooltip.points()), originX, originY);
+        List<PathPoint> reached = PathGeometry.translate(fit.apply(tooltip.reached()), originX, originY);
+        List<PathPoint> remaining = PathGeometry.tail(full, PathGeometry.length(reached));
 
-        List<int[]> cells = tooltip.cells();
-        int taken = tooltip.taken();
+        PathRenderer.outline(graphics, remaining, THICKNESS, POTENTIAL, tooltip.teleport());
+        PathRenderer.dashes(graphics, reached, THICKNESS, TAKEN, tooltip.teleport());
 
-        for (int i = 0; i < cells.size(); i++) {
-            int[] cell = cells.get(i);
-            int cellX = gridX + (cell[0] - minX) * CELL;
-            int cellY = gridY + (cell[1] - minY) * CELL;
-            graphics.fill(cellX, cellY, cellX + CELL - 1, cellY + CELL - 1, i < taken ? TAKEN : POTENTIAL);
+        PathPoint start = fit.apply(PathPoint.ORIGIN).plus(originX, originY);
+        PathRenderer.dot(graphics, start.x(), start.y(), 2, ORIGIN);
+
+        PathPoint ending = full.get(full.size() - 1);
+        PathRenderer.marker(graphics, ending.x(), ending.y(), 3, ENDING);
+
+        if (!reached.isEmpty()) {
+            PathPoint landing = reached.get(reached.size() - 1);
+            PathRenderer.ending(graphics, landing.x(), landing.y(), 3, 1, LANDING, tooltip.teleport());
         }
-
-        graphics.fill(originX, originY, originX + CELL - 1, originY + CELL - 1, ORIGIN);
     }
 }

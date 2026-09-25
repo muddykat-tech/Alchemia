@@ -6,8 +6,11 @@ import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.blocks.tileentity.TileEntityAlchemyCauldron;
 import muddykat.alchemia.common.blocks.tileentity.container.AlchemicalCauldronMenu;
 import muddykat.alchemia.common.items.ItemIngredient;
+import muddykat.alchemia.common.items.helper.PathGeometry;
+import muddykat.alchemia.common.items.helper.PathPoint;
 import muddykat.alchemia.common.potion.PotionEnum;
 import muddykat.alchemia.common.potion.PotionMap;
+import muddykat.alchemia.common.potion.VanillaIngredients;
 import muddykat.alchemia.common.potion.RecipeDiscovery;
 import muddykat.alchemia.common.network.packets.PacketNameBrew;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -84,7 +87,7 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
     private static final int BUTTON_W = 72;
     private static final int BUTTON_H = 18;
 
-    private static final int GHOST_RGB = 0x6A4E2A;
+    private static final int GHOST_RGB = 0x2B2015;
     private static final int BLOCKED_RGB = 0x6B2418;
     private static final int GAINED_RGB = 0x57C24A;
     private static final int EDGE_FILL = 0x662A4A8E;
@@ -93,13 +96,13 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
     private static final int AURA_CORE_ALPHA = 96;
     private static final int AURA_DASH = 2;
 
-    private static final double SPACING_X = 21.0;
-    private static final double SPACING_Y = 22.0;
+    private static final double MAP_OVERSCAN = 4 * PotionMap.CELL;
+    private static final int PATH_THICKNESS = 2;
 
-    private static final double MIN_ZOOM = 0.4;
-    private static final double MAX_ZOOM = 4.0;
+    private static final double MIN_ZOOM = 0.1;
+    private static final double MAX_ZOOM = 3.0;
     private static final double ZOOM_STEP = 1.18;
-    private static final double LABEL_ZOOM = 1.5;
+    private static final double LABEL_ZOOM = 1.2;
 
     private static final int INK = 0xFF4A3A28;
     private static final int NAME_SELECTION = 0x804A3A28;
@@ -235,11 +238,29 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
     }
 
     private double screenX(double mapX) {
-        return viewCentreX() + (mapX - camX) * SPACING_X * zoom;
+        return viewCentreX() + (mapX - camX) * zoom;
     }
 
     private double screenY(double mapY) {
-        return viewCentreY() + (mapY - camY) * SPACING_Y * zoom;
+        return viewCentreY() + (mapY - camY) * zoom;
+    }
+
+    private double mapAtX(double screen) {
+        return camX + (screen - viewCentreX()) / zoom;
+    }
+
+    private double mapAtY(double screen) {
+        return camY + (screen - viewCentreY()) / zoom;
+    }
+
+    private PathPoint toScreen(PathPoint point) {
+        return new PathPoint(screenX(point.x()), screenY(point.y()));
+    }
+
+    private List<PathPoint> toScreen(List<PathPoint> points) {
+        List<PathPoint> screen = new ArrayList<>(points.size());
+        for (PathPoint point : points) screen.add(toScreen(point));
+        return screen;
     }
 
     @Override
@@ -250,8 +271,8 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
 
         anchorScreenX = guiX;
         anchorScreenY = guiY;
-        anchorWorldX = camX + (guiX - viewCentreX()) / (SPACING_X * zoom);
-        anchorWorldY = camY + (guiY - viewCentreY()) / (SPACING_Y * zoom);
+        anchorWorldX = mapAtX(guiX);
+        anchorWorldY = mapAtY(guiY);
 
         double factor = scrollY > 0 ? ZOOM_STEP : 1.0 / ZOOM_STEP;
         targetZoom = Mth.clamp(targetZoom * factor, MIN_ZOOM, MAX_ZOOM);
@@ -261,8 +282,8 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dx, double dy) {
         if (panning && button == InputConstants.MOUSE_BUTTON_LEFT) {
-            camX -= toGui(dx) / (SPACING_X * zoom);
-            camY -= toGui(dy) / (SPACING_Y * zoom);
+            camX -= toGui(dx) / zoom;
+            camY -= toGui(dy) / zoom;
             targetZoom = zoom;
             clampCamera();
             return true;
@@ -327,9 +348,9 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
 
     private void clampCamera() {
         if (!PotionMap.isReady()) return;
-        double limit = map().getMaxAlignment() + 8;
-        camX = Mth.clamp(camX, -8.0, limit);
-        camY = Mth.clamp(camY, -8.0, limit);
+        double limit = map().getMaxAlignment() + MAP_OVERSCAN;
+        camX = Mth.clamp(camX, -MAP_OVERSCAN, limit);
+        camY = Mth.clamp(camY, -MAP_OVERSCAN, limit);
     }
 
     private void tickZoom() {
@@ -338,8 +359,8 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
             return;
         }
         zoom = Mth.lerp(0.35, zoom, targetZoom);
-        camX = anchorWorldX - (anchorScreenX - viewCentreX()) / (SPACING_X * zoom);
-        camY = anchorWorldY - (anchorScreenY - viewCentreY()) / (SPACING_Y * zoom);
+        camX = anchorWorldX - (anchorScreenX - viewCentreX()) / zoom;
+        camY = anchorWorldY - (anchorScreenY - viewCentreY()) / zoom;
         clampCamera();
     }
 
@@ -364,84 +385,95 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
         drawNameField(graphics);
     }
 
-    private record Hop(int x, int y, boolean teleport) {
-        int duration() {
-            return teleport ? TELEPORT_MS : MOVE_MS_PER_CELL;
+    private record Leg(List<PathPoint> points, boolean teleport) {
+        double length() {
+            return PathGeometry.length(points);
+        }
+
+        PathPoint from() {
+            return points.get(0);
+        }
+
+        PathPoint to() {
+            return points.get(points.size() - 1);
         }
     }
 
-    private static final int MOVE_MS_PER_CELL = 95;
-    private static final int TELEPORT_MS = 460;
+    private static final double TRAVEL_PER_SECOND = 260.0;
+    private static final long TELEPORT_MS = 460L;
 
-    private final List<Hop> animHops = new ArrayList<>();
-    private int animStartX;
-    private int animStartY;
+    private final List<Leg> animLegs = new ArrayList<>();
     private long animStart;
 
     private void startBrewAnimation() {
-        animHops.clear();
+        animLegs.clear();
         if (!PotionMap.isReady()) return;
 
         TileEntityAlchemyCauldron cauldron = this.getMenu().getCauldron();
-        int x = cauldron.getXAlignment();
-        int y = cauldron.getYAlignment();
-        animStartX = x;
-        animStartY = y;
+        double x = cauldron.getXAlignment();
+        double y = cauldron.getYAlignment();
 
-        for (ItemStack stack : queuedIngredients()) {
-            PotionMap.PotionPath path = map().walk(x, y, stack);
+        for (PotionMap.RouteLeg leg : map().route(x, y, queuedIngredients())) {
+            PotionMap.PotionPath path = leg.path();
             if (path.stalled()) continue;
 
-            for (int[] cell : path.cells()) {
-                animHops.add(new Hop(cell[0], cell[1], path.teleport()));
-            }
+            PathPoint landing = path.end(x, y);
+            animLegs.add(new Leg(path.teleport()
+                    ? List.of(new PathPoint(x, y), landing)
+                    : path.points(), path.teleport()));
 
-            int[] end = path.end(x, y);
-            x = end[0];
-            y = end[1];
+            x = landing.x();
+            y = landing.y();
         }
 
         animStart = Util.getMillis();
     }
 
-    private int animDuration() {
-        int total = 0;
-        for (Hop hop : animHops) total += hop.duration();
+    private long legDuration(Leg leg) {
+        return leg.teleport() ? TELEPORT_MS
+                : Math.max(60L, Math.round(leg.length() / TRAVEL_PER_SECOND * 1000.0));
+    }
+
+    private long animDuration() {
+        long total = 0L;
+        for (Leg leg : animLegs) total += legDuration(leg);
         return total;
     }
 
     private boolean animating() {
-        return !animHops.isEmpty() && Util.getMillis() - animStart < animDuration();
+        return !animLegs.isEmpty() && Util.getMillis() - animStart < animDuration();
     }
 
     private double[] animState() {
         long elapsed = Util.getMillis() - animStart;
-        int prevX = animStartX;
-        int prevY = animStartY;
+        PathPoint at = animLegs.isEmpty() ? PathPoint.ORIGIN : animLegs.get(0).from();
 
-        for (Hop hop : animHops) {
-            if (elapsed >= hop.duration()) {
-                elapsed -= hop.duration();
-                prevX = hop.x();
-                prevY = hop.y();
+        for (Leg leg : animLegs) {
+            long duration = legDuration(leg);
+
+            if (elapsed >= duration) {
+                elapsed -= duration;
+                at = leg.to();
                 continue;
             }
 
-            double t = (double) elapsed / hop.duration();
-            if (!hop.teleport()) {
-                return new double[]{prevX + (hop.x() - prevX) * t, prevY + (hop.y() - prevY) * t, 1.0, 0.0};
+            double t = (double) elapsed / duration;
+
+            if (!leg.teleport()) {
+                PathPoint travelled = PathGeometry.pointAt(leg.points(), leg.length() * t);
+                return new double[]{travelled.x(), travelled.y(), 1.0, 0.0};
             }
 
             if (t < 0.5) {
                 double k = t * 2.0;
-                return new double[]{prevX, prevY, 1.0 - k, k * 4 * Math.PI};
+                return new double[]{leg.from().x(), leg.from().y(), 1.0 - k, k * 4 * Math.PI};
             }
 
             double k = (t - 0.5) * 2.0;
-            return new double[]{hop.x(), hop.y(), k, (1.0 - k) * 4 * Math.PI};
+            return new double[]{leg.to().x(), leg.to().y(), k, (1.0 - k) * 4 * Math.PI};
         }
 
-        return new double[]{prevX, prevY, 1.0, 0.0};
+        return new double[]{at.x(), at.y(), 1.0, 0.0};
     }
 
     private boolean overButton(double mouseX, double mouseY) {
@@ -804,8 +836,7 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
         if (!PotionMap.isReady()) return;
 
         TileEntityAlchemyCauldron cauldron = this.getMenu().getCauldron();
-        double originX = screenX(cauldron.getXAlignment());
-        double originY = screenY(cauldron.getYAlignment());
+        PathPoint origin = toScreen(new PathPoint(cauldron.getXAlignment(), cauldron.getYAlignment()));
 
         int left = viewLeft();
         int top = viewTop();
@@ -825,8 +856,9 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
         for (PotionMap.MapEntry entry : map().entries()) {
             if (entry.effect().getEffect() == null) continue;
 
-            int nx = (int) Math.round(screenX(entry.x()));
-            int ny = (int) Math.round(screenY(entry.y()));
+            PathPoint at = toScreen(entry.position());
+            int nx = at.roundedX();
+            int ny = at.roundedY();
 
             if (nx < left - node || nx > right + node || ny < top - node || ny > bottom + node) continue;
 
@@ -834,14 +866,13 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
             boolean discovered = recipe != null && known.contains(recipe);
 
             drawEffectAura(graphics, nx, ny, entry, discovered);
-            drawThread(graphics, (int) Math.round(originX), (int) Math.round(originY), nx, ny, thickness);
+            drawThread(graphics, origin.roundedX(), origin.roundedY(), nx, ny, thickness);
 
             if (discovered) {
                 AlchemiaSprites.blitMobEffect(graphics, entry.effect().getEffect(), nx - half, ny - half, node, node, -1);
             } else {
                 drawUnknownSymbol(graphics, nx, ny, node);
             }
-
 
             if (discovered && zoom >= LABEL_ZOOM) {
                 Component name = entry.effect().getEffect().getDisplayName();
@@ -862,10 +893,10 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
             }
         }
 
-        extractPlan(graphics, cauldron, (int) Math.round(originX), (int) Math.round(originY), node);
+        extractPlan(graphics, cauldron, node);
 
-        double markerX = originX;
-        double markerY = originY;
+        double markerX = origin.x();
+        double markerY = origin.y();
         double markerScale = 1.0;
         double markerSpin = 0.0;
 
@@ -884,14 +915,53 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
         graphics.disableScissor();
     }
 
-    private void extractPlan(GuiGraphics graphics, TileEntityAlchemyCauldron cauldron, int originX, int originY, int node) {
+    private List<PathPoint> chain(List<PotionMap.RouteLeg> legs, double startX, double startY) {
+        List<PathPoint> points = new ArrayList<>();
+        points.add(new PathPoint(startX, startY));
+
+        for (PotionMap.RouteLeg leg : legs) {
+            List<PathPoint> span = leg.curve().isEmpty() ? leg.path().points() : leg.curve();
+            for (PathPoint point : span) {
+                if (points.get(points.size() - 1).distanceTo(point) < 0.01) continue;
+                points.add(point);
+            }
+            if (!leg.curve().isEmpty()) points.add(leg.path().end(startX, startY));
+        }
+        return points;
+    }
+
+    private PathPoint drawLeg(GuiGraphics graphics, PotionMap.RouteLeg leg, PathPoint from, int rgb, int alpha) {
+        PotionMap.PotionPath path = leg.path();
+
+        if (!path.teleport()) {
+            if (path.points().size() < 2) return from;
+
+            List<PathPoint> screen = toScreen(path.points());
+            PathRenderer.dashes(graphics, screen, PATH_THICKNESS, ARGB.color(alpha, rgb), false);
+            return screen.get(screen.size() - 1);
+        }
+
+        PathPoint tip = from;
+
+        if (leg.curve().size() > 1) {
+            List<PathPoint> flight = toScreen(leg.curve());
+            PathRenderer.dashes(graphics, flight, PATH_THICKNESS, ARGB.color(alpha, rgb), true);
+            tip = flight.get(flight.size() - 1);
+        }
+
+        PathPoint landing = toScreen(path.end(0, 0));
+        PathRenderer.dashes(graphics, List.of(tip, landing), PATH_THICKNESS, ARGB.color(alpha, rgb), true);
+        return landing;
+    }
+
+    private void extractPlan(GuiGraphics graphics, TileEntityAlchemyCauldron cauldron, int node) {
         List<ItemStack> queued = queuedIngredients();
         if (queued.isEmpty()) return;
 
-        int x = cauldron.getXAlignment();
-        int y = cauldron.getYAlignment();
-        int prevX = originX;
-        int prevY = originY;
+        double x = cauldron.getXAlignment();
+        double y = cauldron.getYAlignment();
+        PathPoint tip = toScreen(new PathPoint(x, y));
+
         boolean stalled = false;
         boolean doomed = false;
         boolean stranded = false;
@@ -899,90 +969,54 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
         Set<MobEffect> held = new HashSet<>();
         for (MobEffectInstance instance : cauldron.getEffectList()) held.add(instance.getEffect());
 
-        List<int[]> pickups = new ArrayList<>();
+        List<PathPoint> pickups = new ArrayList<>();
         int simulatedInstability = cauldron.getInstability();
 
-        for (ItemStack queuedStack : queued) {
+        for (PotionMap.RouteLeg leg : map().route(x, y, queued)) {
+            ItemStack queuedStack = leg.stack();
             if (!TileEntityAlchemyCauldron.isBrewingInput(queuedStack)) continue;
 
-            PotionMap.PotionPath path = map().walk(x, y, queuedStack);
+            PotionMap.PotionPath path = leg.path();
+
             if (path.stalled()) {
                 stalled = true;
-                if (path.teleport()) drawOffMapAttempt(graphics, x, y, queuedStack, prevX, prevY, node);
+                if (path.teleport()) drawOffMapAttempt(graphics, x, y, queuedStack, node);
                 continue;
             }
 
-            if (path.dead()) {
-                for (int[] cell : map().teleportCurve(x, y, queuedStack)) {
-                    int px = (int) Math.round(screenX(cell[0]));
-                    int py = (int) Math.round(screenY(cell[1]));
-                    drawSegment(graphics, prevX, prevY, px, py, true);
-                    prevX = px;
-                    prevY = py;
-                }
+            PathPoint landing = path.end(x, y);
 
-                int[] grave = path.cells().get(0);
-                int graveX = (int) Math.round(screenX(grave[0]));
-                int graveY = (int) Math.round(screenY(grave[1]));
+            if (path.dead()) {
+                tip = drawLeg(graphics, leg, tip, GHOST_RGB, 190);
 
                 simulatedInstability++;
                 if (simulatedInstability >= cauldron.getInstabilityCap()) {
-                    prevX = graveX;
-                    prevY = graveY;
                     doomed = true;
                     break;
                 }
 
-                drawPlanMarker(graphics, graveX, graveY, node, BLOCKED_RGB);
-                prevX = graveX;
-                prevY = graveY;
-                x = grave[0];
-                y = grave[1];
+                drawPlanMarker(graphics, tip, node, BLOCKED_RGB);
+                x = landing.x();
+                y = landing.y();
                 stranded = true;
                 continue;
             }
 
-            List<int[]> trail = path.teleport()
-                    ? map().teleportCurve(x, y, queuedStack)
-                    : path.cells();
-
-            for (int[] cell : trail) {
-                int px = (int) Math.round(screenX(cell[0]));
-                int py = (int) Math.round(screenY(cell[1]));
-                drawSegment(graphics, prevX, prevY, px, py, path.teleport());
-                if (!path.teleport()) drawNodeDot(graphics, px, py, cell[0], cell[1]);
-                prevX = px;
-                prevY = py;
-            }
-
-            int[] end = path.end(x, y);
+            tip = drawLeg(graphics, leg, tip, GHOST_RGB, 190);
 
             if (!path.teleport()) {
-                List<int[]> cells = path.cells();
-                for (int i = 0; i < cells.size() - 1; i++) {
-                    PotionMap.PotionEffectPosition passed =
-                            map().getEffectAt(cells.get(i)[0], cells.get(i)[1]);
-                    if (passed != null && passed.getEffect() != null && held.add(passed.getEffect())) {
-                        pickups.add(cells.get(i));
+                for (PotionMap.MapEntry passed : map().touched(path.points(), false)) {
+                    if (passed.effect().getEffect() != null && held.add(passed.effect().getEffect())) {
+                        pickups.add(passed.position());
                     }
                 }
             }
 
-            PotionMap.PotionEffectPosition arrival = map().getEffectPotion(end);
-            if (arrival.getEffect() != null && held.add(arrival.getEffect())) {
-                pickups.add(end);
-            }
+            PotionMap.PotionEffectPosition arrival = map().getEffectPotion(landing);
+            if (arrival.getEffect() != null && held.add(arrival.getEffect())) pickups.add(landing);
 
-            if (path.teleport()) {
-                int px = (int) Math.round(screenX(end[0]));
-                int py = (int) Math.round(screenY(end[1]));
-                drawSegment(graphics, prevX, prevY, px, py, true);
-                prevX = px;
-                prevY = py;
-            }
-
-            x = end[0];
-            y = end[1];
+            x = landing.x();
+            y = landing.y();
         }
 
         int predicted = cauldron.previewPotency(queued);
@@ -992,112 +1026,68 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
         int ghost = stalled || doomed || overloaded || stranded ? BLOCKED_RGB : GHOST_RGB;
 
         if (!doomed && !overloaded) {
-            for (int[] cell : pickups) {
-                drawPlanMarker(graphics, (int) Math.round(screenX(cell[0])),
-                        (int) Math.round(screenY(cell[1])), node, GAINED_RGB);
-            }
+            for (PathPoint pickup : pickups) drawPlanMarker(graphics, toScreen(pickup), node, GAINED_RGB);
         }
 
-        drawPlanMarker(graphics, prevX, prevY, node, ghost);
+        drawPlanMarker(graphics, tip, node, ghost);
 
         if (doomed || overloaded) {
-            graphics.renderItem(new ItemStack(Items.SKELETON_SKULL), prevX - 8, prevY - 8);
-            Component warning = doomed
+            graphics.renderItem(new ItemStack(Items.SKELETON_SKULL), tip.roundedX() - 8, tip.roundedY() - 8);
+            drawPlanWarning(graphics, doomed
                     ? Component.translatable("alchemia.gui.doomed")
-                    : Component.translatable("alchemia.gui.overloaded", predicted, TileEntityAlchemyCauldron.maxPotency());
-            int warnX = Mth.clamp(prevX, viewLeft() + this.font.width(warning) / 2 + 2,
-                    viewLeft() + VIEW_WIDTH - this.font.width(warning) / 2 - 2);
-            graphics.drawString(this.font, warning, warnX - this.font.width(warning) / 2, prevY + half + 3,
-                    ARGB.opaque(BLOCKED_RGB), false);
+                    : Component.translatable("alchemia.gui.overloaded", predicted, TileEntityAlchemyCauldron.maxPotency()),
+                    tip, half);
             return;
         }
 
         if (stranded) {
-            graphics.renderItem(new ItemStack(Items.SKELETON_SKULL), prevX - 8, prevY - 8);
-            Component warning = Component.translatable("alchemia.gui.stranded",
-                    simulatedInstability, cauldron.getInstabilityCap());
-            int warnX = Mth.clamp(prevX, viewLeft() + this.font.width(warning) / 2 + 2,
-                    viewLeft() + VIEW_WIDTH - this.font.width(warning) / 2 - 2);
-            graphics.drawString(this.font, warning, warnX - this.font.width(warning) / 2, prevY + half + 3,
-                    ARGB.opaque(BLOCKED_RGB), false);
+            graphics.renderItem(new ItemStack(Items.SKELETON_SKULL), tip.roundedX() - 8, tip.roundedY() - 8);
+            drawPlanWarning(graphics, Component.translatable("alchemia.gui.stranded",
+                    simulatedInstability, cauldron.getInstabilityCap()), tip, half);
             return;
         }
 
-        if (PotionMap.isReady()) {
-            PotionMap.PotionEffectPosition landing = map().getEffectPotion(new int[]{x, y});
-            Component label = landing.getEffect() == null
-                    ? Component.translatable("alchemia.gui.predicted.none")
-                    : landing.getEffect().getDisplayName();
-            int labelX = Mth.clamp(prevX, viewLeft() + this.font.width(label) / 2 + 2,
-                    viewLeft() + VIEW_WIDTH - this.font.width(label) / 2 - 2);
-            graphics.drawString(this.font, label, labelX - this.font.width(label) / 2, prevY + half + 3, INK, false);
-        }
+        PotionMap.PotionEffectPosition landing = map().getEffectPotion(x, y);
+        Component label = landing.getEffect() == null
+                ? Component.translatable("alchemia.gui.predicted.none")
+                : landing.getEffect().getDisplayName();
+        drawMapLabel(graphics, label, tip, half, INK);
     }
 
-    private void drawOffMapAttempt(GuiGraphics graphics, int x, int y, ItemStack stack,
-                                   int fromX, int fromY, int node) {
-        List<int[]> curve = map().teleportCurve(x, y, stack);
-        if (curve.isEmpty()) return;
+    private void drawPlanWarning(GuiGraphics graphics, Component warning, PathPoint at, int half) {
+        drawMapLabel(graphics, warning, at, half, ARGB.opaque(BLOCKED_RGB));
+    }
 
-        int px = fromX;
-        int py = fromY;
+    private void drawMapLabel(GuiGraphics graphics, Component label, PathPoint at, int half, int colour) {
+        int width = this.font.width(label);
+        int labelX = Mth.clamp(at.roundedX(), viewLeft() + width / 2 + 2, viewLeft() + VIEW_WIDTH - width / 2 - 2);
+        graphics.drawString(this.font, label, labelX - width / 2, at.roundedY() + half + 3, colour, false);
+    }
 
-        for (int[] cell : curve) {
-            int cx = (int) Math.round(screenX(cell[0]));
-            int cy = (int) Math.round(screenY(cell[1]));
-            drawSegment(graphics, px, py, cx, cy, true);
-            px = cx;
-            py = cy;
-        }
+    private void drawOffMapAttempt(GuiGraphics graphics, double x, double y, ItemStack stack, int node) {
+        List<PathPoint> curve = toScreen(map().teleportCurve(x, y, stack));
+        if (curve.size() < 2) return;
 
+        PathRenderer.dashes(graphics, curve, PATH_THICKNESS, ARGB.color(190, BLOCKED_RGB), true);
+
+        PathPoint tip = curve.get(curve.size() - 1);
         int half = Math.max(3, node / 3);
-        int blocked = ARGB.color(220, BLOCKED_RGB);
 
-        graphics.fill(px - half, py - 1, px + half, py + 1, blocked);
-        graphics.fill(px - 1, py - half, px + 1, py + half, blocked);
-        graphics.renderOutline(px - half - 1, py - half - 1, half * 2 + 2, half * 2 + 2, ARGB.color(120, BLOCKED_RGB));
-
-        Component label = Component.translatable("alchemia.gui.offmap");
-        int labelX = Mth.clamp(px, viewLeft() + this.font.width(label) / 2 + 2,
-                viewLeft() + VIEW_WIDTH - this.font.width(label) / 2 - 2);
-        graphics.drawString(this.font, label, labelX - this.font.width(label) / 2, py + half + 3,
-                ARGB.opaque(BLOCKED_RGB), false);
+        PathRenderer.spiral(graphics, tip.x(), tip.y(), half, 2, ARGB.color(220, BLOCKED_RGB));
+        drawPlanWarning(graphics, Component.translatable("alchemia.gui.offmap"), tip, half);
     }
 
-    private void drawPlanMarker(GuiGraphics graphics, int x, int y, int node, int rgb) {
-        int half = Math.max(3, node / 3);
-        graphics.renderOutline(x - half, y - half, half * 2, half * 2, ARGB.color(200, rgb));
-        graphics.renderOutline(x - half - 1, y - half - 1, half * 2 + 2, half * 2 + 2, ARGB.color(80, rgb));
-    }
-
-    private void drawNodeDot(GuiGraphics graphics, int px, int py, int cellX, int cellY) {
-        if (map().getEffectAt(cellX, cellY) == null) return;
-        graphics.fill(px - 2, py - 2, px + 2, py + 2, ARGB.color(220, 0x3C6B2A));
-    }
-
-    private void drawSegment(GuiGraphics graphics, int x0, int y0, int x1, int y1, boolean dashed) {
-        double dx = x1 - x0;
-        double dy = y1 - y0;
-        double length = Math.sqrt(dx * dx + dy * dy);
-        if (length < 1) return;
-
-        int steps = (int) Math.min(360, Math.ceil(dashed ? length / 2.0 : length));
-        for (int i = 0; i <= steps; i++) {
-            if (dashed && (i / 3) % 2 == 1) continue;
-            double t = (double) i / steps;
-            int px = (int) Math.round(x0 + dx * t);
-            int py = (int) Math.round(y0 + dy * t);
-            graphics.fill(px - 1, py - 1, px + 1, py + 1, ARGB.color(190, GHOST_RGB));
-        }
+    private void drawPlanMarker(GuiGraphics graphics, PathPoint at, int node, int rgb) {
+        PathRenderer.marker(graphics, at.x(), at.y(), Math.max(3, node / 3), rgb);
     }
 
     private void drawMapEdge(GuiGraphics graphics, int left, int top, int right, int bottom) {
         int size = map().getSize();
 
-        int x0 = Mth.clamp((int) Math.round(screenX(-0.5)), left, right);
-        int x1 = Mth.clamp((int) Math.round(screenX(size - 0.5)), left, right);
-        int y0 = Mth.clamp((int) Math.round(screenY(-0.5)), top, bottom);
-        int y1 = Mth.clamp((int) Math.round(screenY(size - 0.5)), top, bottom);
+        int x0 = Mth.clamp((int) Math.round(screenX(0)), left, right);
+        int x1 = Mth.clamp((int) Math.round(screenX(size)), left, right);
+        int y0 = Mth.clamp((int) Math.round(screenY(0)), top, bottom);
+        int y1 = Mth.clamp((int) Math.round(screenY(size)), top, bottom);
 
         if (y0 > top) graphics.fill(left, top, right, y0, EDGE_FILL);
         if (y1 < bottom) graphics.fill(left, y1, right, bottom, EDGE_FILL);
@@ -1107,30 +1097,70 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
         if (x0 > left) graphics.fill(x0 - 1, y0, x0 + 1, y1, EDGE_LINE);
         if (x1 < right) graphics.fill(x1 - 1, y0, x1 + 1, y1, EDGE_LINE);
         if (y0 > top) graphics.fill(x0, y0 - 1, x1, y0 + 1, EDGE_LINE);
-        if (y1 < bottom) graphics.fill(x0, y1 - 1, x1, y1 + 1, EDGE_LINE);
+        if (y1 < bottom) graphics.fill(x0, y1 - 1, x1, y1, EDGE_LINE);
+    }
+
+    private static final double MIN_TILE_PIXELS = 3.0;
+    private static final double EDGE_TILE_PIXELS = 5.0;
+
+    private int deadzoneLevel(PotionMap map) {
+        int level = 0;
+        while (level + 1 < map.lodLevels() && PotionMap.tileSize(level) * zoom < MIN_TILE_PIXELS) level++;
+        return level;
     }
 
     private void extractDeadzones(GuiGraphics graphics, int left, int top, int right, int bottom) {
         if (!PotionMap.isReady()) return;
 
-        for (long packed : map().deadzoneCells()) {
-            int cx = (int) (packed >> 32);
-            int cy = (int) packed;
+        PotionMap map = map();
+        int level = deadzoneLevel(map);
+        double span = PotionMap.tileSize(level);
+        int last = map.tileCount(level) - 1;
 
-            int x0 = (int) Math.round(screenX(cx - 0.5));
-            int x1 = (int) Math.round(screenX(cx + 0.5));
-            int y0 = (int) Math.round(screenY(cy - 0.5));
-            int y1 = (int) Math.round(screenY(cy + 0.5));
-            if (x1 <= x0) x1 = x0 + 1;
+        int fromX = Mth.clamp((int) Math.floor(mapAtX(left) / span), 0, last);
+        int toX = Mth.clamp((int) Math.floor(mapAtX(right) / span), 0, last);
+        int fromY = Mth.clamp((int) Math.floor(mapAtY(top) / span), 0, last);
+        int toY = Mth.clamp((int) Math.floor(mapAtY(bottom) / span), 0, last);
+
+        boolean edges = span * zoom >= EDGE_TILE_PIXELS;
+        int fill = ARGB.color(70, BLOCKED_RGB);
+        int edge = ARGB.color(150, BLOCKED_RGB);
+
+        for (int tileY = fromY; tileY <= toY; tileY++) {
+            int y0 = (int) Math.round(screenY(PotionMap.tileOrigin(level, tileY)));
+            int y1 = (int) Math.round(screenY(PotionMap.tileOrigin(level, tileY + 1)));
             if (y1 <= y0) y1 = y0 + 1;
-            if (x0 > right || x1 < left || y0 > bottom || y1 < top) continue;
 
-            graphics.fill(x0, y0, x1, y1, ARGB.color(70, BLOCKED_RGB));
+            int runStart = -1;
 
-            if (!map().isDeadzone(cx, cy - 1)) graphics.fill(x0, y0, x1, y0 + 1, ARGB.color(150, BLOCKED_RGB));
-            if (!map().isDeadzone(cx, cy + 1)) graphics.fill(x0, y1 - 1, x1, y1, ARGB.color(150, BLOCKED_RGB));
-            if (!map().isDeadzone(cx - 1, cy)) graphics.fill(x0, y0, x0 + 1, y1, ARGB.color(150, BLOCKED_RGB));
-            if (!map().isDeadzone(cx + 1, cy)) graphics.fill(x1 - 1, y0, x1, y1, ARGB.color(150, BLOCKED_RGB));
+            for (int tileX = fromX; tileX <= toX + 1; tileX++) {
+                boolean solid = tileX <= toX && map.isDeadTile(level, tileX, tileY);
+
+                if (solid && runStart < 0) runStart = tileX;
+                if (solid || runStart < 0) continue;
+
+                int x0 = (int) Math.round(screenX(PotionMap.tileOrigin(level, runStart)));
+                int x1 = (int) Math.round(screenX(PotionMap.tileOrigin(level, tileX)));
+                if (x1 <= x0) x1 = x0 + 1;
+
+                graphics.fill(x0, y0, x1, y1, fill);
+
+                if (edges) {
+                    if (!map.isDeadTile(level, runStart - 1, tileY)) graphics.fill(x0, y0, x0 + 1, y1, edge);
+                    if (!map.isDeadTile(level, tileX, tileY)) graphics.fill(x1 - 1, y0, x1, y1, edge);
+
+                    for (int run = runStart; run < tileX; run++) {
+                        int rx0 = (int) Math.round(screenX(PotionMap.tileOrigin(level, run)));
+                        int rx1 = (int) Math.round(screenX(PotionMap.tileOrigin(level, run + 1)));
+                        if (rx1 <= rx0) rx1 = rx0 + 1;
+
+                        if (!map.isDeadTile(level, run, tileY - 1)) graphics.fill(rx0, y0, rx1, y0 + 1, edge);
+                        if (!map.isDeadTile(level, run, tileY + 1)) graphics.fill(rx0, y1 - 1, rx1, y1, edge);
+                    }
+                }
+
+                runStart = -1;
+            }
         }
     }
 
@@ -1158,64 +1188,21 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
 
     private void drawEffectAura(GuiGraphics graphics, int cx, int cy,
                                 PotionMap.MapEntry entry, boolean discovered) {
-        double cellW = SPACING_X * zoom;
-        double cellH = SPACING_Y * zoom;
-        if (cellW < 2 || cellH < 2) return;
+        double reach = PotionMap.EFFECT_RADIUS * zoom;
+        if (reach < 2.0) return;
 
-        double reachX = (PotionMap.EFFECT_RADIUS + 0.5) * cellW;
-        double reachY = (PotionMap.EFFECT_RADIUS + 0.5) * cellH;
-        if (cx + reachX < viewLeft() || cx - reachX > viewLeft() + VIEW_WIDTH
-                || cy + reachY < viewTop() || cy - reachY > viewTop() + VIEW_HEIGHT) return;
+        if (cx + reach < viewLeft() || cx - reach > viewLeft() + VIEW_WIDTH
+                || cy + reach < viewTop() || cy - reach > viewTop() + VIEW_HEIGHT) return;
 
         int rgb = discovered ? entry.effect().getEffect().getColor() : AURA_UNKNOWN_RGB;
         double pulse = (Math.sin(Util.getMillis() / 520.0 + cx * 0.35) + 1.0) * 0.5;
-        double glow = 0.72 + pulse * 0.28;
+        int alpha = (int) Math.round(AURA_CORE_ALPHA * (0.72 + pulse * 0.28));
 
-        int radius = PotionMap.EFFECT_RADIUS;
+        PathRenderer.aura(graphics, cx, cy, reach, rgb, alpha);
+        PathRenderer.ring(graphics, cx, cy, reach, ARGB.color(Math.min(255, alpha * 2), rgb), true);
 
-        for (int dx = -radius; dx <= radius; dx++) {
-            for (int dy = -radius; dy <= radius; dy++) {
-                int ring = Math.max(Math.abs(dx), Math.abs(dy));
-
-                int cellX = entry.x() + dx;
-                int cellY = entry.y() + dy;
-
-                int x0 = (int) Math.round(screenX(cellX - 0.5));
-                int x1 = (int) Math.round(screenX(cellX + 0.5));
-                int y0 = (int) Math.round(screenY(cellY - 0.5));
-                int y1 = (int) Math.round(screenY(cellY + 0.5));
-                if (x1 <= x0) x1 = x0 + 1;
-                if (y1 <= y0) y1 = y0 + 1;
-
-                int alpha = (int) Math.round(AURA_CORE_ALPHA / (1.0 + ring) * glow);
-                graphics.fill(x0, y0, x1, y1, ARGB.color(alpha, rgb));
-
-                int edge = ARGB.color(Math.min(255, (int) Math.round(alpha * 2.4)), rgb);
-                if (outsideReach(dx, dy - 1, radius)) dottedEdge(graphics, x0, y0, x1, y0 + 1, true, edge);
-                if (outsideReach(dx, dy + 1, radius)) dottedEdge(graphics, x0, y1 - 1, x1, y1, true, edge);
-                if (outsideReach(dx - 1, dy, radius)) dottedEdge(graphics, x0, y0, x0 + 1, y1, false, edge);
-                if (outsideReach(dx + 1, dy, radius)) dottedEdge(graphics, x1 - 1, y0, x1, y1, false, edge);
-            }
-        }
-    }
-
-    private void dottedEdge(GuiGraphics graphics, int x0, int y0, int x1, int y1,
-                            boolean horizontal, int colour) {
-        int length = horizontal ? x1 - x0 : y1 - y0;
-
-        for (int i = 0; i < length; i++) {
-            if ((i / AURA_DASH) % 2 == 1) continue;
-
-            if (horizontal) {
-                graphics.fill(x0 + i, y0, x0 + i + 1, y1, colour);
-            } else {
-                graphics.fill(x0, y0 + i, x1, y0 + i + 1, colour);
-            }
-        }
-    }
-
-    private static boolean outsideReach(int dx, int dy, int radius) {
-        return Math.max(Math.abs(dx), Math.abs(dy)) > radius;
+        double core = PotionMap.EFFECT_CORE * zoom;
+        if (core >= 2.0) PathRenderer.ring(graphics, cx, cy, core, ARGB.color(Math.min(255, alpha * 3), rgb), false);
     }
 
     private void drawThread(GuiGraphics graphics, int x0, int y0, int x1, int y1, int thickness) {

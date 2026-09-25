@@ -1,5 +1,6 @@
 package muddykat.alchemia.common.items;
 
+import muddykat.alchemia.common.items.helper.IngredientPath;
 import net.minecraft.world.item.ItemStack;
 
 public class ItemAlbedo extends ItemPathTool {
@@ -9,7 +10,7 @@ public class ItemAlbedo extends ItemPathTool {
     }
 
     @Override
-    protected boolean canApply(ItemStack target) {
+    public boolean canApply(ItemStack target) {
         return ItemIngredient.canRotate(target);
     }
 
@@ -31,5 +32,15 @@ public class ItemAlbedo extends ItemPathTool {
     @Override
     public String progressKey() {
         return "alchemia.tooltip.albedo.progress";
+    }
+
+    @Override
+    public String actionKey() {
+        return "alchemia.gui.tool.rotate";
+    }
+
+    @Override
+    public float progress(ItemStack target) {
+        return (float) ItemIngredient.rotationOf(target) / IngredientPath.ROTATION_STEPS;
     }
 }

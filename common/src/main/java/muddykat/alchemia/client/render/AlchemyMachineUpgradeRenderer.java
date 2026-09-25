@@ -74,7 +74,11 @@ public class AlchemyMachineUpgradeRenderer implements BlockEntityRenderer<TileEn
 
         poseStack.pushPose();
         poseStack.translate(0.5F, 0.0F, 0.5F);
+#if MC_VER >= 26300
+        poseStack.rotateDegrees(Axis.YP, rotation(state.facing));
+#else
         poseStack.mulPose(Axis.YP.rotationDegrees(rotation(state.facing)));
+#endif
         poseStack.translate(-0.5F, 0.0F, -0.5F);
 
         for (int slot = 0; slot < state.flasks.size() && slot < state.potionColors.length; slot++) {

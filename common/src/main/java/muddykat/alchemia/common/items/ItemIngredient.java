@@ -8,6 +8,8 @@ import muddykat.alchemia.common.potion.PotionMap;
 import muddykat.alchemia.common.utility.TextUtils;
 import muddykat.alchemia.common.items.helper.IngredientType;
 import muddykat.alchemia.common.items.helper.Ingredients;
+import muddykat.alchemia.common.items.helper.PathGeometry;
+import muddykat.alchemia.common.items.helper.PathPoint;
 import muddykat.alchemia.registration.registers.DataComponentRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -59,8 +61,8 @@ public class ItemIngredient extends Item {
     public static boolean canTrim(ItemStack stack) {
         if (!(stack.getItem() instanceof ItemIngredient item)) return false;
         return IngredientPath.of(item.ingredient).teleports()
-                ? item.teleportReach(stack) > 1
-                : item.pathCellCount(stack) > 1;
+                ? PotionMap.teleportReach(stack) > IngredientPath.TRIM_STEP
+                : item.pathSpan(stack) > IngredientPath.TRIM_STEP;
     }
 
     public static int rotationOf(ItemStack stack) {
@@ -70,7 +72,7 @@ public class ItemIngredient extends Item {
 
     public static boolean canRotate(ItemStack stack) {
         if (!(stack.getItem() instanceof ItemIngredient item)) return false;
-        return IngredientPath.of(item.ingredient).teleports() || item.pathCellCount(stack) > 0;
+        return IngredientPath.of(item.ingredient).teleports() || item.pathSpan(stack) > 0;
     }
 
     public static void rotate(ItemStack stack, int steps) {
@@ -134,7 +136,7 @@ public class ItemIngredient extends Item {
         if (IngredientPath.of(ingredient).teleports()) {
             tooltips.accept(Component.translatable("alchemia.tooltip.teleport", PotionMap.teleportDistance(stack)).withStyle(ChatFormatting.DARK_GRAY));
         } else {
-            tooltips.accept(Component.translatable("alchemia.tooltip.pathlength", pathCellCount(stack)).withStyle(ChatFormatting.DARK_GRAY));
+            tooltips.accept(Component.translatable("alchemia.tooltip.pathlength", Math.round(pathSpan(stack))).withStyle(ChatFormatting.DARK_GRAY));
         }
 
         if (crush < Ingredients.MAX_CRUSH_UNITS) {
@@ -156,7 +158,7 @@ public class ItemIngredient extends Item {
         }
     }
 
-    private List<int[]> pathOffsets(double potency, int trim, int rotation) {
+    private List<PathPoint> pathOffsets(double potency, int trim, int rotation) {
         int dx = alignmentX();
         int dy = alignmentY();
         IngredientPath shape = IngredientPath.of(ingredient);
@@ -173,49 +175,47 @@ public class ItemIngredient extends Item {
         return Integer.signum(ingredient.getPrimaryAlignment().getY() + ingredient.getSecondaryAlignment().getY());
     }
 
-    private int teleportReach(ItemStack stack) {
-        return Math.max(1, IngredientPath.teleportDistance(getPotency(stack)) - trimOf(stack));
+    private double pathSpan(ItemStack stack) {
+        return PathGeometry.length(pathOffsets(getPotency(stack), trimOf(stack), rotationOf(stack)));
     }
 
-    private int pathCellCount(ItemStack stack) {
-        return pathOffsets(getPotency(stack), trimOf(stack), rotationOf(stack)).size();
+    public static double pathLength(ItemStack stack) {
+        if (!(stack.getItem() instanceof ItemIngredient item)) return 0.0;
+        return IngredientPath.of(item.ingredient).teleports()
+                ? PotionMap.teleportReach(stack)
+                : item.pathSpan(stack);
     }
 
-    private static final double TELEPORT_PREVIEW_RADIUS = 8.0;
-
-    private List<int[]> previewCells(double potency, double teleportScale, int trim, int rotation) {
+    public List<PathPoint> previewPath(double potency, int trim, int rotation) {
         IngredientPath shape = IngredientPath.of(ingredient);
-        int dx = alignmentX();
-        int dy = alignmentY();
 
-        if (shape.teleports()) {
-            int[] direction = shape == IngredientPath.SPIRAL_TELEPORT
-                    ? IngredientPath.spiralDirection(potency)
-                    : new int[]{dx, dy};
-            if (direction[0] == 0 && direction[1] == 0) return List.of();
-            double reach = Math.max(1, IngredientPath.teleportDistance(potency));
-            double shrink = Math.max(1.0, reach - trim) / reach;
-            return IngredientPath.rotated(
-                    shape.teleportPreview(direction[0], direction[1], potency, teleportScale * shrink), rotation);
-        }
+        if (!shape.teleports()) return pathOffsets(potency, trim, rotation);
 
-        return pathOffsets(potency, trim, rotation);
+        int[] direction = shape == IngredientPath.SPIRAL_TELEPORT
+                ? IngredientPath.spiralDirection(potency)
+                : new int[]{alignmentX(), alignmentY()};
+        if (direction[0] == 0 && direction[1] == 0) return List.of();
+
+        double reach = IngredientPath.teleportRadius(potency);
+        double shrink = Math.max(PathGeometry.CELL, reach - trim * IngredientPath.TRIM_STEP) / reach;
+        return IngredientPath.rotated(
+                shape.teleportPreview(direction[0], direction[1], potency, shrink), rotation);
     }
 
     @Override
     public Optional<TooltipComponent> getTooltipImage(ItemStack stack) {
         IngredientPath shape = IngredientPath.of(ingredient);
         double maxPotency = ingredient.getPotency(Ingredients.MAX_CRUSH);
-        double teleportScale = TELEPORT_PREVIEW_RADIUS / IngredientPath.teleportDistance(maxPotency);
 
-        List<int[]> full = previewCells(maxPotency, teleportScale, trimOf(stack), rotationOf(stack));
-        if (full.isEmpty()) return Optional.empty();
+        List<PathPoint> full = previewPath(maxPotency, trimOf(stack), rotationOf(stack));
+        if (full.size() < 2) return Optional.empty();
 
         Component label = Component.translatable(shape.teleports()
                 ? "alchemia.tooltip.label.teleport" : "alchemia.tooltip.label.path");
 
-        int taken = previewCells(getPotency(stack), teleportScale, trimOf(stack), rotationOf(stack)).size();
-        return Optional.of(new IngredientPathTooltip(full, Math.min(taken, full.size()), shape.teleports(), label));
+        double taken = PathGeometry.length(previewPath(getPotency(stack), trimOf(stack), rotationOf(stack)));
+        return Optional.of(new IngredientPathTooltip(full,
+                Math.min(taken, PathGeometry.length(full)), shape.teleports(), label));
     }
 
     public static Component describeDrift(int driftX, int driftY) {

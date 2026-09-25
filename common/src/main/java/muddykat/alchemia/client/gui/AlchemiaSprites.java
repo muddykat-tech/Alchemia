@@ -22,6 +22,9 @@ public final class AlchemiaSprites {
     public static final Identifier BURN_PROGRESS = sprite("container/burn_progress");
     public static final Identifier COOK_TRACK = sprite("container/cook_track");
     public static final Identifier COOK_PROGRESS = sprite("container/cook_progress");
+    public static final Identifier TOOL_PANEL = sprite("container/tool_panel");
+    public static final Identifier GRIND_TRACK = sprite("container/grind_track");
+    public static final Identifier GRIND_PROGRESS = sprite("container/grind_progress");
     public static final Identifier GRIND_PANEL = sprite("hud/grind_panel");
     public static final Identifier PATH_TOOLTIP_PANEL = sprite("tooltip/path_panel");
     public static final Identifier DELETE_BUTTON = sprite("guide/delete_button");
@@ -33,6 +36,8 @@ public final class AlchemiaSprites {
     public static final int BURN_H = 14;
     public static final int COOK_W = 38;
     public static final int COOK_H = 8;
+    public static final int GRIND_W = 38;
+    public static final int GRIND_H = 8;
 
     private AlchemiaSprites() {
     }

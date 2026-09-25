@@ -1,0 +1,33 @@
+{
+  "parent": "alchemia:rubedo",
+  "criteria": {
+    "unlocked": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:philosopher_stone"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.alchemia.philosopher_stone.description"
+    },
+    "frame": "challenge",
+    "icon": {
+      "id": "alchemia:philosopher_stone"
+    },
+    "title": {
+      "translate": "advancements.alchemia.philosopher_stone.title"
+    }
+  },
+  "requirements": [
+    [
+      "unlocked"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

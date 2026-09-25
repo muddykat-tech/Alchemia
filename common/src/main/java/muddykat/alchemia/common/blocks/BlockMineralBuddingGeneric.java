@@ -31,7 +31,11 @@ public class BlockMineralBuddingGeneric extends BlockGeneric {
 
     @Override
     public PushReaction getPistonPushReaction(BlockState state) {
+#if MC_VER >= 26300
+        return PushReaction.POPPED;
+#else
         return PushReaction.DESTROY;
+#endif
     }
 
     public static boolean canGrowIn(BlockState state) {

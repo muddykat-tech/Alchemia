@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cross",
+  "textures": {
+    "cross": "alchemia:block/minerals/fable_bismuth/growth_stage_0"
+  }
+}

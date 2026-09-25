@@ -1,0 +1,514 @@
+{
+  "parent": "alchemia:mortar",
+  "criteria": {
+    "flower_boombloom": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:flower_boombloom"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "flower_featherbloom": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:flower_featherbloom"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "flower_firebell": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:flower_firebell"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "flower_fluffbloom": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:flower_fluffbloom"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "flower_spellbloom": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:flower_spellbloom"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "flower_waterbloom": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:flower_waterbloom"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "flower_windbloom": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:flower_windbloom"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "herb_bloodthorn": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:herb_bloodthorn"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "herb_coldleaf": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:herb_coldleaf"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "herb_dragon_pepper": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:herb_dragon_pepper"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "herb_druids_rosemary": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:herb_druids_rosemary"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "herb_evergreen_fern": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:herb_evergreen_fern"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "herb_flameweed": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:herb_flameweed"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "herb_goldthorn": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:herb_goldthorn"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "herb_goodberry": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:herb_goodberry"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "herb_healers_heather": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:herb_healers_heather"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "herb_icefruit": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:herb_icefruit"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "herb_lifeleaf": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:herb_lifeleaf"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "herb_mageberry": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:herb_mageberry"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "herb_tangleweed": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:herb_tangleweed"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "herb_terrorbud": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:herb_terrorbud"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "herb_thornstick": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:herb_thornstick"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "herb_thunder_thistle": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:herb_thunder_thistle"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "herb_whirlweed": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:herb_whirlweed"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "mineral_arcane_crystal": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:mineral_arcane_crystal"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "mineral_cloud_crystal": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:mineral_cloud_crystal"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "mineral_earth_pyrite": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:mineral_earth_pyrite"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "mineral_fable_bismuth": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:mineral_fable_bismuth"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "mineral_fire_citrine": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:mineral_fire_citrine"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "mineral_frost_sapphire": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:mineral_frost_sapphire"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "mushroom_magma_morel": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:mushroom_magma_morel"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "mushroom_marshroom": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:mushroom_marshroom"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "mushroom_rainbow_cap": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:mushroom_rainbow_cap"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "mushroom_sulphur_shelf": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:mushroom_sulphur_shelf"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "mushroom_witch_mushroom": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:mushroom_witch_mushroom"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "root_dreambeet": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:root_dreambeet"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "root_lava_root": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:root_lava_root"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "root_terraria": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:root_terraria"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.alchemia.herbalist.description"
+    },
+    "frame": "challenge",
+    "icon": {
+      "id": "alchemia:flower_firebell"
+    },
+    "title": {
+      "translate": "advancements.alchemia.herbalist.title"
+    }
+  },
+  "requirements": [
+    [
+      "flower_firebell"
+    ],
+    [
+      "flower_waterbloom"
+    ],
+    [
+      "flower_windbloom"
+    ],
+    [
+      "flower_featherbloom"
+    ],
+    [
+      "flower_fluffbloom"
+    ],
+    [
+      "flower_spellbloom"
+    ],
+    [
+      "flower_boombloom"
+    ],
+    [
+      "herb_bloodthorn"
+    ],
+    [
+      "herb_coldleaf"
+    ],
+    [
+      "herb_dragon_pepper"
+    ],
+    [
+      "herb_druids_rosemary"
+    ],
+    [
+      "herb_evergreen_fern"
+    ],
+    [
+      "herb_lifeleaf"
+    ],
+    [
+      "herb_goldthorn"
+    ],
+    [
+      "herb_icefruit"
+    ],
+    [
+      "herb_tangleweed"
+    ],
+    [
+      "herb_whirlweed"
+    ],
+    [
+      "herb_goodberry"
+    ],
+    [
+      "herb_thunder_thistle"
+    ],
+    [
+      "herb_flameweed"
+    ],
+    [
+      "herb_mageberry"
+    ],
+    [
+      "herb_healers_heather"
+    ],
+    [
+      "herb_terrorbud"
+    ],
+    [
+      "herb_thornstick"
+    ],
+    [
+      "root_lava_root"
+    ],
+    [
+      "root_terraria"
+    ],
+    [
+      "root_dreambeet"
+    ],
+    [
+      "mushroom_marshroom"
+    ],
+    [
+      "mushroom_sulphur_shelf"
+    ],
+    [
+      "mushroom_witch_mushroom"
+    ],
+    [
+      "mushroom_magma_morel"
+    ],
+    [
+      "mushroom_rainbow_cap"
+    ],
+    [
+      "mineral_cloud_crystal"
+    ],
+    [
+      "mineral_earth_pyrite"
+    ],
+    [
+      "mineral_frost_sapphire"
+    ],
+    [
+      "mineral_fire_citrine"
+    ],
+    [
+      "mineral_arcane_crystal"
+    ],
+    [
+      "mineral_fable_bismuth"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

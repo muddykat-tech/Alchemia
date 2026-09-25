@@ -52,13 +52,13 @@ public final class BrewBases {
                 List.of(new BrewBase.Fill(id("minecraft:water_bucket"), Optional.empty(), 4, id("minecraft:bucket"), Optional.empty()),
                         new BrewBase.Fill(Optional.empty(), id("minecraft:water"), 4, Optional.empty(), Optional.empty())),
                 1, Optional.of(0x3F76E4), true, id("minecraft:block/water_still"), id("minecraft:water"),
-                Optional.empty(), Optional.of(effectsExcept(HONEY_ONLY)));
+                Optional.empty(), Optional.of(effectsExcept(HONEY_ONLY)), BrewBase.DeadSpace.RINGS);
 
         BrewBase honey = new BrewBase("honey",
                 List.of(new BrewBase.Fill(id("minecraft:honey_block"), Optional.empty(), 4, Optional.empty(), Optional.empty()),
                         new BrewBase.Fill(id("minecraft:honey_bottle"), Optional.empty(), 1, id("minecraft:glass_bottle"), Optional.empty())),
                 2, Optional.of(0xD9871F), false, Optional.empty(), Optional.empty(),
-                id("minecraft:honey_bottle"), Optional.of(effectsExcept(WATER_ONLY)));
+                id("minecraft:honey_bottle"), Optional.of(effectsExcept(WATER_ONLY)), BrewBase.DeadSpace.FIELD);
 
         return List.of(water, honey);
     }

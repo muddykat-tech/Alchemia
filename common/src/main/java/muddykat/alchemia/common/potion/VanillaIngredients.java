@@ -11,7 +11,7 @@ public class VanillaIngredients {
 
     public static final int DRIFT_LENGTH = 5;
 
-    public record Drift(PotionEnum target, boolean homing) {}
+    public record Drift(PotionEnum target, boolean lure) {}
 
     private static final Map<Item, Drift> DRIFTS = new LinkedHashMap<>();
 
@@ -53,6 +53,11 @@ public class VanillaIngredients {
 
     public static boolean isVanillaIngredient(ItemStack stack) {
         return driftOf(stack) != null;
+    }
+
+    public static boolean isLure(ItemStack stack) {
+        Drift drift = driftOf(stack);
+        return drift != null && drift.lure();
     }
 
     public static Map<Item, Drift> drifts() {

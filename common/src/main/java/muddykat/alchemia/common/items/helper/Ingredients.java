@@ -107,7 +107,11 @@ public enum Ingredients {
                             .randomTicks()
                             .instabreak()
                             .sound(SoundType.CROP)
+#if MC_VER >= 26300
+                            .pushReaction(PushReaction.POPPED));
+#else
                             .pushReaction(PushReaction.DESTROY));
+#endif
             ItemRegistry.registerItem(getSeedRegistryName(), properties -> new ItemIngredientSeed(block.get(), this, type, primaryAlignment, properties));
         }
         ItemRegistry.registerItem(getRegistryName(), properties -> new ItemIngredient(this, type, primaryAlignment, properties));

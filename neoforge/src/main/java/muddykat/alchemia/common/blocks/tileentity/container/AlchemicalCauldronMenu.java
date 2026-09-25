@@ -2,6 +2,7 @@ package muddykat.alchemia.common.blocks.tileentity.container;
 
 import muddykat.alchemia.common.blocks.tileentity.TileEntityAlchemyCauldron;
 import muddykat.alchemia.common.items.ItemIngredient;
+import muddykat.alchemia.common.items.helper.IngredientTool;
 import muddykat.alchemia.registration.registers.BlockRegistry;
 import muddykat.alchemia.registration.registers.MenuTypeRegistry;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -22,14 +23,15 @@ import java.util.Objects;
 
 public class AlchemicalCauldronMenu extends AbstractContainerMenu {
 
-    public static final int INGREDIENT_SLOTS = 6;
-    public static final int CAULDRON_SLOTS = 8;
+    public static final int CAULDRON_SLOTS = 4;
 
-    public static final int SPECIAL_SLOT_X = 57;
+    public static final int ACTIVE_SLOT_X = 57;
+    public static final int SPECIAL_SLOT_X = 175;
     public static final int SPECIAL_SLOT_GAP = 18;
+    public static final int TOOL_SLOT_X = 322;
+    public static final int TOOL_SLOT_Y = 143;
 
-    private static final int SLOT_ROW_X = 101;
-    private static final int SLOT_ROW_Y = 181;
+    public static final int SLOT_ROW_Y = 181;
     private static final int INVENTORY_X = 74;
     private static final int INVENTORY_Y = 222;
     private static final int HOTBAR_Y = 280;
@@ -45,14 +47,13 @@ public class AlchemicalCauldronMenu extends AbstractContainerMenu {
         this.containerAccess = ContainerLevelAccess.create(cauldron.getLevel(), cauldron.getBlockPos());
 
         ItemStacksResourceHandler handler = cauldron.getInventory();
-        for (int slot = 0; slot < INGREDIENT_SLOTS; slot++) {
-            addSlot(new ResourceHandlerSlot(handler, handler::set, slot, SLOT_ROW_X + slot * 18 + 1, SLOT_ROW_Y + 1) {
-                @Override
-                public boolean mayPlace(ItemStack stack) {
-                    return TileEntityAlchemyCauldron.isBrewingInput(stack);
-                }
-            });
-        }
+        addSlot(new ResourceHandlerSlot(handler, handler::set, TileEntityAlchemyCauldron.ACTIVE_SLOT,
+                ACTIVE_SLOT_X + 1, SLOT_ROW_Y + 1) {
+            @Override
+            public boolean mayPlace(ItemStack stack) {
+                return TileEntityAlchemyCauldron.isBrewingInput(stack);
+            }
+        });
 
         addSlot(new ResourceHandlerSlot(handler, handler::set, TileEntityAlchemyCauldron.REDSTONE_SLOT,
                 SPECIAL_SLOT_X + 1, SLOT_ROW_Y + 1) {
@@ -67,6 +68,14 @@ public class AlchemicalCauldronMenu extends AbstractContainerMenu {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return stack.is(Items.GUNPOWDER);
+            }
+        });
+
+        addSlot(new ResourceHandlerSlot(handler, handler::set, TileEntityAlchemyCauldron.TOOL_SLOT,
+                TOOL_SLOT_X + 1, TOOL_SLOT_Y + 1) {
+            @Override
+            public boolean mayPlace(ItemStack stack) {
+                return IngredientTool.of(stack) != null;
             }
         });
 
@@ -108,11 +117,17 @@ public class AlchemicalCauldronMenu extends AbstractContainerMenu {
         if (slotIndex < CAULDRON_SLOTS) {
             if (!moveItemStackTo(stack, CAULDRON_SLOTS, this.slots.size(), true)) return ItemStack.EMPTY;
         } else if (TileEntityAlchemyCauldron.isBrewingInput(stack)) {
-            if (!moveItemStackTo(stack, 0, INGREDIENT_SLOTS, false)) return ItemStack.EMPTY;
+            if (!moveItemStackTo(stack, TileEntityAlchemyCauldron.ACTIVE_SLOT,
+                    TileEntityAlchemyCauldron.ACTIVE_SLOT + 1, false)) return ItemStack.EMPTY;
         } else if (stack.is(Items.REDSTONE)) {
-            if (!moveItemStackTo(stack, INGREDIENT_SLOTS, INGREDIENT_SLOTS + 1, false)) return ItemStack.EMPTY;
+            if (!moveItemStackTo(stack, TileEntityAlchemyCauldron.REDSTONE_SLOT,
+                    TileEntityAlchemyCauldron.REDSTONE_SLOT + 1, false)) return ItemStack.EMPTY;
         } else if (stack.is(Items.GUNPOWDER)) {
-            if (!moveItemStackTo(stack, INGREDIENT_SLOTS + 1, CAULDRON_SLOTS, false)) return ItemStack.EMPTY;
+            if (!moveItemStackTo(stack, TileEntityAlchemyCauldron.GUNPOWDER_SLOT,
+                    TileEntityAlchemyCauldron.GUNPOWDER_SLOT + 1, false)) return ItemStack.EMPTY;
+        } else if (IngredientTool.of(stack) != null) {
+            if (!moveItemStackTo(stack, TileEntityAlchemyCauldron.TOOL_SLOT,
+                    TileEntityAlchemyCauldron.TOOL_SLOT + 1, false)) return ItemStack.EMPTY;
         } else {
             return ItemStack.EMPTY;
         }
@@ -127,11 +142,26 @@ public class AlchemicalCauldronMenu extends AbstractContainerMenu {
     }
 
     public static final int BUTTON_BREW = 0;
+    public static final int BUTTON_ADD = 1;
+    public static final int BUTTON_APPLY_TOOL = 2;
+    public static final int BUTTON_UNQUEUE = 3;
 
     @Override
     public boolean clickMenuButton(Player player, int buttonId) {
         if (buttonId == BUTTON_BREW) {
             alchemyCauldron.commitQueue(player);
+            return true;
+        }
+        if (buttonId == BUTTON_ADD) {
+            alchemyCauldron.queueActive(player);
+            return true;
+        }
+        if (buttonId == BUTTON_APPLY_TOOL) {
+            alchemyCauldron.applyTool(player);
+            return true;
+        }
+        if (buttonId >= BUTTON_UNQUEUE && buttonId < BUTTON_UNQUEUE + TileEntityAlchemyCauldron.MAX_QUEUE) {
+            alchemyCauldron.unqueue(player, buttonId - BUTTON_UNQUEUE);
             return true;
         }
         return false;

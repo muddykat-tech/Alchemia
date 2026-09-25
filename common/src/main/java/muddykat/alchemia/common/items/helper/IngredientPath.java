@@ -3,18 +3,21 @@ package muddykat.alchemia.common.items.helper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.DoubleFunction;
 
 public enum IngredientPath {
-    STRAIGHT(0),
-    WAVE(1),
-    ARC(2),
-    SPIRAL(0),
-    SCRIPTED(0),
-    TELEPORT(0),
-    SPIRAL_TELEPORT(0);
+    STRAIGHT(0.0),
+    WAVE(PathGeometry.CELL),
+    ARC(2.0 * PathGeometry.CELL),
+    SPIRAL(0.0),
+    SCRIPTED(0.0),
+    CURVED(0.0),
+    TELEPORT(0.0),
+    SPIRAL_TELEPORT(0.0);
 
-    public static final int BASE_LENGTH = 5;
-    public static final int LENGTH_PER_POTENCY = 2;
+    public static final double BASE_LENGTH = 5.0 * PathGeometry.CELL;
+    public static final double LENGTH_PER_POTENCY = 2.0 * PathGeometry.CELL;
+    public static final double TRIM_STEP = PathGeometry.CELL;
 
     private static final Map<Ingredients, IngredientPath> OVERRIDES = Map.of(
             Ingredients.Flameweed, WAVE,
@@ -22,9 +25,9 @@ public enum IngredientPath {
             Ingredients.Fable_Bismuth, SPIRAL_TELEPORT
     );
 
-    private final int amplitude;
+    private final double amplitude;
 
-    IngredientPath(int amplitude) {
+    IngredientPath(double amplitude) {
         this.amplitude = amplitude;
     }
 
@@ -38,7 +41,144 @@ public enum IngredientPath {
             Ingredients.Coldleaf, new int[][]{{2, 1}, {4, 3}, {6, 3}, {7, 2}, {8, 1}}
     );
 
+    private record Curve(List<PathPoint> points, double baseLength) {
+    }
+
+    private static List<PathPoint> arc(DoubleFunction<PathPoint> curve, double from, double to, int samples) {
+        return PathGeometry.scale(PathGeometry.sample(curve, from, to, samples), PathGeometry.CELL);
+    }
+
+    private static DoubleFunction<PathPoint> line(double angle) {
+        return t -> PathPoint.polar(angle, t);
+    }
+
+    private static DoubleFunction<PathPoint> ellipse(double centreX, double centreY, double width, double height) {
+        return t -> new PathPoint(centreX + width * Math.cos(t), centreY + height * Math.sin(t));
+    }
+
+    private static List<PathPoint> steps(double fromX, double fromY, double dx, double dy, int count) {
+        List<PathPoint> waypoints = new ArrayList<>();
+        for (int i = 1; i <= count; i++) {
+            waypoints.add(new PathPoint((fromX + dx * i) * PathGeometry.CELL, (fromY + dy * i) * PathGeometry.CELL));
+        }
+        return waypoints;
+    }
+
+    private static List<PathPoint> corners(double[]... waypoints) {
+        List<PathPoint> points = new ArrayList<>();
+        for (double[] waypoint : waypoints) {
+            points.add(new PathPoint(waypoint[0] * PathGeometry.CELL, waypoint[1] * PathGeometry.CELL));
+        }
+        return points;
+    }
+
+    @SafeVarargs
+    private static Curve curve(List<PathPoint> base, List<PathPoint>... growth) {
+        List<PathPoint> waypoints = new ArrayList<>();
+        waypoints.add(PathPoint.ORIGIN);
+        waypoints.addAll(base);
+
+        double baseLength = PathGeometry.length(PathGeometry.spline(waypoints));
+
+        for (List<PathPoint> segment : growth) waypoints.addAll(segment);
+        return new Curve(List.copyOf(PathGeometry.spline(waypoints)), baseLength);
+    }
+
+    private static final int CURVE_SAMPLES_PER_TURN = 120;
+    private static final double TANGLE_RADIUS = 2.5;
+    private static final double TANGLE_DRIFT = 0.8;
+
+    private static DoubleFunction<PathPoint> tangleLoop() {
+        return t -> new PathPoint(
+                TANGLE_DRIFT * t + TANGLE_RADIUS * Math.sin(t),
+                TANGLE_RADIUS * (Math.cos(t) - 1));
+    }
+
+    private static Curve tangleweedLoops() {
+        return curve(
+                arc(tangleLoop(), 0, 2 * Math.PI, CURVE_SAMPLES_PER_TURN),
+                arc(tangleLoop(), 2 * Math.PI, 4 * Math.PI, CURVE_SAMPLES_PER_TURN));
+    }
+
+    private static final double GOLDTHORN_DROP = 5.0;
+
+    private static DoubleFunction<PathPoint> goldthornCoil() {
+        return t -> {
+            double radius = GOLDTHORN_DROP * (1 - t / (4 * Math.PI));
+            return new PathPoint(-radius * Math.sin(t), GOLDTHORN_DROP - radius * Math.cos(t));
+        };
+    }
+
+    private static Curve goldthornSpiral() {
+        return curve(
+                arc(goldthornCoil(), 0, Math.PI / 2, CURVE_SAMPLES_PER_TURN / 4),
+                arc(goldthornCoil(), Math.PI / 2, 4 * Math.PI, CURVE_SAMPLES_PER_TURN * 7 / 4));
+    }
+
+    private static final int BERRY_LEAD = 3;
+    private static final int BERRY_TAIL = 5;
+    private static final double BERRY_LOOP_RADIUS = 3.0;
+
+    private static Curve goodberryDiagonal() {
+        double centreX = BERRY_LEAD + BERRY_LOOP_RADIUS * Math.cos(-Math.PI / 4);
+        double centreY = BERRY_LEAD + BERRY_LOOP_RADIUS * Math.sin(-Math.PI / 4);
+        double entry = Math.atan2(BERRY_LEAD - centreY, BERRY_LEAD - centreX);
+
+        return curve(
+                steps(0, 0, 1, 1, BERRY_LEAD),
+                arc(ellipse(centreX, centreY, BERRY_LOOP_RADIUS, BERRY_LOOP_RADIUS),
+                        entry, entry + 2 * Math.PI, CURVE_SAMPLES_PER_TURN),
+                steps(BERRY_LEAD, BERRY_LEAD, 1, 1, BERRY_TAIL));
+    }
+
+    private static Curve icefruitSpike() {
+        return curve(
+                corners(new double[]{2, 3}),
+                corners(new double[]{4, -3}, new double[]{6, 3}, new double[]{8, 0}));
+    }
+
+    private static final double THORNSTICK_BASE_LENGTH = 5.0;
+    private static final double THORNSTICK_LENGTH = 12.0;
+
+    private static Curve thornstickRun() {
+        DoubleFunction<PathPoint> run = line(Math.atan2(1, -2));
+        return curve(
+                arc(run, 0, THORNSTICK_BASE_LENGTH, 20),
+                arc(run, THORNSTICK_BASE_LENGTH, THORNSTICK_LENGTH, 28));
+    }
+
+    private static final double PEPPER_WIDTH = 6.0;
+    private static final double PEPPER_HEIGHT = 3.0;
+
+    private static Curve dragonPepperOval() {
+        DoubleFunction<PathPoint> oval = ellipse(-PEPPER_WIDTH, 0, PEPPER_WIDTH, PEPPER_HEIGHT);
+        return curve(
+                arc(oval, 0, Math.PI / 2, CURVE_SAMPLES_PER_TURN / 4),
+                arc(oval, Math.PI / 2, 1.5 * Math.PI, CURVE_SAMPLES_PER_TURN / 2));
+    }
+
+    private static final Map<Ingredients, Curve> CURVES = Map.of(
+            Ingredients.Tangleweed, tangleweedLoops(),
+            Ingredients.Goldthorn, goldthornSpiral(),
+            Ingredients.Goodberry, goodberryDiagonal(),
+            Ingredients.Icefruit, icefruitSpike(),
+            Ingredients.Thornstick, thornstickRun(),
+            Ingredients.Dragon_Pepper, dragonPepperOval()
+    );
+
+    private static List<PathPoint> curvePath(Ingredients ingredient, double potency) {
+        Curve curve = CURVES.get(ingredient);
+        List<PathPoint> points = curve.points();
+        if (points.size() < 2) return points;
+
+        double progress = Math.min(1.0, Math.max(0.0, (potency - 1) / Ingredients.MAX_CRUSH));
+        double total = PathGeometry.length(points);
+        double base = Math.min(total, Math.max(PathGeometry.SAMPLE_SPACING, curve.baseLength()));
+        return PathGeometry.truncate(points, base + (total - base) * progress);
+    }
+
     public static IngredientPath of(Ingredients ingredient) {
+        if (CURVES.containsKey(ingredient)) return CURVED;
         if (SCRIPTS.containsKey(ingredient)) return SCRIPTED;
 
         IngredientPath override = OVERRIDES.get(ingredient);
@@ -57,41 +197,63 @@ public enum IngredientPath {
     }
 
     public boolean needsDirection() {
-        return this != SPIRAL && this != SPIRAL_TELEPORT && this != SCRIPTED;
+        return this != SPIRAL && this != SPIRAL_TELEPORT && this != SCRIPTED && this != CURVED;
     }
 
-    private static List<int[]> scriptWaypoints(Ingredients ingredient, int dx, int dy, double potency) {
+    private static List<PathPoint> scriptPath(Ingredients ingredient, int dx, int dy, double potency) {
         int[][] script = SCRIPTS.get(ingredient);
-        List<int[]> waypoints = new ArrayList<>();
-        for (int[] step : script) waypoints.add(new int[]{step[0], step[1]});
 
-        int extra = (int) Math.round(Math.max(0.0, potency - 1) * LENGTH_PER_POTENCY);
-        if (extra <= 0 || script.length < 2) return waypoints;
-
-        int[] last = script[script.length - 1];
-        int stepX = dx;
-        int stepY = dy;
-
-        if (stepX == 0 && stepY == 0) {
-            int[] prev = script[script.length - 2];
-            stepX = Integer.signum(last[0] - prev[0]);
-            stepY = Integer.signum(last[1] - prev[1]);
+        List<PathPoint> waypoints = new ArrayList<>();
+        waypoints.add(PathPoint.ORIGIN);
+        for (int[] step : script) {
+            waypoints.add(new PathPoint(step[0] * PathGeometry.CELL, step[1] * PathGeometry.CELL));
         }
 
-        for (int i = 1; i <= extra; i++) {
-            waypoints.add(new int[]{last[0] + stepX * i, last[1] + stepY * i});
-        }
-        return waypoints;
+        List<PathPoint> path = PathGeometry.spline(waypoints);
+        double extra = Math.max(0.0, potency - 1) * LENGTH_PER_POTENCY;
+        if (extra <= 0.0) return path;
+
+        PathPoint bearing = new PathPoint(dx, dy);
+        return extend(path, bearing.isZero() ? tangent(path) : bearing.normalised(), extra);
     }
 
-    public static List<int[]> pathFor(Ingredients ingredient, int dx, int dy, double potency) {
+    private static PathPoint tangent(List<PathPoint> path) {
+        if (path.size() < 2) return new PathPoint(0.0, -1.0);
+
+        PathPoint last = path.get(path.size() - 1);
+        for (int i = path.size() - 2; i >= 0; i--) {
+            PathPoint bearing = last.minus(path.get(i));
+            if (!bearing.isZero()) return bearing.normalised();
+        }
+        return new PathPoint(0.0, -1.0);
+    }
+
+    private static List<PathPoint> extend(List<PathPoint> path, PathPoint bearing, double distance) {
+        if (path.isEmpty() || distance <= 0.0) return path;
+
+        PathPoint last = path.get(path.size() - 1);
+        List<PathPoint> grown = new ArrayList<>(path);
+
+        int steps = Math.max(1, (int) Math.ceil(distance / PathGeometry.SAMPLE_SPACING));
+        for (int step = 1; step <= steps; step++) {
+            grown.add(last.plus(bearing.scale(distance * step / steps)));
+        }
+        return grown;
+    }
+
+    public static List<PathPoint> pathFor(Ingredients ingredient, int dx, int dy, double potency) {
         IngredientPath shape = of(ingredient);
-        if (shape == SCRIPTED) return interpolate(scriptWaypoints(ingredient, dx, dy, potency));
+        if (shape == CURVED) return curvePath(ingredient, potency);
+        if (shape == SCRIPTED) return scriptPath(ingredient, dx, dy, potency);
         return shape.offsets(dx, dy, lengthFor(potency), potency);
     }
 
-    public static List<int[]> pathFor(Ingredients ingredient, int dx, int dy, double potency, int trim) {
+    public static List<PathPoint> pathFor(Ingredients ingredient, int dx, int dy, double potency, int trim) {
         return trimmed(pathFor(ingredient, dx, dy, potency), trim);
+    }
+
+    public static List<PathPoint> pathFor(Ingredients ingredient, int dx, int dy, double potency, int trim, int rotation) {
+        return rotated(pathFor(ingredient, dx, dy, potency, trim), rotation);
     }
 
     public static final int ROTATION_STEPS = 8;
@@ -100,59 +262,41 @@ public enum IngredientPath {
         return Math.floorMod(steps, ROTATION_STEPS) * (2 * Math.PI / ROTATION_STEPS);
     }
 
-    public static List<int[]> rotated(List<int[]> cells, int steps) {
-        if (Math.floorMod(steps, ROTATION_STEPS) == 0 || cells.isEmpty()) return cells;
-
-        double angle = rotationRadians(steps);
-        double cos = Math.cos(angle);
-        double sin = Math.sin(angle);
-
-        List<int[]> waypoints = new ArrayList<>();
-        for (int[] cell : cells) {
-            waypoints.add(new int[]{
-                    (int) Math.round(cell[0] * cos - cell[1] * sin),
-                    (int) Math.round(cell[0] * sin + cell[1] * cos)});
-        }
-        return interpolate(waypoints);
+    public static List<PathPoint> rotated(List<PathPoint> path, int steps) {
+        if (Math.floorMod(steps, ROTATION_STEPS) == 0 || path.isEmpty()) return path;
+        return PathGeometry.rotate(path, rotationRadians(steps));
     }
 
     public static int[] rotateDirection(int dx, int dy, int steps) {
         if (Math.floorMod(steps, ROTATION_STEPS) == 0) return new int[]{dx, dy};
 
-        double angle = rotationRadians(steps);
-        double cos = Math.cos(angle);
-        double sin = Math.sin(angle);
-        return new int[]{
-                (int) Math.round(dx * cos - dy * sin),
-                (int) Math.round(dx * sin + dy * cos)};
+        PathPoint turned = new PathPoint(dx, dy).rotate(rotationRadians(steps));
+        return new int[]{turned.roundedX(), turned.roundedY()};
     }
 
-    public static List<int[]> pathFor(Ingredients ingredient, int dx, int dy, double potency, int trim, int rotation) {
-        return rotated(pathFor(ingredient, dx, dy, potency, trim), rotation);
+    public static List<PathPoint> trimmed(List<PathPoint> path, int trim) {
+        if (trim <= 0 || path.size() < 2) return path;
+        double kept = PathGeometry.length(path) - trim * TRIM_STEP;
+        return PathGeometry.truncate(path, Math.max(PathGeometry.SAMPLE_SPACING, kept));
     }
 
-    public static List<int[]> trimmed(List<int[]> cells, int trim) {
-        if (trim <= 0 || cells.size() <= 1) return cells;
-        return List.copyOf(cells.subList(0, Math.max(1, cells.size() - trim)));
+    public static double lengthFor(double potency) {
+        return BASE_LENGTH + Math.max(0.0, potency - 1) * LENGTH_PER_POTENCY;
     }
 
-    public static int lengthFor(double potency) {
-        return BASE_LENGTH + (int) Math.round(Math.max(0.0, potency - 1) * LENGTH_PER_POTENCY);
-    }
+    private static final double WAVE_PERIOD = 4.0 * PathGeometry.CELL;
+    private static final double ARC_PERIOD = 8.0 * PathGeometry.CELL;
+    private static final double SPIRAL_START_RADIUS = PathGeometry.CELL;
+    private static final double SPIRAL_TURN_GROWTH = 4.0 * PathGeometry.CELL;
+    private static final double SPIRAL_SAMPLE_STEP = Math.PI / 96;
+    private static final double TELEPORT_BASE = 10.0 * PathGeometry.CELL;
+    private static final double TELEPORT_PER_CRUSH = 4.0 * PathGeometry.CELL;
 
-    private static final int WAVE_PERIOD = 4;
-    private static final int ARC_PERIOD = 8;
-    private static final double SPIRAL_START_RADIUS = 1.0;
-    private static final double SPIRAL_TURN_GROWTH = 4.0;
-    private static final double SPIRAL_SAMPLE_STEP = Math.PI / 24;
-    private static final int TELEPORT_BASE = 10;
-    private static final int TELEPORT_PER_CRUSH = 4;
-
-    private int offsetAt(int index) {
+    private double sway(double travelled) {
         return switch (this) {
-            case WAVE -> (int) Math.round(Math.sin(2 * Math.PI * index / WAVE_PERIOD) * amplitude);
-            case ARC -> (int) Math.round(Math.abs(Math.sin(2 * Math.PI * index / ARC_PERIOD)) * amplitude);
-            default -> 0;
+            case WAVE -> Math.sin(2 * Math.PI * travelled / WAVE_PERIOD) * amplitude;
+            case ARC -> Math.abs(Math.sin(2 * Math.PI * travelled / ARC_PERIOD)) * amplitude;
+            default -> 0.0;
         };
     }
 
@@ -173,93 +317,68 @@ public enum IngredientPath {
         return new int[]{(int) Math.round(Math.cos(angle)), (int) Math.round(Math.sin(angle))};
     }
 
+    public static double spiralSweep(double potency) {
+        return 2 * Math.PI + (Math.PI / 2) * (potency - 1);
+    }
+
     private static double previewRadius(double swept) {
         if (swept <= 2 * Math.PI) return TELEPORT_BASE * swept / (2 * Math.PI);
         return TELEPORT_BASE + (swept - 2 * Math.PI) * (TELEPORT_PER_CRUSH / (Math.PI / 2));
     }
 
-    private List<int[]> teleportSpiralWaypoints(double potency, double scale) {
-        double sweep = spiralSweep(potency);
-        int samples = Math.max(1, (int) Math.round(sweep / SPIRAL_SAMPLE_STEP));
+    public List<PathPoint> teleportPreview(int dx, int dy, double potency, double radiusScale) {
+        List<PathPoint> waypoints = new ArrayList<>();
+        waypoints.add(PathPoint.ORIGIN);
 
-        List<int[]> waypoints = new ArrayList<>();
-        for (int i = 1; i <= samples; i++) {
-            double swept = SPIRAL_SAMPLE_STEP * i;
-            double angle = Math.PI / 2 + swept;
-            double radius = previewRadius(swept) * scale;
-            waypoints.add(new int[]{
-                    (int) Math.round(Math.cos(angle) * radius),
-                    (int) Math.round(Math.sin(angle) * radius)
-            });
-        }
-        return waypoints;
-    }
+        if (this == SPIRAL_TELEPORT) {
+            double sweep = spiralSweep(potency);
+            int samples = Math.max(1, (int) Math.round(sweep / SPIRAL_SAMPLE_STEP));
 
-    public List<int[]> teleportPreview(int dx, int dy, double potency, double scale) {
-        if (this == SPIRAL_TELEPORT) return interpolate(teleportSpiralWaypoints(potency, scale));
-
-        List<int[]> waypoints = new ArrayList<>();
-        int steps = Math.max(1, (int) Math.round(teleportDistance(potency) * scale));
-        for (int i = 1; i <= steps; i++) {
-            waypoints.add(new int[]{dx * i, dy * i});
-        }
-        return interpolate(waypoints);
-    }
-
-    private static List<int[]> interpolate(List<int[]> waypoints) {
-        List<int[]> cells = new ArrayList<>();
-        int currentX = 0;
-        int currentY = 0;
-
-        for (int[] target : waypoints) {
-            while (currentX != target[0] || currentY != target[1]) {
-                currentX += Integer.signum(target[0] - currentX);
-                currentY += Integer.signum(target[1] - currentY);
-                cells.add(new int[]{currentX, currentY});
+            for (int i = 1; i <= samples; i++) {
+                double swept = SPIRAL_SAMPLE_STEP * i;
+                waypoints.add(PathPoint.polar(Math.PI / 2 + swept, previewRadius(swept) * radiusScale));
             }
+            return PathGeometry.resample(waypoints, PathGeometry.SAMPLE_SPACING);
         }
-        return cells;
+
+        PathPoint bearing = new PathPoint(dx, dy).normalised();
+        if (bearing.isZero()) return List.of(PathPoint.ORIGIN);
+
+        waypoints.add(bearing.scale(teleportRadius(potency) * radiusScale));
+        return PathGeometry.resample(waypoints, PathGeometry.SAMPLE_SPACING);
     }
 
-    public static double spiralSweep(double potency) {
-        return 2 * Math.PI + (Math.PI / 2) * (potency - 1);
-    }
-
-    private List<int[]> spiralWaypoints(double potency) {
+    private List<PathPoint> spiralWaypoints(double potency) {
         double sweep = spiralSweep(potency);
-        double start = Math.PI / 2;
         double growth = SPIRAL_TURN_GROWTH / (2 * Math.PI);
         int samples = Math.max(1, (int) Math.round(sweep / SPIRAL_SAMPLE_STEP));
 
-        List<int[]> waypoints = new ArrayList<>();
+        List<PathPoint> waypoints = new ArrayList<>();
+        waypoints.add(PathPoint.ORIGIN);
+
         for (int i = 1; i <= samples; i++) {
             double swept = SPIRAL_SAMPLE_STEP * i;
-            double angle = start + swept;
-            double radius = SPIRAL_START_RADIUS + swept * growth;
-            waypoints.add(new int[]{
-                    (int) Math.round(Math.cos(angle) * radius),
-                    (int) Math.round(Math.sin(angle) * radius)
-            });
+            waypoints.add(PathPoint.polar(Math.PI / 2 + swept, SPIRAL_START_RADIUS + swept * growth));
         }
         return waypoints;
     }
 
-    public List<int[]> offsets(int dx, int dy, int length, double potency) {
-        List<int[]> waypoints;
-
+    public List<PathPoint> offsets(int dx, int dy, double length, double potency) {
         if (this == SPIRAL) {
-            waypoints = spiralWaypoints(potency);
-        } else {
-            waypoints = new ArrayList<>();
-            int perpX = -dy;
-            int perpY = dx;
-
-            for (int i = 0; i < length; i++) {
-                int offset = offsetAt(i);
-                waypoints.add(new int[]{dx * (i + 1) + perpX * offset, dy * (i + 1) + perpY * offset});
-            }
+            return PathGeometry.resample(spiralWaypoints(potency), PathGeometry.SAMPLE_SPACING);
         }
 
-        return interpolate(waypoints);
+        PathPoint bearing = new PathPoint(dx, dy).normalised();
+        if (bearing.isZero()) return List.of(PathPoint.ORIGIN);
+
+        PathPoint perpendicular = new PathPoint(-bearing.y(), bearing.x());
+        int samples = Math.max(1, (int) Math.ceil(length / PathGeometry.SAMPLE_SPACING));
+
+        List<PathPoint> waypoints = new ArrayList<>(samples + 1);
+        for (int i = 0; i <= samples; i++) {
+            double travelled = length * i / samples;
+            waypoints.add(bearing.scale(travelled).plus(perpendicular.scale(sway(travelled))));
+        }
+        return PathGeometry.resample(waypoints, PathGeometry.SAMPLE_SPACING);
     }
 }

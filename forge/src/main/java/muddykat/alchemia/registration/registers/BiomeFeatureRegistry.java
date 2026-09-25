@@ -12,5 +12,5 @@ public class BiomeFeatureRegistry {
     public static final DeferredRegister<Feature<?>> FEATURES = DeferredRegister.create(Registries.FEATURE, Alchemia.MODID);
 
     public static final RegistryObject<Feature<WildHerbConfiguration>> WILD_HERB =
-            FEATURES.register("wild_herb", () -> new WildHerbFeature(WildHerbConfiguration.CODEC));
+            FEATURES.register("wild_herb", () -> new WildHerbFeature(WildHerbConfiguration.CODEC.codec()));
 }

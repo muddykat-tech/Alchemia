@@ -34,7 +34,9 @@ public class BlockAlchemyMachinePart extends Block {
     public static final String ID = "alchemy_machine_part";
     public static final int MAX_INDEX = 15;
 
+#if MC_VER < 26300
     public static final MapCodec<BlockAlchemyMachinePart> CODEC = simpleCodec(BlockAlchemyMachinePart::new);
+#endif
 
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final EnumProperty<MachineOwner> OWNER = EnumProperty.create("owner", MachineOwner.class);
@@ -48,10 +50,12 @@ public class BlockAlchemyMachinePart extends Block {
                 .setValue(INDEX, 0));
     }
 
+#if MC_VER < 26300
     @Override
     protected MapCodec<? extends Block> codec() {
         return CODEC;
     }
+#endif
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {

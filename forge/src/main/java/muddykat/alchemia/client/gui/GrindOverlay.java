@@ -7,6 +7,8 @@ import muddykat.alchemia.common.items.ItemMortarPestle;
 import muddykat.alchemia.common.items.ItemPathTool;
 import muddykat.alchemia.common.items.helper.IngredientPath;
 import muddykat.alchemia.common.items.helper.Ingredients;
+import muddykat.alchemia.common.items.helper.PathGeometry;
+import muddykat.alchemia.common.items.helper.PathPoint;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
@@ -17,8 +19,9 @@ import java.util.List;
 
 public class GrindOverlay {
 
-    private static final int CELL = 6;
-    private static final double PREVIEW_SCALE = 0.36;
+    private static final int BOX_WIDTH = 96;
+    private static final int BOX_HEIGHT = 72;
+    private static final int THICKNESS = 2;
     private static final int PADDING = 6;
     private static final int TOP_MARGIN_PERCENT = 22;
 
@@ -27,6 +30,8 @@ public class GrindOverlay {
     private static final int PATH_TAKEN = PathPalette.TAKEN;
     private static final int PATH_POTENTIAL = PathPalette.POTENTIAL;
     private static final int PATH_ORIGIN = PathPalette.ORIGIN;
+    private static final int PATH_LANDING = PathPalette.LANDING;
+    private static final int PATH_ENDING = PathPalette.ENDING;
     private static final int LABEL_INK_RGB = 0xE7CD9D;
     private static final int LABEL_FAINT_RGB = 0xC9A96E;
 
@@ -104,29 +109,21 @@ public class GrindOverlay {
         double maxPotency = ingredient.getPotency(Ingredients.MAX_CRUSH);
         double nowPotency = ingredient.getPotencyForUnits(cachedCrush);
 
-        List<int[]> full = cellsFor(shape, ingredient, dx, dy, maxPotency, cachedTrim, cachedRotation);
-        List<int[]> current = cellsFor(shape, ingredient, dx, dy, nowPotency, cachedTrim, cachedRotation);
-        if (full.isEmpty()) return;
+        List<PathPoint> full = pathFor(shape, ingredient, dx, dy, maxPotency, cachedTrim, cachedRotation);
+        List<PathPoint> current = pathFor(shape, ingredient, dx, dy, nowPotency, cachedTrim, cachedRotation);
+        if (full.size() < 2) return;
 
-        int lowX = 0, highX = 0, lowY = 0, highY = 0;
-        for (int[] cell : full) {
-            lowX = Math.min(lowX, cell[0]);
-            highX = Math.max(highX, cell[0]);
-            lowY = Math.min(lowY, cell[1]);
-            highY = Math.max(highY, cell[1]);
-        }
-
-        int columns = highX - lowX + 1;
-        int rows = highY - lowY + 1;
+        PathGeometry.Fit fit = PathGeometry.fit(full, BOX_WIDTH, BOX_HEIGHT, true);
+        int previewW = (int) Math.ceil(fit.width()) + THICKNESS * 2;
+        int previewH = (int) Math.ceil(fit.height()) + THICKNESS * 2;
 
         Component progress = cachedProgressKey != null
                 ? Component.translatable(cachedProgressKey, cachedProgressValue, cachedUsesLeft)
                 : Component.translatable("alchemia.tooltip.grind", cachedCrush, Ingredients.MAX_CRUSH_UNITS);
 
-        int gridW = columns * CELL;
         int textW = Math.max(minecraft.font.width(cachedName), minecraft.font.width(progress));
-        int panelW = Math.max(gridW, textW) + PADDING * 2;
-        int panelH = rows * CELL + 22 + PADDING * 2;
+        int panelW = Math.max(previewW, textW) + PADDING * 2;
+        int panelH = previewH + 22 + PADDING * 2;
 
         int panelX = (graphics.guiWidth() - panelW) / 2;
         int panelY = graphics.guiHeight() * TOP_MARGIN_PERCENT / 100;
@@ -138,28 +135,34 @@ public class GrindOverlay {
         graphics.drawString(minecraft.font, progress, panelX + (panelW - minecraft.font.width(progress)) / 2,
                 panelY + PADDING + 10, shade(LABEL_FAINT_RGB, fade), false);
 
-        int gridX = panelX + (panelW - gridW) / 2;
-        int gridY = panelY + PADDING + 22;
-        int taken = current.size();
+        double originX = panelX + (panelW - previewW) / 2.0 + THICKNESS;
+        double originY = panelY + PADDING + 22 + THICKNESS;
 
-        for (int i = 0; i < full.size(); i++) {
-            int[] cell = full.get(i);
-            int px = gridX + (cell[0] - lowX) * CELL;
-            int py = gridY + (cell[1] - lowY) * CELL;
-            graphics.fill(px, py, px + CELL - 1, py + CELL - 1,
-                    ARGB.color((int) (255 * fade), i < taken ? PATH_TAKEN : PATH_POTENTIAL));
+        List<PathPoint> potential = PathGeometry.translate(fit.apply(full), originX, originY);
+        List<PathPoint> taken = PathGeometry.translate(fit.apply(current), originX, originY);
+        List<PathPoint> remaining = PathGeometry.tail(potential, PathGeometry.length(taken));
+
+        PathRenderer.outline(graphics, remaining, THICKNESS, shade(PATH_POTENTIAL, fade), shape.teleports());
+        PathRenderer.dashes(graphics, taken, THICKNESS, shade(PATH_TAKEN, fade), shape.teleports());
+
+        PathPoint ending = potential.get(potential.size() - 1);
+        PathRenderer.marker(graphics, ending.x(), ending.y(), 3, PATH_ENDING);
+
+        if (taken.size() > 1) {
+            PathPoint landing = taken.get(taken.size() - 1);
+            PathRenderer.ending(graphics, landing.x(), landing.y(), 3, 1, shade(PATH_LANDING, fade), shape.teleports());
         }
 
-        int originX = gridX + (-lowX) * CELL;
-        int originY = gridY + (-lowY) * CELL;
-        graphics.fill(originX, originY, originX + CELL - 1, originY + CELL - 1, shade(PATH_ORIGIN, fade));
+        PathPoint start = fit.apply(PathPoint.ORIGIN).plus(originX, originY);
+        PathRenderer.dot(graphics, start.x(), start.y(), 2, shade(PATH_ORIGIN, fade));
     }
 
-    private static List<int[]> cellsFor(IngredientPath shape, Ingredients ingredient, int dx, int dy, double potency, int trim, int rotation) {
+    private static List<PathPoint> pathFor(IngredientPath shape, Ingredients ingredient, int dx, int dy,
+                                           double potency, int trim, int rotation) {
         if (!shape.teleports()) return IngredientPath.pathFor(ingredient, dx, dy, potency, trim, rotation);
 
-        double reach = Math.max(1, IngredientPath.teleportDistance(potency));
-        double shrink = Math.max(1.0, reach - trim) / reach;
-        return IngredientPath.rotated(shape.teleportPreview(dx, dy, potency, PREVIEW_SCALE * shrink), rotation);
+        double reach = IngredientPath.teleportRadius(potency);
+        double shrink = Math.max(PathGeometry.CELL, reach - trim * IngredientPath.TRIM_STEP) / reach;
+        return IngredientPath.rotated(shape.teleportPreview(dx, dy, potency, shrink), rotation);
     }
 }

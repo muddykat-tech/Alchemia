@@ -32,7 +32,9 @@ import net.neoforged.neoforge.common.CommonHooks;
 
 public class BlockIngredient extends CropBlock {
 
+#if MC_VER < 26300
     public static final MapCodec<BlockIngredient> CODEC = simpleCodec(properties -> new BlockIngredient(Ingredients.Firebell, IngredientType.Flower, properties));
+#endif
 
     public static final IntegerProperty AGE = BlockStateProperties.AGE_3;
 
@@ -52,10 +54,12 @@ public class BlockIngredient extends CropBlock {
         this.type = iType;
     }
 
+#if MC_VER < 26300
     @Override
     public MapCodec<? extends CropBlock> codec() {
         return CODEC;
     }
+#endif
 
     @Override
     public IntegerProperty getAgeProperty() {
@@ -67,31 +71,53 @@ public class BlockIngredient extends CropBlock {
         return 3;
     }
 
+#if MC_VER >= 26300
+    @Override
+    public boolean isValidBonemealTarget(LevelReader level, BlockPos pos, BlockState state, net.minecraft.world.level.block.BonemealSource source) {
+        return !isMaxAge(state);
+    }
+#else
     @Override
     public boolean isValidBonemealTarget(LevelReader level, BlockPos pos, BlockState state) {
         return !isMaxAge(state);
     }
+#endif
 
     @Override
     public boolean isFlammable(BlockState state, BlockGetter level, BlockPos pos, Direction direction) {
         return ingredientData.getPrimaryAlignment() != IngredientAlignment.Fire;
     }
 
+#if MC_VER >= 26300
+    @Override
+    public boolean isBonemealSuccess(Level level, RandomSource random, BlockPos pos, BlockState state, net.minecraft.world.level.block.BonemealSource source) {
+        return true;
+    }
+#else
     @Override
     public boolean isBonemealSuccess(Level level, RandomSource random, BlockPos pos, BlockState state) {
         return true;
     }
+#endif
 
     @Override
     protected int getBonemealAgeIncrease(Level level) {
         return Mth.nextInt(level.getRandom(), 1, 4);
     }
 
+#if MC_VER >= 26300
+    @Override
+    public void performBonemeal(ServerLevel level, RandomSource random, BlockPos pos, BlockState state, net.minecraft.world.level.block.BonemealSource source) {
+        int ageGrowth = Math.min(this.getAge(state) + this.getBonemealAgeIncrease(level), getMaxAge());
+        level.setBlockAndUpdate(pos, state.setValue(AGE, ageGrowth));
+    }
+#else
     @Override
     public void performBonemeal(ServerLevel level, RandomSource random, BlockPos pos, BlockState state) {
         int ageGrowth = Math.min(this.getAge(state) + this.getBonemealAgeIncrease(level), getMaxAge());
         level.setBlockAndUpdate(pos, state.setValue(AGE, ageGrowth));
     }
+#endif
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {

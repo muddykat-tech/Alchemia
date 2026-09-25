@@ -45,7 +45,9 @@ public final class BrewBaseConfig {
             "texture: block atlas sprite drawn in the cauldron, e.g. \"minecraft:block/water_still\".",
             "fluid: fluid this base is made of. Its still texture is used when no texture is set above.",
             "unbrewed_result: item handed out when the base is bottled without any effects. Leave out for a water bottle.",
-            "effects: effects this base can reach on its potion map. Leave the field out to allow every effect."
+            "effects: effects this base can reach on its potion map. Leave the field out to allow every effect.",
+            "dead_space: shape of the base's dead space. \"rings\" walls the map into layers with gated rings,",
+            "  \"field\" scatters small patches that thicken the further they sit from the centre. Defaults to rings."
     };
 
     private BrewBaseConfig() {
