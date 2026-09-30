@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_fable_bismuth_geode": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:fable_bismuth_geode"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipes": "alchemia:fable_bismuth_crystals_from_block"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_fable_bismuth_geode"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "alchemia:fable_bismuth_crystals_from_block"
+    ]
+  }
+}

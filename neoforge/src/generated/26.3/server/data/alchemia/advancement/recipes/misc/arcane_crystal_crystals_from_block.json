@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_arcane_crystal_geode": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:arcane_crystal_geode"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipes": "alchemia:arcane_crystal_crystals_from_block"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_arcane_crystal_geode"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "alchemia:arcane_crystal_crystals_from_block"
+    ]
+  }
+}

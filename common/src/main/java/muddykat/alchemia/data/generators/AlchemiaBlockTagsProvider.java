@@ -1,7 +1,10 @@
 package muddykat.alchemia.data.generators;
 
 import muddykat.alchemia.Alchemia;
+import muddykat.alchemia.common.blocks.BlockInfectedLog;
 import muddykat.alchemia.common.blocks.BlockIngredient;
+import muddykat.alchemia.common.blocks.BlockKelpStalk;
+import muddykat.alchemia.common.blocks.BlockTangleBranch;
 import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyMachinePart;
 import muddykat.alchemia.common.blocks.BlockMineralClusterGeneric;
 import muddykat.alchemia.registration.registers.BlockRegistry;
@@ -40,8 +43,14 @@ public class AlchemiaBlockTagsProvider extends KeyTagProvider<Block> {
                 return;
             }
 
-            if (block instanceof BlockIngredient) {
+            if (block instanceof BlockIngredient || block instanceof BlockTangleBranch || block instanceof BlockKelpStalk) {
                 swords.add(block.builtInRegistryHolder().key());
+                return;
+            }
+
+            if (block instanceof BlockInfectedLog) {
+                tag(BlockTags.MINEABLE_WITH_AXE).add(block.builtInRegistryHolder().key());
+                tag(BlockTags.LOGS).add(block.builtInRegistryHolder().key());
                 return;
             }
 

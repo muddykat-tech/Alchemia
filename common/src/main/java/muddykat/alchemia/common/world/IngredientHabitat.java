@@ -13,7 +13,7 @@ public enum IngredientHabitat {
     AQUATIC,
     UNDERGROUND,
     MAGMA,
-    SULFUR,
+    TREE,
     CEILING,
     GEODE;
 
@@ -25,7 +25,7 @@ public enum IngredientHabitat {
         OVERRIDES.put(Ingredients.Druids_Rosemary, SURFACE);
         OVERRIDES.put(Ingredients.Firebell, SURFACE);
         OVERRIDES.put(Ingredients.Marshroom, SURFACE);
-        OVERRIDES.put(Ingredients.Sulphur_Shelf, SULFUR);
+        OVERRIDES.put(Ingredients.Sulphur_Shelf, TREE);
         OVERRIDES.put(Ingredients.Magma_Morel, MAGMA);
         OVERRIDES.put(Ingredients.Terrorbud, NYLIUM);
     }
@@ -43,7 +43,7 @@ public enum IngredientHabitat {
     }
 
     public boolean isUnderground() {
-        return this == UNDERGROUND || this == MAGMA || this == SULFUR || this == CEILING || this == GEODE;
+        return this == UNDERGROUND || this == MAGMA || this == CEILING || this == GEODE;
     }
 
     public boolean generatesWithVegetation() {

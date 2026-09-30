@@ -1,4 +1,6 @@
-// 26.1.2	2026-09-19T06:30:43.382406682	Tags for minecraft:block mod id alchemia
-4bd3bcdfce0ad5aad4393e8d5298676a0b696bcf data/minecraft/tags/block/mineable/pickaxe.json
+// 26.1.2	2026-09-30T06:16:16.216543114	Tags for minecraft:block mod id alchemia
+1c15a90bddefb905a5c4515119b98c92ea9d5c0c data/minecraft/tags/block/logs.json
+1c15a90bddefb905a5c4515119b98c92ea9d5c0c data/minecraft/tags/block/mineable/axe.json
+4a7cf28700c5101f668e32f33d423ef0bd0fdeab data/minecraft/tags/block/mineable/pickaxe.json
 edba68045464d3e2dbd692072b160956119671c3 data/minecraft/tags/block/needs_iron_tool.json
-fa7157ee6aa1864024cc77653299fc8c94eeea68 data/minecraft/tags/block/sword_efficient.json
+8790768e7c72f01b67ccb19c521983291d7199d3 data/minecraft/tags/block/sword_efficient.json

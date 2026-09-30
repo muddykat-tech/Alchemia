@@ -39,8 +39,8 @@ public class PotionMap {
     private final int softSize;
     private final int middlePosition;
     private final int tiles;
-    private final boolean[] dead;
-    private final List<boolean[]> lod = new ArrayList<>();
+    private final float[] depth;
+    private final List<float[]> lod = new ArrayList<>();
     private final List<Integer> lodTiles = new ArrayList<>();
     private final List<MapEntry> entries = new ArrayList<>();
 
@@ -52,7 +52,7 @@ public class PotionMap {
         tiles = (softSize + HARD_MARGIN * 2 + DEADZONE_RESOLUTION - 1) / DEADZONE_RESOLUTION;
         size = tiles * DEADZONE_RESOLUTION;
         middlePosition = size / 2;
-        dead = new boolean[tiles * tiles];
+        depth = new float[tiles * tiles];
 
         double minDistance = Configuration.effectSpacing();
 
@@ -141,7 +141,7 @@ public class PotionMap {
 
     public boolean isDeadzone(double x, double y) {
         if (!inBounds(x, y)) return false;
-        return dead[tileIndex(tileOf(x), tileOf(y))];
+        return sample(0, x, y) > 0.0;
     }
 
     public boolean isDeadzone(PathPoint point) {
@@ -150,7 +150,39 @@ public class PotionMap {
 
     public boolean isDeadTile(int tileX, int tileY) {
         if (tileX < 0 || tileY < 0 || tileX >= tiles || tileY >= tiles) return false;
-        return dead[tileIndex(tileX, tileY)];
+        return depth[tileIndex(tileX, tileY)] > 0.0f;
+    }
+
+    public boolean deadAt(int level, double x, double y) {
+        return inBounds(x, y) && sample(level, x, y) > 0.0;
+    }
+
+    public double sample(int level, double x, double y) {
+        int clamped = Math.max(0, Math.min(lod.size() - 1, level));
+        float[] field = lod.isEmpty() ? depth : lod.get(clamped);
+        int count = lod.isEmpty() ? tiles : lodTiles.get(clamped);
+        double span = tileSize(clamped);
+
+        double u = x / span - 0.5;
+        double v = y / span - 0.5;
+        int tileX = (int) Math.floor(u);
+        int tileY = (int) Math.floor(v);
+        double fx = u - tileX;
+        double fy = v - tileY;
+
+        double top = lerp(at(field, count, tileX, tileY), at(field, count, tileX + 1, tileY), fx);
+        double bottom = lerp(at(field, count, tileX, tileY + 1), at(field, count, tileX + 1, tileY + 1), fx);
+        return lerp(top, bottom, fy);
+    }
+
+    private static double at(float[] field, int count, int tileX, int tileY) {
+        int clampedX = Math.max(0, Math.min(count - 1, tileX));
+        int clampedY = Math.max(0, Math.min(count - 1, tileY));
+        return field[clampedY * count + clampedX];
+    }
+
+    private static double lerp(double from, double to, double t) {
+        return from + (to - from) * t;
     }
 
     public boolean inBounds(double x, double y) {
@@ -171,8 +203,8 @@ public class PotionMap {
 
     public int deadTileCount() {
         int count = 0;
-        for (boolean tile : dead) {
-            if (tile) count++;
+        for (float tile : depth) {
+            if (tile > 0.0f) count++;
         }
         return count;
     }
@@ -214,24 +246,49 @@ public class PotionMap {
 
     public static double teleportReach(ItemStack stack) {
         if (!(stack.getItem() instanceof ItemIngredient ingredient)) return IngredientPath.teleportRadius(1);
-        return Math.max(CELL, IngredientPath.teleportRadius(ingredient.getPotency(stack))
-                - ItemIngredient.trimOf(stack) * IngredientPath.TRIM_STEP);
+        return IngredientPath.reachFor(ingredient.getPotency(stack), ItemIngredient.trimOf(stack));
+    }
+
+    public static double teleportCeiling(ItemStack stack) {
+        if (!(stack.getItem() instanceof ItemIngredient ingredient)) return IngredientPath.teleportRadius(1);
+        return IngredientPath.teleportCeiling(ingredient.getIngredient());
     }
 
     public static int teleportDistance(ItemStack stack) {
-        return (int) Math.round(teleportReach(stack));
+        double reach = teleportReach(stack);
+
+        if (stack.getItem() instanceof ItemIngredient ingredient) {
+            IngredientPath shape = IngredientPath.of(ingredient.getIngredient());
+            if (shape.followsFlight()) {
+                return (int) Math.round(shape.flightEnd(Integer.signum(ingredient.getDriftX(stack)),
+                        Integer.signum(ingredient.getDriftY(stack)), teleportCeiling(stack), reach).length());
+            }
+        }
+        return (int) Math.round(reach);
     }
 
     public static int teleportDistance(double potency) {
         return IngredientPath.teleportDistance(potency);
     }
 
-    public PathPoint teleportPolar(double x, double y, double angle, double radius) {
+    public double flightReach(double x, double y, IngredientPath shape, int dx, int dy,
+                              double ceiling, double radius, int rotation) {
+        double turn = IngredientPath.rotationRadians(rotation);
+
         for (double reach = radius; reach >= CELL; reach -= CELL) {
-            PathPoint at = new PathPoint(x, y).plus(PathPoint.polar(angle, reach));
-            if (inBounds(at)) return at;
+            PathPoint at = new PathPoint(x, y).plus(shape.flightEnd(dx, dy, ceiling, reach).rotate(turn));
+            if (inBounds(at)) return reach;
         }
-        return new PathPoint(x, y);
+        return 0.0;
+    }
+
+    public PathPoint flightLanding(double x, double y, IngredientPath shape, int dx, int dy,
+                                  double ceiling, double radius, int rotation) {
+        double reach = flightReach(x, y, shape, dx, dy, ceiling, radius, rotation);
+        if (reach <= 0.0) return new PathPoint(x, y);
+
+        return new PathPoint(x, y).plus(
+                shape.flightEnd(dx, dy, ceiling, reach).rotate(IngredientPath.rotationRadians(rotation)));
     }
 
     public PathPoint teleport(double x, double y, double dx, double dy, double distance) {
@@ -324,10 +381,9 @@ public class PotionMap {
         int[] aimed = IngredientPath.rotateDirection(dx, dy, ItemIngredient.rotationOf(stack));
 
         if (shape.teleports()) {
-            PathPoint landing = shape == IngredientPath.SPIRAL_TELEPORT
-                    ? teleportPolar(x, y,
-                            IngredientPath.spiralAngle(potency) + IngredientPath.rotationRadians(ItemIngredient.rotationOf(stack)),
-                            teleportReach(stack))
+            PathPoint landing = shape.followsFlight()
+                    ? flightLanding(x, y, shape, dx, dy, teleportCeiling(stack), teleportReach(stack),
+                            ItemIngredient.rotationOf(stack))
                     : teleport(x, y, aimed[0], aimed[1], teleportReach(stack));
 
             List<PathPoint> hop = List.of(new PathPoint(x, y), landing);
@@ -379,6 +435,10 @@ public class PotionMap {
     }
 
     public List<RouteLeg> route(double startX, double startY, List<ItemStack> queue) {
+        return route(startX, startY, queue, List.of());
+    }
+
+    public List<RouteLeg> route(double startX, double startY, List<ItemStack> queue, List<Integer> anchors) {
         List<Span> spans = new ArrayList<>(queue.size());
         double x = startX;
         double y = startY;
@@ -387,7 +447,8 @@ public class PotionMap {
             VanillaIngredients.Drift drift = VanillaIngredients.driftOf(stack);
 
             if (drift != null && drift.lure()) {
-                boolean pulled = pull(spans, stack, drift.target());
+                int anchor = spans.size() < anchors.size() ? anchors.get(spans.size()) : 0;
+                boolean pulled = pull(spans, stack, drift.target(), anchor);
                 PathPoint here = pulled ? chainEnd(spans, startX, startY) : new PathPoint(x, y);
 
                 spans.add(new Span(stack, true,
@@ -418,7 +479,7 @@ public class PotionMap {
         return new PathPoint(startX, startY);
     }
 
-    private boolean pull(List<Span> spans, ItemStack stack, PotionEnum target) {
+    private boolean pull(List<Span> spans, ItemStack stack, PotionEnum target, int anchor) {
         PathPoint goal = positionOf(target);
         if (goal == null) return false;
 
@@ -430,6 +491,7 @@ public class PotionMap {
                 break;
             }
         }
+        from = Math.max(from, Math.min(anchor, spans.size()));
 
         List<PathPoint> chain = new ArrayList<>();
         for (int index = from; index < spans.size(); index++) chain.addAll(spans.get(index).points);
@@ -467,6 +529,30 @@ public class PotionMap {
         return true;
     }
 
+    public List<PathPoint> teleportFlight(double x, double y, ItemStack stack) {
+        if (!(stack.getItem() instanceof ItemIngredient ingredient)) return List.of();
+        IngredientPath shape = IngredientPath.of(ingredient.getIngredient());
+        if (!shape.followsFlight()) return List.of();
+
+        int dx = Integer.signum(ingredient.getDriftX(stack));
+        int dy = Integer.signum(ingredient.getDriftY(stack));
+        int rotation = ItemIngredient.rotationOf(stack);
+        double ceiling = teleportCeiling(stack);
+        double reach = flightReach(x, y, shape, dx, dy, ceiling, teleportReach(stack), rotation);
+        if (reach <= 0.0) return List.of();
+
+        List<PathPoint> flight = IngredientPath.rotated(PathGeometry.resample(
+                shape.flightTo(dx, dy, ceiling, reach), PathGeometry.SAMPLE_SPACING), rotation);
+
+        List<PathPoint> curve = new ArrayList<>(flight.size());
+        for (PathPoint offset : flight) {
+            PathPoint at = new PathPoint(x + offset.x(), y + offset.y());
+            if (!inBounds(at)) break;
+            curve.add(at);
+        }
+        return curve;
+    }
+
     public List<PathPoint> teleportCurve(double x, double y, ItemStack stack) {
         if (!(stack.getItem() instanceof ItemIngredient ingredient)) return List.of();
 
@@ -475,11 +561,10 @@ public class PotionMap {
 
         int dx = Integer.signum(ingredient.getDriftX(stack));
         int dy = Integer.signum(ingredient.getDriftY(stack));
-        double potency = ingredient.getPotency(stack);
-        double shrink = teleportReach(stack) / Math.max(CELL, IngredientPath.teleportRadius(potency));
 
         List<PathPoint> flight = IngredientPath.rotated(
-                shape.teleportPreview(dx, dy, potency, shrink), ItemIngredient.rotationOf(stack));
+                shape.teleportPreview(dx, dy, teleportCeiling(stack), teleportReach(stack)),
+                ItemIngredient.rotationOf(stack));
 
         List<PathPoint> curve = new ArrayList<>(flight.size());
         for (PathPoint offset : flight) {
@@ -563,7 +648,7 @@ public class PotionMap {
         return false;
     }
 
-    private void paintRings(List<Ring> rings, boolean[] shielded, OctaveSimplexNoise noise, double noiseScale) {
+    private void paintRings(List<Ring> rings, OctaveSimplexNoise noise, double noiseScale) {
         if (rings.isEmpty()) return;
 
         double thickness = Configuration.ringThickness();
@@ -573,7 +658,6 @@ public class PotionMap {
         for (int tileX = 0; tileX < tiles; tileX++) {
             for (int tileY = 0; tileY < tiles; tileY++) {
                 int index = tileIndex(tileX, tileY);
-                if (shielded[index] || dead[index]) continue;
 
                 double x = tileOrigin(tileX) + DEADZONE_RESOLUTION / 2.0;
                 double y = tileOrigin(tileY) + DEADZONE_RESOLUTION / 2.0;
@@ -589,9 +673,10 @@ public class PotionMap {
                 double angle = Math.atan2(dy, dx);
 
                 for (Ring ring : rings) {
-                    if (Math.abs(distance - ring.radius()) > reach) continue;
-                    if (throughGate(ring, angle, gateWidth)) continue;
-                    dead[index] = true;
+                    double inside = reach - Math.abs(distance - ring.radius());
+                    if (inside <= 0.0 || throughGate(ring, angle, gateWidth)) continue;
+
+                    depth[index] = (float) Math.max(depth[index], inside / reach);
                     break;
                 }
             }
@@ -606,24 +691,11 @@ public class PotionMap {
         int maxGated = Configuration.maxCrystalGated();
         double start = Configuration.minThreshold() + rand.nextDouble() * Configuration.thresholdSpread();
 
-        boolean[] shielded = new boolean[tiles * tiles];
-        for (MapEntry entry : entries) {
-            shield(shielded, entry.x(), entry.y(), Configuration.effectMargin(), noise, noiseScale);
-        }
-        shield(shielded, middlePosition, middlePosition, Configuration.centreMargin(), noise, noiseScale);
-
         boolean scattered = base.deadSpace() == BrewBase.DeadSpace.FIELD;
         List<Ring> rings = scattered ? List.of() : ringsFor(rand);
 
         for (double threshold = start; threshold <= maxThreshold; threshold += step) {
-            Arrays.fill(dead, false);
-
-            if (scattered) {
-                paintField(shielded, noise, noiseScale, threshold);
-            } else {
-                paintBlobs(shielded, noise, noiseScale, threshold);
-                paintRings(rings, shielded, noise, noiseScale);
-            }
+            paint(scattered, rings, noise, noiseScale, threshold);
 
             crystalGated = countUnreachable(false);
             if (crystalGated <= maxGated && countUnreachable(true) == 0) {
@@ -632,48 +704,64 @@ public class PotionMap {
             }
         }
 
-        Arrays.fill(dead, false);
-        if (!scattered) paintRings(rings, shielded, noise, noiseScale);
+        Arrays.fill(depth, -1.0f);
+        if (!scattered) {
+            paintRings(rings, noise, noiseScale);
+            carve(noise, noiseScale);
+        }
         crystalGated = countUnreachable(false);
 
         if (crystalGated > maxGated || countUnreachable(true) > 0) {
-            Arrays.fill(dead, false);
+            Arrays.fill(depth, -1.0f);
             crystalGated = 0;
         }
 
         buildLod();
     }
 
-    private void paintBlobs(boolean[] shielded, OctaveSimplexNoise noise, double noiseScale, double threshold) {
+    private void paint(boolean scattered, List<Ring> rings, OctaveSimplexNoise noise, double noiseScale, double threshold) {
+        if (scattered) {
+            paintField(noise, noiseScale, threshold);
+        } else {
+            paintBlobs(noise, noiseScale, threshold);
+            paintRings(rings, noise, noiseScale);
+        }
+        carve(noise, noiseScale);
+    }
+
+    private void carve(OctaveSimplexNoise noise, double noiseScale) {
+        for (MapEntry entry : entries) {
+            shield(entry.x(), entry.y(), Configuration.effectMargin(), noise, noiseScale);
+        }
+        shield(middlePosition, middlePosition, Configuration.centreMargin(), noise, noiseScale);
+    }
+
+    private void paintBlobs(OctaveSimplexNoise noise, double noiseScale, double threshold) {
         for (int tileX = 0; tileX < tiles; tileX++) {
             for (int tileY = 0; tileY < tiles; tileY++) {
-                int index = tileIndex(tileX, tileY);
-                if (shielded[index]) continue;
-
                 double x = tileOrigin(tileX) + DEADZONE_RESOLUTION / 2.0;
                 double y = tileOrigin(tileY) + DEADZONE_RESOLUTION / 2.0;
-                if (noise.getValue(x * noiseScale, y * noiseScale, false) > threshold) dead[index] = true;
+                depth[tileIndex(tileX, tileY)] =
+                        (float) (noise.getValue(x * noiseScale, y * noiseScale, false) - threshold);
             }
         }
     }
 
-    private void paintField(boolean[] shielded, OctaveSimplexNoise noise, double noiseScale, double threshold) {
+    private void paintField(OctaveSimplexNoise noise, double noiseScale, double threshold) {
         double detail = Configuration.fieldPatchScale();
         double calm = Configuration.fieldCentreCalm();
         double reach = Math.max(CELL, middlePosition - HARD_MARGIN);
 
         for (int tileX = 0; tileX < tiles; tileX++) {
             for (int tileY = 0; tileY < tiles; tileY++) {
-                int index = tileIndex(tileX, tileY);
-                if (shielded[index]) continue;
-
                 double x = tileOrigin(tileX) + DEADZONE_RESOLUTION / 2.0;
                 double y = tileOrigin(tileY) + DEADZONE_RESOLUTION / 2.0;
                 double outward = Math.min(1.0, Math.sqrt(Math.pow(x - middlePosition, 2)
                         + Math.pow(y - middlePosition, 2)) / reach);
 
                 double local = threshold + calm * (1.0 - outward);
-                if (noise.getValue(x * noiseScale * detail, y * noiseScale * detail, false) > local) dead[index] = true;
+                depth[tileIndex(tileX, tileY)] = (float) (noise.getValue(
+                        x * noiseScale * detail, y * noiseScale * detail, false) - local);
             }
         }
     }
@@ -681,19 +769,19 @@ public class PotionMap {
     private void buildLod() {
         lod.clear();
         lodTiles.clear();
-        lod.add(dead);
+        lod.add(depth);
         lodTiles.add(tiles);
 
-        boolean[] previous = dead;
+        float[] previous = depth;
         int count = tiles;
 
         while (count > 2) {
             int next = (count + 1) / 2;
-            boolean[] level = new boolean[next * next];
+            float[] level = new float[next * next];
 
             for (int tileX = 0; tileX < next; tileX++) {
                 for (int tileY = 0; tileY < next; tileY++) {
-                    int filled = 0;
+                    float sum = 0.0f;
                     int total = 0;
 
                     for (int dx = 0; dx < 2; dx++) {
@@ -703,11 +791,11 @@ public class PotionMap {
                             if (childX >= count || childY >= count) continue;
 
                             total++;
-                            if (previous[childY * count + childX]) filled++;
+                            sum += previous[childY * count + childX];
                         }
                     }
 
-                    level[tileY * next + tileX] = total > 0 && filled * 2 >= total;
+                    level[tileY * next + tileX] = total > 0 ? sum / total : -1.0f;
                 }
             }
 
@@ -738,7 +826,7 @@ public class PotionMap {
         int clamped = Math.max(0, Math.min(lod.size() - 1, level));
         int count = lodTiles.get(clamped);
         if (tileX < 0 || tileY < 0 || tileX >= count || tileY >= count) return false;
-        return lod.get(clamped)[tileY * count + tileX];
+        return lod.get(clamped)[tileY * count + tileX] > 0.0f;
     }
 
     private boolean placeAnywhere(PotionEnum recipe, Holder<MobEffect> effect, int strength) {
@@ -757,10 +845,11 @@ public class PotionMap {
     private static final double SHIELD_WOBBLE_SCALE = 3.0;
     private static final double SHIELD_WOBBLE_OFFSET = 613.0;
 
-    private void shield(boolean[] shielded, double x, double y, double margin,
-                        OctaveSimplexNoise noise, double noiseScale) {
+    private void shield(double x, double y, double margin, OctaveSimplexNoise noise, double noiseScale) {
+        if (margin <= 0.0) return;
+
         double reachMax = margin * (1.0 + SHIELD_ROUGHNESS);
-        int from = tileOf(-reachMax);
+        int from = tileOf(-reachMax) - 1;
         int to = tileOf(reachMax) + 1;
 
         for (int tileX = tileOf(x) + from; tileX <= tileOf(x) + to; tileX++) {
@@ -774,7 +863,11 @@ public class PotionMap {
                 double wobble = noise.getValue((tileCentreX + SHIELD_WOBBLE_OFFSET) * noiseScale * SHIELD_WOBBLE_SCALE,
                         (tileCentreY + SHIELD_WOBBLE_OFFSET) * noiseScale * SHIELD_WOBBLE_SCALE, false);
 
-                if (distance <= margin * (1.0 + SHIELD_ROUGHNESS * wobble)) shielded[tileIndex(tileX, tileY)] = true;
+                double clear = margin * (1.0 + SHIELD_ROUGHNESS * wobble) - distance;
+                if (clear <= 0.0) continue;
+
+                int index = tileIndex(tileX, tileY);
+                depth[index] = (float) Math.min(depth[index], -clear / margin);
             }
         }
     }
@@ -800,7 +893,7 @@ public class PotionMap {
                     if (tileX < 0 || tileY < 0 || tileX >= tiles || tileY >= tiles) continue;
 
                     int index = tileIndex(tileX, tileY);
-                    if (seen[index] || dead[index]) continue;
+                    if (seen[index] || depth[index] > 0.0f) continue;
 
                     seen[index] = true;
                     queue.add(new int[]{tileX, tileY});
@@ -819,7 +912,7 @@ public class PotionMap {
                 if (tileX < 0 || tileY < 0 || tileX >= tiles || tileY >= tiles) continue;
 
                 int index = tileIndex(tileX, tileY);
-                if (seen[index] || dead[index]) continue;
+                if (seen[index] || depth[index] > 0.0f) continue;
 
                 seen[index] = true;
                 queue.add(new int[]{tileX, tileY});
@@ -951,6 +1044,11 @@ public class PotionMap {
 
         public boolean isPerfect() {
             return perfect;
+        }
+
+        public PotionEffectPosition capped(int maxStrength) {
+            if (strength <= maxStrength) return this;
+            return new PotionEffectPosition(recipe, effect, duration, Math.max(0, maxStrength), potion, false);
         }
     }
 }

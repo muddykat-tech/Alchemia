@@ -2,6 +2,7 @@ package muddykat.alchemia.client;
 
 import muddykat.alchemia.Alchemia;
 import com.mojang.datafixers.util.Either;
+import muddykat.alchemia.common.items.helper.GuideAccess;
 import muddykat.alchemia.common.items.helper.IngredientPathTooltip;
 import muddykat.alchemia.common.items.helper.PathGeometry;
 import muddykat.alchemia.common.items.helper.PathPoint;
@@ -24,6 +25,8 @@ public class VanillaIngredientTooltip {
 
     @SubscribeEvent
     public static void onItemTooltip(ItemTooltipEvent event) {
+        if (!GuideAccess.reading()) return;
+
         VanillaIngredients.Drift drift = VanillaIngredients.driftOf(event.getItemStack());
         if (drift == null) return;
 
@@ -42,6 +45,8 @@ public class VanillaIngredientTooltip {
 
     @SubscribeEvent
     public static void onModifierTooltip(ItemTooltipEvent event) {
+        if (!GuideAccess.reading()) return;
+
         var stack = event.getItemStack();
         String key = stack.is(net.minecraft.world.item.Items.REDSTONE) ? "alchemia.tooltip.use.redstone"
                 : stack.is(net.minecraft.world.item.Items.GUNPOWDER) ? "alchemia.tooltip.use.gunpowder"
@@ -55,6 +60,8 @@ public class VanillaIngredientTooltip {
 
     @SubscribeEvent
     public static void onGatherComponents(RenderTooltipEvent.GatherComponents event) {
+        if (!GuideAccess.reading()) return;
+
         VanillaIngredients.Drift drift = VanillaIngredients.driftOf(event.getItemStack());
         if (drift == null || drift.lure() || !PotionMap.isReady()) return;
 

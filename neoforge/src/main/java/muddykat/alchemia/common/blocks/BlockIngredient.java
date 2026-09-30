@@ -26,6 +26,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.neoforge.common.CommonHooks;
@@ -49,7 +50,7 @@ public class BlockIngredient extends CropBlock {
 
     public BlockIngredient(Ingredients ingredient, IngredientType iType, Properties properties) {
         super(properties);
-        this.registerDefaultState(this.defaultBlockState().setValue(AGE, 0));
+        this.registerDefaultState(this.defaultBlockState().setValue(getAgeProperty(), 0));
         this.ingredientData = ingredient;
         this.type = iType;
     }
@@ -109,13 +110,13 @@ public class BlockIngredient extends CropBlock {
     @Override
     public void performBonemeal(ServerLevel level, RandomSource random, BlockPos pos, BlockState state, net.minecraft.world.level.block.BonemealSource source) {
         int ageGrowth = Math.min(this.getAge(state) + this.getBonemealAgeIncrease(level), getMaxAge());
-        level.setBlockAndUpdate(pos, state.setValue(AGE, ageGrowth));
+        level.setBlockAndUpdate(pos, state.setValue(getAgeProperty(), ageGrowth));
     }
 #else
     @Override
     public void performBonemeal(ServerLevel level, RandomSource random, BlockPos pos, BlockState state) {
         int ageGrowth = Math.min(this.getAge(state) + this.getBonemealAgeIncrease(level), getMaxAge());
-        level.setBlockAndUpdate(pos, state.setValue(AGE, ageGrowth));
+        level.setBlockAndUpdate(pos, state.setValue(getAgeProperty(), ageGrowth));
     }
 #endif
 
@@ -134,9 +135,11 @@ public class BlockIngredient extends CropBlock {
 
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return IngredientHabitat.of(ingredientData) == IngredientHabitat.CEILING
-                ? ROOT_SHAPE_BY_AGE[this.getAge(state)]
+        VoxelShape shape = IngredientHabitat.of(ingredientData) == IngredientHabitat.CEILING
+                ? ROOT_SHAPE_BY_AGE[this.getAge(state) * (ROOT_SHAPE_BY_AGE.length - 1) / this.getMaxAge()]
                 : super.getShape(state, level, pos, context);
+        Vec3 offset = state.getOffset(pos);
+        return shape.move(offset.x, offset.y, offset.z);
     }
 
     @Override
@@ -148,7 +151,7 @@ public class BlockIngredient extends CropBlock {
             case AQUATIC -> isSeabed(state);
             case UNDERGROUND -> state.is(BlockTags.BASE_STONE_OVERWORLD);
             case MAGMA -> isMagmaBed(state, level, pos);
-            case SULFUR -> isSulfur(state);
+            case TREE -> false;
             case CEILING -> hasRootSupport(level, pos.above());
             case GEODE -> state.is(BlockTags.BASE_STONE_OVERWORLD);
         };
@@ -156,15 +159,6 @@ public class BlockIngredient extends CropBlock {
 
     private static boolean isSeabed(BlockState state) {
         return state.is(BlockTags.SAND) || state.is(BlockTags.DIRT) || state.is(Blocks.GRAVEL) || state.is(Blocks.CLAY);
-    }
-
-    private static boolean isSulfur(BlockState state) {
-        if (state.is(Blocks.NETHERRACK) || state.is(Blocks.CRIMSON_NYLIUM)) return true;
-#if MC_VER >= 26200
-        return state.is(Blocks.SULFUR) || state.is(Blocks.POTENT_SULFUR);
-#else
-        return false;
-#endif
     }
 
     private static final int MAGMA_HEAT_RADIUS = 4;
@@ -231,7 +225,7 @@ public class BlockIngredient extends CropBlock {
         if (age >= this.getMaxAge()) return;
 
         if (CommonHooks.canCropGrow(level, pos, state, random.nextInt(12) == 0)) {
-            level.setBlock(pos, state.setValue(AGE, age + 1), 2);
+            level.setBlock(pos, state.setValue(getAgeProperty(), age + 1), 2);
             CommonHooks.fireCropGrowPost(level, pos, state);
         }
     }

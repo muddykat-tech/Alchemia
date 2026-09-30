@@ -32,20 +32,34 @@ public final class AlchemiaSprites {
                     width - border, height - border, border, border);
 
             if (drawInnerW > 0) {
-                part(graphics, x + edge, y, drawInnerW, edge, border, 0, sourceInnerW, border);
-                part(graphics, x + edge, y + drawHeight - edge, drawInnerW, edge,
+                tile(graphics, x + edge, y, drawInnerW, edge, border, 0, sourceInnerW, border);
+                tile(graphics, x + edge, y + drawHeight - edge, drawInnerW, edge,
                         border, height - border, sourceInnerW, border);
             }
 
             if (drawInnerH > 0) {
-                part(graphics, x, y + edge, edge, drawInnerH, 0, border, border, sourceInnerH);
-                part(graphics, x + drawWidth - edge, y + edge, edge, drawInnerH,
+                tile(graphics, x, y + edge, edge, drawInnerH, 0, border, border, sourceInnerH);
+                tile(graphics, x + drawWidth - edge, y + edge, edge, drawInnerH,
                         width - border, border, border, sourceInnerH);
             }
 
             if (drawInnerW > 0 && drawInnerH > 0) {
-                part(graphics, x + edge, y + edge, drawInnerW, drawInnerH,
+                tile(graphics, x + edge, y + edge, drawInnerW, drawInnerH,
                         border, border, sourceInnerW, sourceInnerH);
+            }
+        }
+
+        private void tile(GuiGraphics graphics, int x, int y, int drawWidth, int drawHeight,
+                          int u, int v, int regionWidth, int regionHeight) {
+            if (regionWidth <= 0 || regionHeight <= 0) return;
+
+            for (int offsetY = 0; offsetY < drawHeight; offsetY += regionHeight) {
+                int pieceHeight = Math.min(regionHeight, drawHeight - offsetY);
+                for (int offsetX = 0; offsetX < drawWidth; offsetX += regionWidth) {
+                    int pieceWidth = Math.min(regionWidth, drawWidth - offsetX);
+                    graphics.blit(texture, x + offsetX, y + offsetY, pieceWidth, pieceHeight, (float) u, (float) v,
+                            pieceWidth, pieceHeight, width, height);
+                }
             }
         }
 
@@ -91,7 +105,9 @@ public final class AlchemiaSprites {
     public static final Sprite COOK_TRACK = sprite("container/cook_track", 38, 8, 0);
     public static final Sprite COOK_PROGRESS = sprite("container/cook_progress", 38, 8, 0);
     public static final Sprite GRIND_PANEL = sprite("hud/grind_panel", 16, 16, 4);
-    public static final Sprite PATH_TOOLTIP_PANEL = sprite("tooltip/path_panel", 16, 16, 4);
+    public static final Sprite PATH_TOOLTIP_PANEL = sprite("tooltip/path_panel", 48, 48, 8);
+    public static final Sprite PATH_ORIGIN = sprite("tooltip/path_origin", 9, 9, 0);
+    public static final Sprite PATH_ENDING = sprite("tooltip/path_ending", 9, 9, 0);
     public static final Sprite DELETE_BUTTON = sprite("guide/delete_button", 16, 16, 3);
     public static final Sprite DELETE_BUTTON_HIGHLIGHTED = sprite("guide/delete_button_highlighted", 16, 16, 3);
     public static final Sprite ROW_HIGHLIGHT = sprite("guide/row_highlight", 16, 16, 4);

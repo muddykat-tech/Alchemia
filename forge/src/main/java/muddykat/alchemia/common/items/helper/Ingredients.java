@@ -1,9 +1,8 @@
 package muddykat.alchemia.common.items.helper;
 
-import muddykat.alchemia.common.blocks.BlockIngredient;
+import muddykat.alchemia.common.blocks.helper.PlantForm;
 import muddykat.alchemia.common.config.Configuration;
 import muddykat.alchemia.common.items.ItemIngredient;
-import muddykat.alchemia.common.items.ItemIngredientSeed;
 import muddykat.alchemia.registration.registers.BlockRegistry;
 import muddykat.alchemia.registration.registers.ItemRegistry;
 import net.minecraft.core.Holder;
@@ -63,7 +62,7 @@ public enum Ingredients {
     Fable_Bismuth(IngredientType.Mineral, IngredientAlignment.Water, IngredientAlignment.Air, MobEffects.DAMAGE_RESISTANCE, 1, Rarity.EPIC);
 
     public static final int MAX_CRUSH = 3;
-    public static final int CRUSH_UNITS_PER_LEVEL = 4;
+    public static final int CRUSH_UNITS_PER_LEVEL = 8;
     public static final int MAX_CRUSH_UNITS = MAX_CRUSH * CRUSH_UNITS_PER_LEVEL;
 
     final IngredientType type;
@@ -98,15 +97,18 @@ public enum Ingredients {
 
     public void register() {
         if (!type.equals(Mineral)) {
-            var block = BlockRegistry.registerBlock(getSeedRegistryName(), properties -> new BlockIngredient(this, type, properties),
-                    () -> BlockBehaviour.Properties.of()
+            PlantForm form = PlantForm.of(this);
+            var block = BlockRegistry.registerBlock(getSeedRegistryName(), properties -> form.createBlock(this, type, properties),
+                    () -> form.adjust(BlockBehaviour.Properties.of()
                             .mapColor(MapColor.PLANT)
                             .noCollission()
                             .randomTicks()
                             .instabreak()
                             .sound(SoundType.CROP)
-                            .pushReaction(PushReaction.DESTROY));
-            ItemRegistry.registerItem(getSeedRegistryName(), properties -> new ItemIngredientSeed(block.get(), this, type, primaryAlignment, properties));
+                            .offsetType(BlockBehaviour.OffsetType.XZ)
+                            .pushReaction(PushReaction.DESTROY)));
+            ItemRegistry.registerItem(getSeedRegistryName(), properties -> form.createSeed(block.get(), this, type, primaryAlignment, properties));
+            form.registerParts(this);
         }
         ItemRegistry.registerItem(getRegistryName(), properties -> new ItemIngredient(this, type, primaryAlignment, properties));
     }

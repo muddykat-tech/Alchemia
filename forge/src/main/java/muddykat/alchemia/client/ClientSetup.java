@@ -8,14 +8,20 @@ import muddykat.alchemia.client.gui.GrindOverlay;
 import muddykat.alchemia.client.render.AlchemicalCauldronRenderer;
 import muddykat.alchemia.client.render.AlchemyMachineUpgradeRenderer;
 import muddykat.alchemia.client.render.CrushProperty;
+import muddykat.alchemia.client.render.PlacedPotionsRenderer;
 import muddykat.alchemia.common.items.ItemIngredient;
+import muddykat.alchemia.common.items.helper.GuideAccess;
 import muddykat.alchemia.common.items.helper.IngredientPathTooltip;
 import muddykat.alchemia.registration.registers.BlockEntityTypeRegistry;
 import muddykat.alchemia.registration.registers.ItemRegistry;
 import muddykat.alchemia.registration.registers.MenuTypeRegistry;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.item.ItemProperties;
+import muddykat.alchemia.common.potion.PotionGlasses;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
@@ -43,12 +49,16 @@ public class ClientSetup {
                     ItemProperties.register(item, CrushProperty.ID, CrushProperty.INSTANCE);
                 }
             }
+
+            ItemProperties.register(Items.POTION, new ResourceLocation(Alchemia.MODID, "potion_glass"),
+                    (stack, level, entity, seed) -> PotionGlasses.of(stack).ordinal());
         });
     }
 
     @SubscribeEvent
     public static void onRegisterTooltipComponents(RegisterClientTooltipComponentFactoriesEvent event) {
         event.register(IngredientPathTooltip.class, ClientIngredientPathTooltip::new);
+        GuideAccess.bindReader(() -> GuideAccess.carriedBy(Minecraft.getInstance().player));
     }
 
     @SubscribeEvent
@@ -60,5 +70,6 @@ public class ClientSetup {
     public static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(BlockEntityTypeRegistry.ALCHEMICAL_CAULDRON.get(), AlchemicalCauldronRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityTypeRegistry.ALCHEMY_MACHINE_UPGRADE.get(), AlchemyMachineUpgradeRenderer::new);
+        event.registerBlockEntityRenderer(BlockEntityTypeRegistry.PLACED_POTIONS.get(), PlacedPotionsRenderer::new);
     }
 }

@@ -11,7 +11,36 @@
           "block": "alchemia:herb_mageberry_seed",
           "condition": "minecraft:block_state_property",
           "properties": {
-            "age": "3"
+            "half": "lower"
+          }
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "alchemia:herb_mageberry_seed"
+        }
+      ],
+      "rolls": 1.0
+    },
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        },
+        {
+          "block": "alchemia:herb_mageberry_seed",
+          "condition": "minecraft:block_state_property",
+          "properties": {
+            "half": "lower"
+          }
+        },
+        {
+          "block": "alchemia:herb_mageberry_seed",
+          "condition": "minecraft:block_state_property",
+          "properties": {
+            "fruiting": "true"
           }
         }
       ],
@@ -26,35 +55,10 @@
           "add": false,
           "count": {
             "type": "minecraft:uniform",
-            "max": 4.0,
+            "max": 3.0,
             "min": 1.0
           },
           "function": "minecraft:set_count"
-        }
-      ],
-      "rolls": 1.0
-    },
-    {
-      "bonus_rolls": 0.0,
-      "conditions": [
-        {
-          "condition": "minecraft:survives_explosion"
-        },
-        {
-          "condition": "minecraft:inverted",
-          "term": {
-            "block": "alchemia:herb_mageberry_seed",
-            "condition": "minecraft:block_state_property",
-            "properties": {
-              "age": "3"
-            }
-          }
-        }
-      ],
-      "entries": [
-        {
-          "type": "minecraft:item",
-          "name": "alchemia:herb_mageberry_seed"
         }
       ],
       "rolls": 1.0

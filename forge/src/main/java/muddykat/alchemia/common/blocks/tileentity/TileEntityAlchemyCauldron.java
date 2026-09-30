@@ -1,5 +1,7 @@
 package muddykat.alchemia.common.blocks.tileentity;
 
+import muddykat.alchemia.common.items.ItemPotionGlass;
+import muddykat.alchemia.common.potion.PotionGlasses;
 import muddykat.alchemia.common.blocks.tileentity.container.AlchemicalCauldronMenu;
 import muddykat.alchemia.common.items.ItemIngredient;
 import muddykat.alchemia.common.items.ItemRubedo;
@@ -259,10 +261,11 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
             lingeringRequested = true;
         }
 
-        if (heldItem.equals(Items.GLASS_BOTTLE) || heldItem.equals(Items.DRAGON_BREATH)) {
+        if (heldItem.equals(Items.GLASS_BOTTLE) || heldItem.equals(Items.DRAGON_BREATH) || heldItem instanceof ItemPotionGlass) {
             if (getWaterLevel() > 0) {
                 takeWaterPortion();
                 ItemStack potion = getPotion();
+                if (heldItem instanceof ItemPotionGlass glass) PotionGlasses.apply(potion, glass.glass());
                 Collection<MobEffectInstance> brewed = List.copyOf(getEffectList());
                 List<String> used = getAddedIngredients();
                 heldStack.shrink(1);

@@ -6,15 +6,18 @@ import muddykat.alchemia.client.gui.AlchemyMachineScreen;
 import muddykat.alchemia.client.render.AlchemyMachineUpgradeRenderer;
 import muddykat.alchemia.client.gui.ClientIngredientPathTooltip;
 import muddykat.alchemia.client.gui.GrindOverlay;
+import muddykat.alchemia.common.items.helper.GuideAccess;
 import muddykat.alchemia.common.items.helper.IngredientPathTooltip;
 import muddykat.alchemia.client.render.AlchemicalCauldronRenderer;
 import muddykat.alchemia.client.render.CrushProperty;
+import muddykat.alchemia.client.render.PlacedPotionsRenderer;
 import muddykat.alchemia.registration.registers.BlockEntityTypeRegistry;
 import muddykat.alchemia.registration.registers.MenuTypeRegistry;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
 import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
@@ -41,6 +44,7 @@ public class ClientSetup {
     @SubscribeEvent
     public static void onRegisterTooltipComponents(RegisterClientTooltipComponentFactoriesEvent event) {
         event.register(IngredientPathTooltip.class, ClientIngredientPathTooltip::new);
+        GuideAccess.bindReader(() -> GuideAccess.carriedBy(Minecraft.getInstance().player));
     }
 
     @SubscribeEvent
@@ -52,5 +56,6 @@ public class ClientSetup {
     public static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(BlockEntityTypeRegistry.ALCHEMICAL_CAULDRON.get(), AlchemicalCauldronRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityTypeRegistry.ALCHEMY_MACHINE_UPGRADE.get(), AlchemyMachineUpgradeRenderer::new);
+        event.registerBlockEntityRenderer(BlockEntityTypeRegistry.PLACED_POTIONS.get(), PlacedPotionsRenderer::new);
     }
 }

@@ -6,7 +6,7 @@ import net.minecraft.network.chat.MutableComponent;
 
 public class TextUtils {
 
-    public static final int PARCHMENT = 0xC9A96E;
+    public static final int PARCHMENT = 0x8D764D;
 
     public static MutableComponent getTranslation(String key, Object... args) {
         return Component.translatable(Alchemia.MODID + "." + key, args);

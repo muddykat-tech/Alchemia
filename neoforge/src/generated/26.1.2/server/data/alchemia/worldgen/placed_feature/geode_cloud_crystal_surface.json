@@ -1,0 +1,19 @@
+{
+  "feature": "alchemia:geode_cloud_crystal_surface",
+  "placement": [
+    {
+      "type": "minecraft:rarity_filter",
+      "chance": 960
+    },
+    {
+      "type": "minecraft:in_square"
+    },
+    {
+      "type": "minecraft:heightmap",
+      "heightmap": "OCEAN_FLOOR_WG"
+    },
+    {
+      "type": "minecraft:biome"
+    }
+  ]
+}

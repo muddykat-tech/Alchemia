@@ -1,0 +1,7 @@
+{
+  "type": "alchemia:crystal_geode",
+  "config": {
+    "mineral": "cloud_crystal",
+    "variant": "surface"
+  }
+}

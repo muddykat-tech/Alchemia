@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "alchemia:cloud_crystal_geode"
+  ],
+  "result": {
+    "count": 4,
+    "id": "alchemia:mineral_cloud_crystal"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "alchemia:earth_pyrite_geode"
+  ],
+  "result": {
+    "count": 4,
+    "id": "alchemia:mineral_earth_pyrite"
+  }
+}

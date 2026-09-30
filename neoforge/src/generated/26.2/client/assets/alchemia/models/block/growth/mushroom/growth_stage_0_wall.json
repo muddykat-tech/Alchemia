@@ -1,0 +1,6 @@
+{
+  "parent": "alchemia:block/template_shelf",
+  "textures": {
+    "shelf": "alchemia:block/growth/mushroom/growth_stage_0"
+  }
+}

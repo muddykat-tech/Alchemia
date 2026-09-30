@@ -5,6 +5,12 @@ import net.minecraft.advancements.Advancement;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyCauldron;
+import muddykat.alchemia.common.blocks.blockentity.BlockPlacedPotions;
+import net.minecraft.world.InteractionResult;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import muddykat.alchemia.common.potion.PotionGlass;
+import muddykat.alchemia.common.potion.PotionGlasses;
+import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
 import muddykat.alchemia.registration.registers.BlockRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -56,6 +62,26 @@ public class WorldEventHandler {
 
             awardCauldronAdvancement(player);
         }
+    }
+
+    @SubscribeEvent
+    public static void placePotion(PlayerInteractEvent.RightClickBlock event) {
+        Player player = event.getEntity();
+        if (!player.isSecondaryUseActive()) return;
+
+        InteractionResult result = BlockPlacedPotions.place(event.getLevel(), event.getPos(),
+                event.getHitVec().getDirection(), player, event.getHand());
+        if (result == InteractionResult.PASS) return;
+
+        event.setCanceled(true);
+        event.setCancellationResult(result);
+    }
+
+    @SubscribeEvent
+    public static void returnPhial(LivingEntityUseItemEvent.Finish event) {
+        PotionGlass glass = PotionGlasses.of(event.getItem());
+        if (!glass.hasEmptyItem() || !event.getResultStack().is(Items.GLASS_BOTTLE)) return;
+        event.setResultStack(new ItemStack(PotionGlasses.emptyItem(glass), event.getResultStack().getCount()));
     }
 
     @SubscribeEvent

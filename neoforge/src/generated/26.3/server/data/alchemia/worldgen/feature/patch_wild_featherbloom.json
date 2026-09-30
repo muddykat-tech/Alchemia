@@ -9,12 +9,13 @@
         "source": {
           "id": "alchemia:flower_featherbloom_seed",
           "properties": {
-            "age": "0"
+            "age": "0",
+            "wild": "true"
           }
         },
         "values": {
           "type": "minecraft:uniform",
-          "max_inclusive": 3,
+          "max_inclusive": 5,
           "min_inclusive": 0
         }
       }
@@ -49,7 +50,8 @@
       "to_place": {
         "id": "alchemia:flower_featherbloom_seed",
         "properties": {
-          "age": "0"
+          "age": "0",
+          "wild": "true"
         }
       }
     },

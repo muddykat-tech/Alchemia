@@ -7,6 +7,30 @@
           "condition": "minecraft:survives_explosion"
         },
         {
+          "condition": "minecraft:inverted",
+          "term": {
+            "block": "alchemia:herb_goodberry_seed",
+            "condition": "minecraft:block_state_property",
+            "properties": {
+              "age": "3"
+            }
+          }
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "alchemia:herb_goodberry_seed"
+        }
+      ],
+      "rolls": 1.0
+    },
+    {
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        },
+        {
           "block": "alchemia:herb_goodberry_seed",
           "condition": "minecraft:block_state_property",
           "properties": {
@@ -21,8 +45,8 @@
             {
               "count": {
                 "type": "minecraft:uniform",
-                "max": 2.0,
-                "min": 1.0
+                "max": 4.0,
+                "min": 2.0
               },
               "function": "minecraft:set_count"
             }

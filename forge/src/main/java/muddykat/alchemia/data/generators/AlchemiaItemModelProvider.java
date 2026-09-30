@@ -12,6 +12,7 @@ import muddykat.alchemia.common.items.ItemIngredient;
 import muddykat.alchemia.common.items.ItemIngredientSeed;
 import muddykat.alchemia.common.items.ItemMortarPestle;
 import muddykat.alchemia.common.items.ItemPathTool;
+import muddykat.alchemia.common.items.ItemPotionGlass;
 import muddykat.alchemia.common.items.helper.Ingredients;
 import muddykat.alchemia.registration.registers.BlockRegistry;
 import muddykat.alchemia.registration.registers.ItemRegistry;
@@ -30,6 +31,8 @@ public class AlchemiaItemModelProvider extends ItemModelProvider {
 
     private static final Set<String> MAGNUM_OPUS =
             Set.of("nigredo", "albedo", "citrinitas", "rubedo", "philosopher_stone");
+
+    private static final Set<String> SHIMMERING = Set.of("philosopher_stone");
 
     private static final ResourceLocation DAMAGE = new ResourceLocation("damage");
     private static final ResourceLocation GENERATED = new ResourceLocation("item/generated");
@@ -55,6 +58,14 @@ public class AlchemiaItemModelProvider extends ItemModelProvider {
                 wearModel(itemName(item));
             } else if (item instanceof BlockItemGeneric blockItem) {
                 generateBlockItem(item, blockItem);
+            } else if (item instanceof ItemPotionGlass) {
+                String name = itemName(item);
+                flatItem(name, itemTexture("potion_glass/" + name));
+                flatItem(name + "_potion", itemTexture("potion_glass/" + name + "_overlay"))
+                        .texture("layer1", itemTexture("potion_glass/" + name));
+            } else if (SHIMMERING.contains(itemName(item))) {
+                flatItem(itemName(item), itemTexture(itemName(item)))
+                        .texture("layer1", itemTexture(itemName(item) + "_shimmer"));
             } else if (MAGNUM_OPUS.contains(itemName(item))) {
                 flatItem(itemName(item), itemTexture(itemName(item)));
             }

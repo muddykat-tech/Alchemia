@@ -1,6 +1,7 @@
 package muddykat.alchemia.client.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.Util;
 import muddykat.alchemia.common.items.ItemIngredient;
 import muddykat.alchemia.common.items.ItemMortarPestle;
@@ -26,6 +27,8 @@ public class GrindOverlay {
     private static final int TOP_MARGIN_PERCENT = 22;
 
     private static final float FADE_SECONDS = 0.22F;
+    private static final float GLIDE_SECONDS = 0.15F;
+    private static final double GLIDE_SNAP = 0.05;
 
     private static final int PATH_TAKEN = PathPalette.TAKEN;
     private static final int PATH_POTENTIAL = PathPalette.POTENTIAL;
@@ -46,6 +49,19 @@ public class GrindOverlay {
     private static int cachedProgressValue;
     private static int cachedUsesLeft;
 
+    private record Shape(Ingredients ingredient, int crush, int trim, int rotation) {
+    }
+
+    private static Shape shape;
+    private static boolean shaped;
+    private static int shapeWidth;
+    private static int shapeHeight;
+    private static List<PathPoint> shapePotential = List.of();
+    private static PathPoint shapeStart = PathPoint.ORIGIN;
+    private static PathPoint shapeEnding = PathPoint.ORIGIN;
+    private static double shapeTarget;
+    private static double shapeWalked;
+
     private static int shade(int rgb, float amount) {
         return ARGB.color((int) (255 * amount), rgb);
     }
@@ -64,7 +80,7 @@ public class GrindOverlay {
         }
 
         if (alpha <= 0.01F || cached == null) return;
-        draw(graphics, alpha);
+        draw(graphics, alpha, step);
     }
 
     private static boolean captureTarget() {
@@ -97,33 +113,66 @@ public class GrindOverlay {
         return true;
     }
 
-    private static void draw(GuiGraphics graphics, float fade) {
-        Minecraft minecraft = Minecraft.getInstance();
+    private static boolean build() {
+        Shape key = new Shape(cached, cachedCrush, cachedTrim, cachedRotation);
+        if (key.equals(shape)) return shaped;
+
+        boolean reground = shaped && key.ingredient() == shape.ingredient()
+                && key.trim() == shape.trim() && key.rotation() == shape.rotation();
+
+        shape = key;
+        shaped = false;
+        shapePotential = List.of();
+
         Ingredients ingredient = cached;
-        IngredientPath shape = IngredientPath.of(ingredient);
+        IngredientPath path = IngredientPath.of(ingredient);
 
         int dx = Integer.signum(ingredient.getPrimaryAlignment().getX() + ingredient.getSecondaryAlignment().getX());
         int dy = Integer.signum(ingredient.getPrimaryAlignment().getY() + ingredient.getSecondaryAlignment().getY());
-        if (shape.needsDirection() && dx == 0 && dy == 0) return;
+        if (path.needsDirection() && dx == 0 && dy == 0) return false;
 
         double maxPotency = ingredient.getPotency(Ingredients.MAX_CRUSH);
         double nowPotency = ingredient.getPotencyForUnits(cachedCrush);
 
-        List<PathPoint> full = pathFor(shape, ingredient, dx, dy, maxPotency, cachedTrim, cachedRotation);
-        List<PathPoint> current = pathFor(shape, ingredient, dx, dy, nowPotency, cachedTrim, cachedRotation);
-        if (full.size() < 2) return;
+        List<PathPoint> full = pathFor(path, ingredient, dx, dy, maxPotency, cachedTrim, cachedRotation);
+        List<PathPoint> current = pathFor(path, ingredient, dx, dy, nowPotency, cachedTrim, cachedRotation);
+        if (full.size() < 2) return false;
 
         PathGeometry.Fit fit = PathGeometry.fit(full, BOX_WIDTH, BOX_HEIGHT, true);
-        int previewW = (int) Math.ceil(fit.width()) + THICKNESS * 2;
-        int previewH = (int) Math.ceil(fit.height()) + THICKNESS * 2;
+        shapePotential = fit.apply(full);
+
+        shapeWidth = (int) Math.ceil(fit.width()) + THICKNESS * 2;
+        shapeHeight = (int) Math.ceil(fit.height()) + THICKNESS * 2;
+        shapeStart = fit.apply(PathPoint.ORIGIN);
+        shapeEnding = shapePotential.get(shapePotential.size() - 1);
+        shapeTarget = Math.min(PathGeometry.length(shapePotential), PathGeometry.length(current) * fit.scale());
+        if (!reground) shapeWalked = shapeTarget;
+
+        shaped = true;
+        return true;
+    }
+
+    private static void draw(GuiGraphics graphics, float fade, float step) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (!build()) return;
+
+        double gap = shapeTarget - shapeWalked;
+        shapeWalked = Math.abs(gap) < GLIDE_SNAP
+                ? shapeTarget
+                : shapeWalked + gap * Math.min(1.0, step / GLIDE_SECONDS);
+
+        List<PathPoint> taken = PathGeometry.truncate(shapePotential, shapeWalked);
+        List<PathPoint> remaining = PathGeometry.tail(shapePotential, shapeWalked);
+
+        boolean teleport = IngredientPath.of(cached).teleports();
 
         Component progress = cachedProgressKey != null
                 ? Component.translatable(cachedProgressKey, cachedProgressValue, cachedUsesLeft)
                 : Component.translatable("alchemia.tooltip.grind", cachedCrush, Ingredients.MAX_CRUSH_UNITS);
 
         int textW = Math.max(minecraft.font.width(cachedName), minecraft.font.width(progress));
-        int panelW = Math.max(previewW, textW) + PADDING * 2;
-        int panelH = previewH + 22 + PADDING * 2;
+        int panelW = Math.max(shapeWidth, textW) + PADDING * 2;
+        int panelH = shapeHeight + 22 + PADDING * 2;
 
         int panelX = (graphics.guiWidth() - panelW) / 2;
         int panelY = graphics.guiHeight() * TOP_MARGIN_PERCENT / 100;
@@ -135,34 +184,32 @@ public class GrindOverlay {
         graphics.drawString(minecraft.font, progress, panelX + (panelW - minecraft.font.width(progress)) / 2,
                 panelY + PADDING + 10, shade(LABEL_FAINT_RGB, fade), false);
 
-        double originX = panelX + (panelW - previewW) / 2.0 + THICKNESS;
+        double originX = panelX + (panelW - shapeWidth) / 2.0 + THICKNESS;
         double originY = panelY + PADDING + 22 + THICKNESS;
 
-        List<PathPoint> potential = PathGeometry.translate(fit.apply(full), originX, originY);
-        List<PathPoint> taken = PathGeometry.translate(fit.apply(current), originX, originY);
-        List<PathPoint> remaining = PathGeometry.tail(potential, PathGeometry.length(taken));
+        PoseStack pose = graphics.pose();
+        pose.pushPose();
+        pose.translate(originX, originY, 0.0);
 
-        PathRenderer.outline(graphics, remaining, THICKNESS, shade(PATH_POTENTIAL, fade), shape.teleports());
-        PathRenderer.dashes(graphics, taken, THICKNESS, shade(PATH_TAKEN, fade), shape.teleports());
-
-        PathPoint ending = potential.get(potential.size() - 1);
-        PathRenderer.marker(graphics, ending.x(), ending.y(), 3, PATH_ENDING);
+        PathRenderer.outline(graphics, remaining, THICKNESS, shade(PATH_POTENTIAL, fade), teleport, shapeWalked);
+        PathRenderer.dashes(graphics, taken, THICKNESS, shade(PATH_TAKEN, fade), teleport);
+        PathRenderer.marker(graphics, shapeEnding.x(), shapeEnding.y(), 3, PATH_ENDING);
 
         if (taken.size() > 1) {
             PathPoint landing = taken.get(taken.size() - 1);
-            PathRenderer.ending(graphics, landing.x(), landing.y(), 3, 1, shade(PATH_LANDING, fade), shape.teleports());
+            PathRenderer.ending(graphics, landing.x(), landing.y(), 3, 1, shade(PATH_LANDING, fade), teleport);
         }
 
-        PathPoint start = fit.apply(PathPoint.ORIGIN).plus(originX, originY);
-        PathRenderer.dot(graphics, start.x(), start.y(), 2, shade(PATH_ORIGIN, fade));
+        PathRenderer.dot(graphics, shapeStart.x(), shapeStart.y(), 2, shade(PATH_ORIGIN, fade));
+
+        pose.popPose();
     }
 
-    private static List<PathPoint> pathFor(IngredientPath shape, Ingredients ingredient, int dx, int dy,
+    private static List<PathPoint> pathFor(IngredientPath path, Ingredients ingredient, int dx, int dy,
                                            double potency, int trim, int rotation) {
-        if (!shape.teleports()) return IngredientPath.pathFor(ingredient, dx, dy, potency, trim, rotation);
+        if (!path.teleports()) return IngredientPath.pathFor(ingredient, dx, dy, potency, trim, rotation);
 
-        double reach = IngredientPath.teleportRadius(potency);
-        double shrink = Math.max(PathGeometry.CELL, reach - trim * IngredientPath.TRIM_STEP) / reach;
-        return IngredientPath.rotated(shape.teleportPreview(dx, dy, potency, shrink), rotation);
+        return IngredientPath.rotated(path.teleportPreview(dx, dy,
+                IngredientPath.teleportCeiling(ingredient), IngredientPath.reachFor(potency, trim)), rotation);
     }
 }

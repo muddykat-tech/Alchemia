@@ -2,10 +2,16 @@ package muddykat.alchemia.common.world;
 
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.blocks.BlockIngredient;
+import muddykat.alchemia.common.blocks.BlockIngredientTangle;
+import muddykat.alchemia.common.blocks.BlockIngredientWild;
+import muddykat.alchemia.common.blocks.WildGrowth;
 import muddykat.alchemia.common.items.helper.IngredientAlignment;
 import muddykat.alchemia.common.items.helper.IngredientType;
 import muddykat.alchemia.common.items.helper.Ingredients;
+import muddykat.alchemia.common.world.configuration.CrystalGeodeConfiguration;
+import muddykat.alchemia.common.world.configuration.ShelfInfectionConfiguration;
 import muddykat.alchemia.common.world.configuration.WildHerbConfiguration;
+import muddykat.alchemia.common.world.configuration.WildPlantConfiguration;
 import muddykat.alchemia.registration.registers.BiomeFeatureRegistry;
 import muddykat.alchemia.registration.registers.BlockRegistry;
 import net.minecraft.core.Direction;
@@ -25,6 +31,7 @@ import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.levelgen.GeodeBlockSettings;
 import net.minecraft.world.level.levelgen.GeodeCrackSettings;
@@ -56,6 +63,8 @@ import net.minecraft.world.level.levelgen.placement.InSquarePlacement;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import net.minecraft.world.level.levelgen.placement.PlacementModifier;
 import net.minecraft.world.level.levelgen.placement.RarityFilter;
+import net.minecraft.world.level.levelgen.placement.SurfaceRelativeThresholdFilter;
+import net.minecraft.world.level.levelgen.Heightmap;
 
 import java.util.EnumMap;
 import java.util.List;
@@ -75,6 +84,28 @@ public class WildHerbGeneration {
     public static final Map<Ingredients, ResourceKey<ConfiguredFeature<?, ?>>> CONFIGURED_FEATURES = new EnumMap<>(Ingredients.class);
 #endif
     public static final Map<Ingredients, ResourceKey<PlacedFeature>> PLACED_FEATURES = new EnumMap<>(Ingredients.class);
+
+    public static final int STANDARD_BURIAL = 16;
+    public static final int MINI_BURIAL = 4;
+    public static final int MINI_DENSITY = 3;
+    public static final int MINI_PER_CHUNK = 2;
+    public static final int GEODE_RARITY = 5;
+    public static final int STANDARD_RARITY = 2;
+    public static final int GIANT_RARITY = 14;
+    public static final int SUPERMASSIVE_RARITY = 28;
+    public static final int SURFACE_RARITY = 8;
+    public static final int TRUNK_DENSITY = 8;
+    public static final int TANGLE_TRIES = 6;
+
+#if MC_VER >= 26300
+    public static final Map<Ingredients, Map<GeodeVariant, ResourceKey<Feature>>> GEODE_CONFIGURED =
+            new EnumMap<>(Ingredients.class);
+#else
+    public static final Map<Ingredients, Map<GeodeVariant, ResourceKey<ConfiguredFeature<?, ?>>>> GEODE_CONFIGURED =
+            new EnumMap<>(Ingredients.class);
+#endif
+    public static final Map<Ingredients, Map<GeodeVariant, ResourceKey<PlacedFeature>>> GEODE_PLACED =
+            new EnumMap<>(Ingredients.class);
 
     public static final String PEAK_CLUSTER_NAME = "peak_cloud_crystal";
 #if MC_VER >= 26300
@@ -97,7 +128,37 @@ public class WildHerbGeneration {
             CONFIGURED_FEATURES.put(ingredient, ResourceKey.create(Registries.CONFIGURED_FEATURE, Identifier.fromNamespaceAndPath(Alchemia.MODID, name)));
 #endif
             PLACED_FEATURES.put(ingredient, ResourceKey.create(Registries.PLACED_FEATURE, Identifier.fromNamespaceAndPath(Alchemia.MODID, name)));
+
+            if (IngredientHabitat.of(ingredient) != IngredientHabitat.GEODE) continue;
+
+#if MC_VER >= 26300
+            Map<GeodeVariant, ResourceKey<Feature>> configured = new EnumMap<>(GeodeVariant.class);
+#else
+            Map<GeodeVariant, ResourceKey<ConfiguredFeature<?, ?>>> configured = new EnumMap<>(GeodeVariant.class);
+#endif
+            Map<GeodeVariant, ResourceKey<PlacedFeature>> placed = new EnumMap<>(GeodeVariant.class);
+
+            for (GeodeVariant variant : GeodeVariant.values()) {
+                Identifier id = Identifier.fromNamespaceAndPath(Alchemia.MODID, name + variant.suffix());
+#if MC_VER >= 26300
+                configured.put(variant, ResourceKey.create(Registries.FEATURE, id));
+#else
+                configured.put(variant, ResourceKey.create(Registries.CONFIGURED_FEATURE, id));
+#endif
+                placed.put(variant, ResourceKey.create(Registries.PLACED_FEATURE, id));
+            }
+
+            GEODE_CONFIGURED.put(ingredient, configured);
+            GEODE_PLACED.put(ingredient, placed);
         }
+    }
+
+    public static List<ResourceKey<PlacedFeature>> placedFor(Ingredients ingredient) {
+        Map<GeodeVariant, ResourceKey<PlacedFeature>> variants = GEODE_PLACED.get(ingredient);
+        if (variants != null) return List.copyOf(variants.values());
+
+        ResourceKey<PlacedFeature> single = PLACED_FEATURES.get(ingredient);
+        return single == null ? List.of() : List.of(single);
     }
 
     public static boolean generates(Ingredients ingredient) {
@@ -109,7 +170,8 @@ public class WildHerbGeneration {
         return switch (IngredientHabitat.of(ingredient)) {
             case GEODE -> "geode_" + name;
             case CEILING -> "roots_" + name;
-            case UNDERGROUND, MAGMA, SULFUR -> "fungi_" + name;
+            case UNDERGROUND, MAGMA -> "fungi_" + name;
+            case TREE -> "trunk_" + name;
             case AQUATIC -> "seabed_" + name;
             case SURFACE, NYLIUM, SAND -> "patch_wild_" + name;
         };
@@ -128,11 +190,27 @@ public class WildHerbGeneration {
             IngredientHabitat habitat = IngredientHabitat.of(ingredient);
 
             if (habitat == IngredientHabitat.GEODE) {
+                for (GeodeVariant variant : GeodeVariant.values()) {
 #if MC_VER >= 26300
-                context.register(CONFIGURED_FEATURES.get(ingredient), crystalGeodeConfig(ingredient, blocks));
+                    context.register(GEODE_CONFIGURED.get(ingredient).get(variant), variant.isVanillaShaped()
+                            ? crystalGeodeConfig(ingredient, blocks)
+                            : new CrystalGeodeConfiguration(ingredient, variant));
+#else
+                    context.register(GEODE_CONFIGURED.get(ingredient).get(variant), variant.isVanillaShaped()
+                            ? new ConfiguredFeature<>(Feature.GEODE, crystalGeodeConfig(ingredient, blocks))
+                            : new ConfiguredFeature<>(BiomeFeatureRegistry.CRYSTAL_GEODE.get(),
+                                    new CrystalGeodeConfiguration(ingredient, variant)));
+#endif
+                }
+                continue;
+            }
+
+            if (habitat == IngredientHabitat.TREE) {
+#if MC_VER >= 26300
+                context.register(CONFIGURED_FEATURES.get(ingredient), shelfConfig(ingredient));
 #else
                 context.register(CONFIGURED_FEATURES.get(ingredient),
-                        new ConfiguredFeature<>(Feature.GEODE, crystalGeodeConfig(ingredient, blocks)));
+                        new ConfiguredFeature<>(BiomeFeatureRegistry.SHELF_INFECTION.get(), shelfConfig(ingredient)));
 #endif
                 continue;
             }
@@ -154,13 +232,6 @@ public class WildHerbGeneration {
 #else
                 case MAGMA -> BlockPredicate.wouldSurvive(block.defaultBlockState(), Vec3i.ZERO);
 #endif
-#if MC_VER >= 26300
-                case SULFUR -> BlockPredicate.matchesBlocks(BLOCK_BELOW, List.of(Blocks.NETHERRACK, Blocks.CRIMSON_NYLIUM, Blocks.SULFUR, Blocks.POTENT_SULFUR));
-#elif MC_VER >= 26200
-                case SULFUR -> BlockPredicate.matchesBlocks(BLOCK_BELOW, Blocks.NETHERRACK, Blocks.CRIMSON_NYLIUM, Blocks.SULFUR, Blocks.POTENT_SULFUR);
-#else
-                case SULFUR -> BlockPredicate.matchesBlocks(BLOCK_BELOW, Blocks.NETHERRACK, Blocks.CRIMSON_NYLIUM);
-#endif
                 case AQUATIC -> BlockPredicate.anyOf(
                         BlockPredicate.matchesTag(BLOCK_BELOW, BlockTags.SAND),
                         BlockPredicate.matchesTag(BLOCK_BELOW, BlockTags.DIRT),
@@ -174,7 +245,7 @@ public class WildHerbGeneration {
 #else
                 case CEILING -> BlockPredicate.wouldSurvive(block.defaultBlockState(), Vec3i.ZERO);
 #endif
-                case GEODE -> BlockPredicate.alwaysTrue();
+                case TREE, GEODE -> BlockPredicate.alwaysTrue();
             };
 
             BlockPredicate placedWhere = BlockPredicate.allOf(occupies, grownOn);
@@ -182,8 +253,10 @@ public class WildHerbGeneration {
             WildHerbConfiguration config = switch (habitat) {
                 case CEILING -> rootConfig(block, placedWhere);
                 case MAGMA -> magmaConfig(block, placedWhere);
-                case UNDERGROUND, SULFUR -> fungiConfig(block, placedWhere);
-                case AQUATIC -> seabedConfig(block, placedWhere);
+                case UNDERGROUND -> fungiConfig(block, placedWhere);
+                case AQUATIC -> block instanceof BlockIngredientTangle
+                        ? tangleConfig(block, placedWhere)
+                        : seabedConfig(block, placedWhere);
                 default -> colonyConfig(block, placedWhere);
             };
 
@@ -217,6 +290,15 @@ public class WildHerbGeneration {
             IngredientHabitat habitat = IngredientHabitat.of(ingredient);
             int chance = ingredient.getPatchChance();
 
+            if (habitat == IngredientHabitat.GEODE) {
+                for (GeodeVariant variant : GeodeVariant.values()) {
+                    context.register(GEODE_PLACED.get(ingredient).get(variant), new PlacedFeature(
+                            configured.getOrThrow(GEODE_CONFIGURED.get(ingredient).get(variant)),
+                            geodePlacement(ingredient, variant)));
+                }
+                continue;
+            }
+
             List<PlacementModifier> modifiers = switch (habitat) {
                 case SURFACE, NYLIUM, SAND -> List.of(RarityFilter.onAverageOnceEvery(chance), InSquarePlacement.spread(),
                         PlacementUtils.HEIGHTMAP, BiomeFilter.biome());
@@ -231,7 +313,9 @@ public class WildHerbGeneration {
                         RandomOffsetPlacement.vertical(ConstantInt.of(-1)),
 #endif
                         BiomeFilter.biome());
-                case UNDERGROUND, MAGMA, SULFUR -> List.of(RarityFilter.onAverageOnceEvery(Math.max(1, chance / 4)),
+                case TREE -> List.of(RarityFilter.onAverageOnceEvery(Math.max(1, chance / TRUNK_DENSITY)),
+                        InSquarePlacement.spread(), BiomeFilter.biome());
+                case UNDERGROUND, MAGMA -> List.of(RarityFilter.onAverageOnceEvery(Math.max(1, chance / 4)),
                         CountPlacement.of(24), InSquarePlacement.spread(),
                         HeightRangePlacement.uniform(VerticalAnchor.aboveBottom(8), VerticalAnchor.absolute(96)),
                         EnvironmentScanPlacement.scanningFor(Direction.DOWN, BlockPredicate.solid(), BlockPredicate.ONLY_IN_AIR_PREDICATE, 12),
@@ -241,8 +325,7 @@ public class WildHerbGeneration {
                         RandomOffsetPlacement.vertical(ConstantInt.of(1)),
 #endif
                         BiomeFilter.biome());
-                case GEODE -> List.of(RarityFilter.onAverageOnceEvery(chance), InSquarePlacement.spread(),
-                        getHeightRangePlacement(ingredient), BiomeFilter.biome());
+                case GEODE -> List.of();
             };
 
             context.register(PLACED_FEATURES.get(ingredient),
@@ -264,6 +347,54 @@ public class WildHerbGeneration {
                 BiomeFilter.biome())));
     }
 
+    private static List<PlacementModifier> geodePlacement(Ingredients ingredient, GeodeVariant variant) {
+        int chance = Math.max(1, ingredient.getPatchChance());
+
+        return switch (variant) {
+            case STANDARD -> List.of(rarity(chance * STANDARD_RARITY), InSquarePlacement.spread(),
+                    getHeightRangePlacement(ingredient), buried(STANDARD_BURIAL), BiomeFilter.biome());
+            case MINIATURE -> List.of(rarity(Math.max(1, chance / MINI_DENSITY)),
+                    CountPlacement.of(MINI_PER_CHUNK), InSquarePlacement.spread(),
+                    getHeightRangePlacement(ingredient), buried(MINI_BURIAL), BiomeFilter.biome());
+            case GIANT -> List.of(rarity(chance * GIANT_RARITY), InSquarePlacement.spread(),
+                    giantHeightPlacement(ingredient), buried(STANDARD_BURIAL), BiomeFilter.biome());
+            case SUPERMASSIVE -> List.of(rarity(chance * SUPERMASSIVE_RARITY),
+                    chunkCentre(), supermassiveHeightPlacement(ingredient), buried(STANDARD_BURIAL), BiomeFilter.biome());
+            case SURFACE -> List.of(rarity(chance * SURFACE_RARITY), InSquarePlacement.spread(),
+                    PlacementUtils.HEIGHTMAP_TOP_SOLID, BiomeFilter.biome());
+        };
+    }
+
+    private static PlacementModifier rarity(int chance) {
+        return RarityFilter.onAverageOnceEvery(Math.max(1, chance * GEODE_RARITY));
+    }
+
+    private static PlacementModifier buried(int depth) {
+        return SurfaceRelativeThresholdFilter.of(Heightmap.Types.OCEAN_FLOOR_WG, Integer.MIN_VALUE, -depth);
+    }
+
+    private static PlacementModifier chunkCentre() {
+#if MC_VER >= 26300
+        return OffsetPlacement.horizontal(ConstantInt.of(8));
+#else
+        return RandomOffsetPlacement.horizontal(ConstantInt.of(8));
+#endif
+    }
+
+    private static PlacementModifier supermassiveHeightPlacement(Ingredients ingredient) {
+        if (ingredient.getPrimaryAlignment().equals(IngredientAlignment.Fire)) {
+            return HeightRangePlacement.uniform(VerticalAnchor.aboveBottom(26), VerticalAnchor.absolute(96));
+        }
+        return HeightRangePlacement.uniform(VerticalAnchor.aboveBottom(26), VerticalAnchor.absolute(-26));
+    }
+
+    private static PlacementModifier giantHeightPlacement(Ingredients ingredient) {
+        if (ingredient.getPrimaryAlignment().equals(IngredientAlignment.Fire)) {
+            return HeightRangePlacement.uniform(VerticalAnchor.aboveBottom(8), VerticalAnchor.absolute(32));
+        }
+        return HeightRangePlacement.uniform(VerticalAnchor.aboveBottom(8), VerticalAnchor.absolute(-8));
+    }
+
     private static PlacementModifier getHeightRangePlacement(Ingredients ingredient) {
         if (ingredient.getPrimaryAlignment().equals(IngredientAlignment.Fire)) {
             return HeightRangePlacement.uniform(VerticalAnchor.aboveBottom(6), VerticalAnchor.absolute(120));
@@ -282,6 +413,14 @@ public class WildHerbGeneration {
 
     public static WildHerbConfiguration seabedConfig(Block block, BlockPredicate growsOn) {
         return new WildHerbConfiguration(48, 6, 1, colonyBlockConfig(block, growsOn), plantBlockConfig(block, growsOn), Optional.empty());
+    }
+
+    public static WildHerbConfiguration tangleConfig(Block block, BlockPredicate growsOn) {
+        return new WildHerbConfiguration(TANGLE_TRIES, 6, 1, colonyBlockConfig(block, growsOn), plantBlockConfig(block, growsOn), Optional.empty());
+    }
+
+    public static ShelfInfectionConfiguration shelfConfig(Ingredients ingredient) {
+        return new ShelfInfectionConfiguration(ingredient, 48, 6);
     }
 
     public static WildHerbConfiguration magmaConfig(Block block, BlockPredicate growsOn) {
@@ -352,28 +491,55 @@ public class WildHerbGeneration {
 
 #if MC_VER >= 26300
     public static net.minecraft.core.Holder<PlacedFeature> plantBlockConfig(Block block, BlockPredicate placedWhere) {
+        if (block instanceof WildGrowth) return wildPlantConfig(block, placedWhere);
         return PlacementUtils.inlinePlaced(
-                net.minecraft.core.Holder.direct(new SimpleBlockFeature(BlockStateProvider.of(block))),
+                net.minecraft.core.Holder.direct(new SimpleBlockFeature(BlockStateProvider.of(wildState(block)))),
                 List.of(BlockPredicateFilter.forPredicate(placedWhere)));
     }
 
     public static net.minecraft.core.Holder<PlacedFeature> colonyBlockConfig(Block block, BlockPredicate placedWhere) {
+        if (block instanceof WildGrowth) return wildPlantConfig(block, placedWhere);
         return PlacementUtils.inlinePlaced(
                 net.minecraft.core.Holder.direct(new SimpleBlockFeature(net.minecraft.core.Holder.direct(
-                        new RandomizedIntStateProvider(BlockStateProvider.of(block), BlockIngredient.AGE, UniformInt.of(0, 3))))),
+                        new RandomizedIntStateProvider(BlockStateProvider.of(wildState(block)), wildAge(block), UniformInt.of(0, wildMaxAge(block)))))),
+                List.of(BlockPredicateFilter.forPredicate(placedWhere)));
+    }
+
+    public static net.minecraft.core.Holder<PlacedFeature> wildPlantConfig(Block block, BlockPredicate placedWhere) {
+        return PlacementUtils.inlinePlaced(
+                net.minecraft.core.Holder.direct(new WildPlantConfiguration(block.defaultBlockState())),
                 List.of(BlockPredicateFilter.forPredicate(placedWhere)));
     }
 #else
     public static net.minecraft.core.Holder<PlacedFeature> plantBlockConfig(Block block, BlockPredicate placedWhere) {
+        if (block instanceof WildGrowth) return wildPlantConfig(block, placedWhere);
         return PlacementUtils.filtered(
-                Feature.SIMPLE_BLOCK, new SimpleBlockConfiguration(BlockStateProvider.simple(block)), placedWhere);
+                Feature.SIMPLE_BLOCK, new SimpleBlockConfiguration(BlockStateProvider.simple(wildState(block))), placedWhere);
     }
 
     public static net.minecraft.core.Holder<PlacedFeature> colonyBlockConfig(Block block, BlockPredicate placedWhere) {
+        if (block instanceof WildGrowth) return wildPlantConfig(block, placedWhere);
         return PlacementUtils.filtered(
                 Feature.SIMPLE_BLOCK,
-                new SimpleBlockConfiguration(new RandomizedIntStateProvider(BlockStateProvider.simple(block), BlockIngredient.AGE, UniformInt.of(0, 3))),
+                new SimpleBlockConfiguration(new RandomizedIntStateProvider(BlockStateProvider.simple(wildState(block)), wildAge(block), UniformInt.of(0, wildMaxAge(block)))),
                 placedWhere);
     }
+
+    public static net.minecraft.core.Holder<PlacedFeature> wildPlantConfig(Block block, BlockPredicate placedWhere) {
+        return PlacementUtils.filtered(BiomeFeatureRegistry.WILD_PLANT.get(), new WildPlantConfiguration(block.defaultBlockState()), placedWhere);
+    }
 #endif
+
+    private static BlockState wildState(Block block) {
+        BlockState state = block.defaultBlockState();
+        return block instanceof BlockIngredientWild ? state.setValue(BlockIngredientWild.WILD, true) : state;
+    }
+
+    private static IntegerProperty wildAge(Block block) {
+        return block instanceof BlockIngredient crop ? crop.getAgeProperty() : BlockIngredient.AGE;
+    }
+
+    private static int wildMaxAge(Block block) {
+        return block instanceof BlockIngredient crop ? crop.getMaxAge() : 3;
+    }
 }

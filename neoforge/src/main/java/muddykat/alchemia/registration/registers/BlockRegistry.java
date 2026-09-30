@@ -9,6 +9,7 @@ import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyCauldron;
 import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyMachineCore;
 import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyMachinePart;
 import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyMachineUpgrade;
+import muddykat.alchemia.common.blocks.blockentity.BlockPlacedPotions;
 import muddykat.alchemia.common.blocks.helper.UpgradeSide;
 import muddykat.alchemia.common.items.BlockItemAlchemyMachineUpgrade;
 import muddykat.alchemia.common.items.BlockItemGeneric;
@@ -17,7 +18,9 @@ import muddykat.alchemia.common.items.helper.Ingredients;
 import net.minecraft.world.level.block.AmethystClusterBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.material.PushReaction;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -39,6 +42,7 @@ public class BlockRegistry {
         createBasicBlock("deepmetal_tile");
         createCauldronBlock("alchemical_cauldron");
         createMachineBlocks();
+        createPlacedPotionsBlock();
 
         for (Ingredients ingredient : Ingredients.values()) {
             if (ingredient.getType().equals(IngredientType.Mineral)) {
@@ -81,6 +85,20 @@ public class BlockRegistry {
 
         registerBlock(BlockAlchemyMachinePart.ID, BlockAlchemyMachinePart::new,
                 () -> BlockBehaviour.Properties.ofFullCopy(Blocks.CAULDRON).noOcclusion().noLootTable());
+    }
+
+    public static void createPlacedPotionsBlock() {
+        registerBlock(BlockPlacedPotions.ID, BlockPlacedPotions::new,
+                () -> BlockBehaviour.Properties.of()
+                        .instabreak()
+                        .noOcclusion()
+                        .noLootTable()
+                        .sound(SoundType.GLASS)
+#if MC_VER >= 26300
+                        .pushReaction(PushReaction.POPPED));
+#else
+                        .pushReaction(PushReaction.DESTROY));
+#endif
     }
 
     public static void createMineralGeodeBlocks(Ingredients ingredient) {

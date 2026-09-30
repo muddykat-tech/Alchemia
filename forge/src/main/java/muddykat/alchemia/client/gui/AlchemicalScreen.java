@@ -837,6 +837,7 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
 
         TileEntityAlchemyCauldron cauldron = this.getMenu().getCauldron();
         PathPoint origin = toScreen(new PathPoint(cauldron.getXAlignment(), cauldron.getYAlignment()));
+        PathPoint centre = toScreen(new PathPoint(map().getMiddlePosition(), map().getMiddlePosition()));
 
         int left = viewLeft();
         int top = viewTop();
@@ -866,7 +867,7 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
             boolean discovered = recipe != null && known.contains(recipe);
 
             drawEffectAura(graphics, nx, ny, entry, discovered);
-            drawThread(graphics, origin.roundedX(), origin.roundedY(), nx, ny, thickness);
+            drawThread(graphics, centre.roundedX(), centre.roundedY(), nx, ny, thickness);
 
             if (discovered) {
                 AlchemiaSprites.blitMobEffect(graphics, entry.effect().getEffect(), nx - half, ny - half, node, node, -1);
@@ -892,6 +893,8 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
                 }
             }
         }
+
+        PathRenderer.marker(graphics, centre.x(), centre.y(), Math.max(4, node / 2), GHOST_RGB);
 
         extractPlan(graphics, cauldron, node);
 
@@ -1109,58 +1112,62 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
         return level;
     }
 
+    private static final double EDGE_ZOOM = 0.45;
+
     private void extractDeadzones(GuiGraphics graphics, int left, int top, int right, int bottom) {
         if (!PotionMap.isReady()) return;
 
         PotionMap map = map();
         int level = deadzoneLevel(map);
-        double span = PotionMap.tileSize(level);
-        int last = map.tileCount(level) - 1;
+        int width = right - left;
+        if (width <= 0) return;
 
-        int fromX = Mth.clamp((int) Math.floor(mapAtX(left) / span), 0, last);
-        int toX = Mth.clamp((int) Math.floor(mapAtX(right) / span), 0, last);
-        int fromY = Mth.clamp((int) Math.floor(mapAtY(top) / span), 0, last);
-        int toY = Mth.clamp((int) Math.floor(mapAtY(bottom) / span), 0, last);
-
-        boolean edges = span * zoom >= EDGE_TILE_PIXELS;
         int fill = ARGB.color(70, BLOCKED_RGB);
         int edge = ARGB.color(150, BLOCKED_RGB);
+        boolean edged = zoom >= EDGE_ZOOM;
 
-        for (int tileY = fromY; tileY <= toY; tileY++) {
-            int y0 = (int) Math.round(screenY(PotionMap.tileOrigin(level, tileY)));
-            int y1 = (int) Math.round(screenY(PotionMap.tileOrigin(level, tileY + 1)));
-            if (y1 <= y0) y1 = y0 + 1;
+        boolean[] above = new boolean[width];
+        boolean[] row = new boolean[width];
+        boolean[] rim = new boolean[width];
+        boolean[] rimAbove = new boolean[width];
+        double step = 1.0 / zoom;
 
-            int runStart = -1;
+        for (int y = top; y < bottom; y++) {
+            double mapY = mapAtY(y + 0.5);
+            double mapX = mapAtX(left + 0.5);
 
-            for (int tileX = fromX; tileX <= toX + 1; tileX++) {
-                boolean solid = tileX <= toX && map.isDeadTile(level, tileX, tileY);
+            for (int i = 0; i < width; i++, mapX += step) {
+                row[i] = map.deadAt(level, mapX, mapY);
+            }
 
-                if (solid && runStart < 0) runStart = tileX;
-                if (solid || runStart < 0) continue;
+            spans(graphics, row, left, y, fill);
 
-                int x0 = (int) Math.round(screenX(PotionMap.tileOrigin(level, runStart)));
-                int x1 = (int) Math.round(screenX(PotionMap.tileOrigin(level, tileX)));
-                if (x1 <= x0) x1 = x0 + 1;
-
-                graphics.fill(x0, y0, x1, y1, fill);
-
-                if (edges) {
-                    if (!map.isDeadTile(level, runStart - 1, tileY)) graphics.fill(x0, y0, x0 + 1, y1, edge);
-                    if (!map.isDeadTile(level, tileX, tileY)) graphics.fill(x1 - 1, y0, x1, y1, edge);
-
-                    for (int run = runStart; run < tileX; run++) {
-                        int rx0 = (int) Math.round(screenX(PotionMap.tileOrigin(level, run)));
-                        int rx1 = (int) Math.round(screenX(PotionMap.tileOrigin(level, run + 1)));
-                        if (rx1 <= rx0) rx1 = rx0 + 1;
-
-                        if (!map.isDeadTile(level, run, tileY - 1)) graphics.fill(rx0, y0, rx1, y0 + 1, edge);
-                        if (!map.isDeadTile(level, run, tileY + 1)) graphics.fill(rx0, y1 - 1, rx1, y1, edge);
-                    }
+            if (edged) {
+                for (int i = 0; i < width; i++) {
+                    boolean open = i == 0 || i == width - 1 || !row[i - 1] || !row[i + 1] || !above[i];
+                    rim[i] = row[i] && open;
+                    rimAbove[i] = !row[i] && above[i];
                 }
 
-                runStart = -1;
+                spans(graphics, rim, left, y, edge);
+                spans(graphics, rimAbove, left, y - 1, edge);
             }
+
+            System.arraycopy(row, 0, above, 0, width);
+        }
+    }
+
+    private void spans(GuiGraphics graphics, boolean[] row, int left, int y, int colour) {
+        int start = -1;
+
+        for (int i = 0; i <= row.length; i++) {
+            boolean inside = i < row.length && row[i];
+
+            if (inside && start < 0) start = i;
+            if (inside || start < 0) continue;
+
+            graphics.fill(left + start, y, left + i, y + 1, colour);
+            start = -1;
         }
     }
 

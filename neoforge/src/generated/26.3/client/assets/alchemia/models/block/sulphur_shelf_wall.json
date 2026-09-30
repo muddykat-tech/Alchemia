@@ -1,0 +1,6 @@
+{
+  "parent": "alchemia:block/template_shelf",
+  "textures": {
+    "shelf": "alchemia:block/mushrooms/sulphur_shelf"
+  }
+}

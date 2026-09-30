@@ -1,4 +1,4 @@
-// 26.3	2026-09-21T21:38:12.663540282	Tags for minecraft:worldgen/biome mod id alchemia
+// 26.3	2026-09-30T06:16:28.625094492	Tags for minecraft:worldgen/biome mod id alchemia
 effccb28b31b456c3317bad9b992d5a65974d02b data/alchemia/tags/worldgen/biome/has_air_plants.json
 8d00d39ea1e8e47fedab7ab418f9ec17a1bd20dc data/alchemia/tags/worldgen/biome/has_dreambeet.json
 b991457d08f4a3bb3c8cd7429c98dbbfaa19f510 data/alchemia/tags/worldgen/biome/has_earth_plants.json
@@ -7,7 +7,7 @@ b991457d08f4a3bb3c8cd7429c98dbbfaa19f510 data/alchemia/tags/worldgen/biome/has_e
 2da192cda5cbe4151f2a4f718af6b00b76799b41 data/alchemia/tags/worldgen/biome/has_lava_root.json
 7cb64d5b31e1fa4a32cc12ce8f5aa7f2f251d479 data/alchemia/tags/worldgen/biome/has_magma_morel.json
 4239d8145d9fa0677bc0d448b6fab62f712f5888 data/alchemia/tags/worldgen/biome/has_spellbloom.json
-a3480eb0bcd7c049ef1a03e4b006670606b41a20 data/alchemia/tags/worldgen/biome/has_sulphur_shelf.json
+7b08bceff84e944fa5994634abe2c569fcf64457 data/alchemia/tags/worldgen/biome/has_sulphur_shelf.json
 6f7c465f8009664b294fa10a82fbc151d3068eec data/alchemia/tags/worldgen/biome/has_terraria.json
 a22b39d765bf194c0cbef196369d164135e93751 data/alchemia/tags/worldgen/biome/has_terrorbud.json
 b58ce5231a730114d0fc156b98ebd68c1ee4e643 data/alchemia/tags/worldgen/biome/has_water_plants.json

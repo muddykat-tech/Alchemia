@@ -93,8 +93,9 @@ public class AlchemiaBiomeModifiers {
         groups.forEach((name, ingredients) -> {
             List<Holder<PlacedFeature>> holders = new ArrayList<>();
             for (Ingredients ingredient : ingredients) {
-                ResourceKey<PlacedFeature> key = WildHerbGeneration.PLACED_FEATURES.get(ingredient);
-                if (key != null) holders.add(features.getOrThrow(key));
+                for (ResourceKey<PlacedFeature> key : WildHerbGeneration.placedFor(ingredient)) {
+                    holders.add(features.getOrThrow(key));
+                }
             }
             if (holders.isEmpty()) return;
 

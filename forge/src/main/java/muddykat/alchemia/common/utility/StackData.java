@@ -3,6 +3,7 @@ package muddykat.alchemia.common.utility;
 import com.mojang.serialization.Codec;
 import muddykat.alchemia.common.items.helper.Ingredients;
 import muddykat.alchemia.common.potion.BrewRecipe;
+import muddykat.alchemia.common.potion.PotionGlass;
 
 import java.util.List;
 
@@ -30,4 +31,7 @@ public class StackData {
 
     public static final StackComponent<String> SELECTED_RECIPE =
             StackComponent.of("selected_recipe", Codec.STRING);
+
+    public static final StackComponent<PotionGlass> POTION_GLASS =
+            StackComponent.of("potion_glass", PotionGlass.CODEC);
 }

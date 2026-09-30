@@ -1,7 +1,8 @@
 {
   "values": [
-    "minecraft:nether_wastes",
-    "minecraft:crimson_forest",
-    "minecraft:sulfur_caves"
+    "#c:is_forest",
+    "#c:is_taiga",
+    "#c:is_jungle",
+    "#c:is_swamp"
   ]
 }

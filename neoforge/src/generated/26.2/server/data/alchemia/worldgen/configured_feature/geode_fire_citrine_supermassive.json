@@ -1,0 +1,7 @@
+{
+  "type": "alchemia:crystal_geode",
+  "config": {
+    "mineral": "fire_citrine",
+    "variant": "supermassive"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "alchemia:fire_citrine_geode"
+  ],
+  "result": {
+    "count": 4,
+    "id": "alchemia:mineral_fire_citrine"
+  }
+}

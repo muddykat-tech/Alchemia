@@ -14,6 +14,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -21,7 +22,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public record BrewRecipe(String id, String name, String base, List<BrewRecipe.BrewEffect> effects, List<String> ingredients) {
+public record BrewRecipe(String id, String name, String base, List<BrewRecipe.BrewEffect> effects,
+                         List<String> ingredients, List<String> steps) {
+
+    public static final char STEP_ADD = '+';
+    public static final char STEP_STIR = '~';
+    public static final char STEP_FINE = '-';
+    public static final char STEP_BREW = '!';
+    public static final char STEP_REDSTONE = '*';
+    public static final char STEP_FINISH = '=';
+
+    private static final int LEGACY_CRUSH_SCALE = 2;
 
     public BrewRecipe {
         if (id == null || id.isBlank()) {
@@ -29,10 +40,42 @@ public record BrewRecipe(String id, String name, String base, List<BrewRecipe.Br
         }
         if (name == null) name = "";
         if (base == null || base.isBlank()) base = BrewBases.DEFAULT_ID;
+        if (steps == null) steps = List.of();
     }
 
-    public static BrewRecipe create(String name, BrewBase base, List<BrewEffect> effects, List<String> ingredients) {
-        return new BrewRecipe(java.util.UUID.randomUUID().toString(), name, base.id(), effects, ingredients);
+    public static BrewRecipe create(String name, BrewBase base, List<BrewEffect> effects,
+                                    List<String> ingredients, List<String> steps) {
+        return new BrewRecipe(java.util.UUID.randomUUID().toString(), name, base.id(), effects, ingredients, steps);
+    }
+
+    private static BrewRecipe stored(String id, String name, String base, List<BrewEffect> effects,
+                                     List<String> ingredients, List<String> steps) {
+        if (!steps.isEmpty()) return new BrewRecipe(id, name, base, effects, ingredients, steps);
+
+        List<String> upgraded = upgradeEntries(ingredients);
+        return new BrewRecipe(id, name, base, effects, upgraded, legacySteps(upgraded));
+    }
+
+    public static List<String> upgradeEntries(List<String> legacy) {
+        List<String> upgraded = new ArrayList<>(legacy.size());
+        for (String entry : legacy) upgraded.add(encode(nameOf(entry), crushOf(entry) * LEGACY_CRUSH_SCALE));
+        return List.copyOf(upgraded);
+    }
+
+    public static List<String> legacySteps(List<String> entries) {
+        String redstone = BuiltInRegistries.ITEM.getKey(Items.REDSTONE).toString();
+        List<String> script = new ArrayList<>(entries.size() * 3);
+
+        for (String entry : entries) {
+            if (nameOf(entry).equals(redstone)) {
+                script.add(String.valueOf(STEP_REDSTONE));
+                continue;
+            }
+            script.add(STEP_ADD + entry);
+            script.add(String.valueOf(STEP_FINISH));
+            script.add(String.valueOf(STEP_BREW));
+        }
+        return List.copyOf(script);
     }
 
     public BrewBase brewBase() {
@@ -80,15 +123,16 @@ public record BrewRecipe(String id, String name, String base, List<BrewRecipe.Br
             Codec.STRING.optionalFieldOf("name", "").forGetter(BrewRecipe::name),
             Codec.STRING.optionalFieldOf("base", BrewBases.DEFAULT_ID).forGetter(BrewRecipe::base),
             BrewEffect.CODEC.listOf().fieldOf("effects").forGetter(BrewRecipe::effects),
-            Codec.STRING.listOf().fieldOf("ingredients").forGetter(BrewRecipe::ingredients)
-    ).apply(instance, BrewRecipe::new));
+            Codec.STRING.listOf().fieldOf("ingredients").forGetter(BrewRecipe::ingredients),
+            Codec.STRING.listOf().optionalFieldOf("steps", List.of()).forGetter(BrewRecipe::steps)
+    ).apply(instance, BrewRecipe::stored));
 
     private static final Codec<BrewRecipe> LEGACY = RecordCodecBuilder.create(instance -> instance.group(
             Codec.STRING.fieldOf("recipe").forGetter(brew -> brew.effects().getFirst().recipe()),
             Codec.STRING.listOf().fieldOf("ingredients").forGetter(BrewRecipe::ingredients),
             Codec.INT.fieldOf("potency").forGetter(brew -> brew.effects().getFirst().potency())
-    ).apply(instance, (recipe, ingredients, potency) -> new BrewRecipe("", "",
-            BrewBases.DEFAULT_ID, List.of(new BrewEffect(recipe, potency)), ingredients)));
+    ).apply(instance, (recipe, ingredients, potency) -> stored("", "",
+            BrewBases.DEFAULT_ID, List.of(new BrewEffect(recipe, potency)), ingredients, List.of())));
 
     public static final Codec<BrewRecipe> CODEC = Codec.either(MODERN, LEGACY).xmap(Either::unwrap, Either::left);
 
@@ -98,6 +142,7 @@ public record BrewRecipe(String id, String name, String base, List<BrewRecipe.Br
             ByteBufCodecs.STRING_UTF8, BrewRecipe::base,
             BrewEffect.STREAM_CODEC.apply(ByteBufCodecs.collection(ArrayList::new)), BrewRecipe::effects,
             ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.collection(ArrayList::new)), BrewRecipe::ingredients,
+            ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.collection(ArrayList::new)), BrewRecipe::steps,
             BrewRecipe::new);
 
     public Component displayName() {

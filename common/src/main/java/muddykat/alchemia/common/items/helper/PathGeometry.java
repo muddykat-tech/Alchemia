@@ -9,6 +9,7 @@ public final class PathGeometry {
     public static final double CELL = 16.0;
     public static final double SAMPLE_SPACING = 2.0;
     public static final int MORPH_SAMPLES = 96;
+    public static final int LEAD_PROBES = 32;
 
     private static final double EPSILON = 1.0E-6;
     private static final int MAX_SAMPLES = 4096;
@@ -97,6 +98,44 @@ public final class PathGeometry {
             walked += span;
         }
         return polyline.get(polyline.size() - 1);
+    }
+
+    public static double distanceAlong(List<PathPoint> polyline, PathPoint target) {
+        double nearest = Double.MAX_VALUE;
+        double along = 0.0;
+        double walked = 0.0;
+
+        for (int i = 1; i < polyline.size(); i++) {
+            PathPoint from = polyline.get(i - 1);
+            PathPoint to = polyline.get(i);
+            double span = from.distanceTo(to);
+            if (span < EPSILON) continue;
+
+            PathPoint run = to.minus(from);
+            PathPoint reach = target.minus(from);
+            double t = Math.max(0.0, Math.min(1.0, (reach.x() * run.x() + reach.y() * run.y()) / (span * span)));
+            double gap = from.lerp(to, t).distanceTo(target);
+
+            if (gap < nearest - EPSILON) {
+                nearest = gap;
+                along = walked + span * t;
+            }
+            walked += span;
+        }
+        return along;
+    }
+
+    public static boolean leads(List<PathPoint> lead, List<PathPoint> whole, double tolerance) {
+        if (lead.isEmpty() || whole.isEmpty()) return false;
+
+        double span = length(lead);
+        if (span > length(whole) + tolerance) return false;
+
+        for (int probe = 0; probe <= LEAD_PROBES; probe++) {
+            double at = span * probe / LEAD_PROBES;
+            if (pointAt(lead, at).distanceTo(pointAt(whole, at)) > tolerance) return false;
+        }
+        return true;
     }
 
     public static List<PathPoint> truncate(List<PathPoint> polyline, double maxLength) {

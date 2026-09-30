@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "alchemia:frost_sapphire_geode"
+    }
+  ],
+  "result": {
+    "count": 4,
+    "item": "alchemia:mineral_frost_sapphire"
+  }
+}

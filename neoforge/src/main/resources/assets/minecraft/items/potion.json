@@ -1,0 +1,45 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:component",
+    "component": "alchemia:potion_glass",
+    "cases": [
+      {
+        "when": "potion_phial",
+        "model": {
+          "type": "minecraft:model",
+          "model": "alchemia:item/potion_phial_potion",
+          "tints": [
+            {
+              "type": "minecraft:potion",
+              "default": -13083194
+            }
+          ]
+        }
+      },
+      {
+        "when": "square_phial",
+        "model": {
+          "type": "minecraft:model",
+          "model": "alchemia:item/square_phial_potion",
+          "tints": [
+            {
+              "type": "minecraft:potion",
+              "default": -13083194
+            }
+          ]
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:item/potion",
+      "tints": [
+        {
+          "type": "minecraft:potion",
+          "default": -13083194
+        }
+      ]
+    }
+  }
+}

@@ -9,6 +9,8 @@ import muddykat.alchemia.common.items.ItemCitrinitas;
 import muddykat.alchemia.common.items.ItemNigredo;
 import muddykat.alchemia.common.items.ItemRubedo;
 import muddykat.alchemia.common.items.ItemPhilosopherStone;
+import muddykat.alchemia.common.items.ItemPotionGlass;
+import muddykat.alchemia.common.potion.PotionGlass;
 import muddykat.alchemia.common.items.helper.Ingredients;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.ItemLike;
@@ -56,5 +58,9 @@ public class ItemRegistry {
         registerItem("citrinitas", ItemCitrinitas::new);
         registerItem("rubedo", ItemRubedo::new);
         registerItem("philosopher_stone", ItemPhilosopherStone::new);
+
+        for (PotionGlass glass : PotionGlass.values()) {
+            if (glass.hasEmptyItem()) registerItem(glass.getSerializedName(), properties -> new ItemPotionGlass(glass, properties));
+        }
     }
 }

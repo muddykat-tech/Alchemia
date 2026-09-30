@@ -1,0 +1,8 @@
+{
+  "type": "alchemia:shelf_infection",
+  "config": {
+    "attempts": 48,
+    "fungus": "sulphur_shelf",
+    "spread": 6
+  }
+}

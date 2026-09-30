@@ -55,7 +55,8 @@ public class BrewRecipeBook {
         }
     }
 
-    public static int record(Player player, BrewBase base, Collection<MobEffectInstance> effects, List<String> ingredients, String brewName) {
+    public static int record(Player player, BrewBase base, Collection<MobEffectInstance> effects,
+                             List<String> ingredients, List<String> steps, String brewName) {
         if (ingredients.isEmpty()) return 0;
 
         List<BrewRecipe.BrewEffect> produced = new ArrayList<>();
@@ -67,7 +68,8 @@ public class BrewRecipeBook {
 
         produced.sort(java.util.Comparator.comparing(BrewRecipe.BrewEffect::recipe));
 
-        BrewRecipe brew = BrewRecipe.create(brewName, base, List.copyOf(produced), List.copyOf(ingredients));
+        BrewRecipe brew = BrewRecipe.create(brewName, base, List.copyOf(produced),
+                List.copyOf(ingredients), List.copyOf(steps));
 
         int recorded = 0;
         for (ItemStack stack : player.getInventory()) {

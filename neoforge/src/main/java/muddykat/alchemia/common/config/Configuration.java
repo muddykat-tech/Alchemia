@@ -5,6 +5,7 @@ import muddykat.alchemia.common.items.helper.Ingredients;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 import java.util.HashMap;
+import java.util.List;
 
 public class Configuration {
     public static final ModConfigSpec COMMON_CONFIG;
@@ -14,6 +15,17 @@ public class Configuration {
 
     public static final HashMap<Ingredients, ModConfigSpec.IntValue> INGREDIENT_CONFIG = new HashMap<>();
     public static final ModConfigSpec.IntValue MAX_POTENCY;
+    public static final ModConfigSpec.ConfigValue<List<? extends String>> WORLD_EFFECTS;
+    public static final List<String> DEFAULT_WORLD_EFFECTS = List.of(
+            "Dolphins_Grace = rain",
+            "Bad_Omen = new_moon",
+            "Raid_Omen = new_moon",
+            "Trial_Omen = new_moon",
+            "Breath_Of_The_Nautilus = biome:#minecraft:is_beach|#minecraft:is_ocean",
+            "Luck@2 = moonlight:0.5",
+            "Luck@3 = full_moon",
+            "Levitation@2 = above:90",
+            "Levitation@3 = above:90, night");
 
     public static final ModConfigSpec.DoubleValue NOISE_SCALE;
     public static final ModConfigSpec.DoubleValue MIN_THRESHOLD;
@@ -48,6 +60,22 @@ public class Configuration {
                         "Each effect contributes its own potency, The default of 5 allows",
                         "five level 1 effects, or one level 3 alongside one level 2. and so forth.")
                 .defineInRange("max_potency", DEFAULT_MAX_POTENCY, 1, 10);
+        serverBuilder.pop();
+
+        serverBuilder.comment("Effects that only wake under certain conditions in the world around the cauldron.",
+                        "Until then they show on the potion map as a grey, dormant mark and cannot be brewed.",
+                        "Each entry is 'Effect = condition, condition, ...' and every condition must hold.",
+                        "The effect is a name from the potion list (Dolphins_Grace) or an effect id (minecraft:dolphins_grace).",
+                        "Adding '@level' after the effect (Levitation@2) leaves the effect brewable at all times but holds",
+                        "that level and every level above it back until the conditions hold. Levels stack: level 3 also",
+                        "needs whatever level 2 needs.",
+                        "Conditions: rain, thunder, clear, day, night, full_moon, new_moon, moonlight:<0-1> (how full the moon",
+                        "must be, 0.5 is a half moon; all moon conditions also need night), above:<y> and below:<y> (the",
+                        "cauldron's height), and biome:<id or #tag>|<id or #tag>... which holds when the cauldron's biome",
+                        "matches any of them.")
+                .push("world_effects");
+        WORLD_EFFECTS = serverBuilder
+                .defineListAllowEmpty("conditions", DEFAULT_WORLD_EFFECTS, () -> "", value -> value instanceof String);
         serverBuilder.pop();
 
         serverBuilder.comment("Shape of the generated potion map, measured in map pixels.",
@@ -112,6 +140,10 @@ public class Configuration {
         serverBuilder.pop();
 
         SERVER_CONFIG = serverBuilder.build();
+    }
+
+    public static List<? extends String> worldEffects() {
+        return SERVER_CONFIG.isLoaded() ? WORLD_EFFECTS.get() : DEFAULT_WORLD_EFFECTS;
     }
 
     public static int maxPotency() {

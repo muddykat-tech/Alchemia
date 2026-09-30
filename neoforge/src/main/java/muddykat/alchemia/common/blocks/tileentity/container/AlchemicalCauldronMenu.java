@@ -144,12 +144,18 @@ public class AlchemicalCauldronMenu extends AbstractContainerMenu {
     public static final int BUTTON_BREW = 0;
     public static final int BUTTON_ADD = 1;
     public static final int BUTTON_APPLY_TOOL = 2;
-    public static final int BUTTON_UNQUEUE = 3;
+    public static final int BUTTON_STIR = 3;
+    public static final int BUTTON_STIR_FINE = 4;
+    public static final int BUTTON_UNQUEUE = 5;
 
     @Override
     public boolean clickMenuButton(Player player, int buttonId) {
         if (buttonId == BUTTON_BREW) {
-            alchemyCauldron.commitQueue(player);
+            alchemyCauldron.brew(player);
+            return true;
+        }
+        if (buttonId == BUTTON_STIR || buttonId == BUTTON_STIR_FINE) {
+            alchemyCauldron.stir(player, buttonId == BUTTON_STIR_FINE);
             return true;
         }
         if (buttonId == BUTTON_ADD) {

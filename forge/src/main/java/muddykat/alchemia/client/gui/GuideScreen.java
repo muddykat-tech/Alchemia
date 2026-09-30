@@ -604,11 +604,13 @@ public class GuideScreen extends Screen {
 
         if (shape.needsDirection() && dx == 0 && dy == 0) return;
 
+        double ceiling = IngredientPath.teleportCeiling(selectedIngredient);
+
         List<PathPoint> full = shape.teleports()
-                ? shape.teleportPreview(dx, dy, selectedIngredient.getPotency(Ingredients.MAX_CRUSH), 1.0)
+                ? shape.teleportPreview(dx, dy, ceiling, ceiling)
                 : IngredientPath.pathFor(selectedIngredient, dx, dy, selectedIngredient.getPotency(Ingredients.MAX_CRUSH));
         List<PathPoint> base = shape.teleports()
-                ? shape.teleportPreview(dx, dy, selectedIngredient.getPotency(0), 1.0)
+                ? shape.teleportPreview(dx, dy, ceiling, IngredientPath.reachFor(selectedIngredient.getPotency(0), 0))
                 : IngredientPath.pathFor(selectedIngredient, dx, dy, selectedIngredient.getPotency(0));
 
         drawPathPreview(graphics, full, PathGeometry.length(base), x, y + 4, shape.teleports());
@@ -628,8 +630,9 @@ public class GuideScreen extends Screen {
         List<PathPoint> reached = PathGeometry.translate(
                 fit.apply(PathGeometry.truncate(points, taken)), originX, originY);
 
-        PathRenderer.outline(graphics, PathGeometry.tail(potential, PathGeometry.length(reached)),
-                PREVIEW_THICKNESS, PATH_POTENTIAL, teleport);
+        double walked = PathGeometry.length(reached);
+        PathRenderer.outline(graphics, PathGeometry.tail(potential, walked),
+                PREVIEW_THICKNESS, PATH_POTENTIAL, teleport, walked);
         PathRenderer.dashes(graphics, reached, PREVIEW_THICKNESS, PATH_TAKEN, teleport);
 
         PathPoint ending = potential.get(potential.size() - 1);

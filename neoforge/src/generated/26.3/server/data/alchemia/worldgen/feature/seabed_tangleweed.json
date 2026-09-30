@@ -2,22 +2,8 @@
   "type": "alchemia:wild_herb",
   "primary_feature": {
     "feature": {
-      "type": "minecraft:simple_block",
-      "to_place": {
-        "type": "minecraft:randomized_int",
-        "property": "age",
-        "source": {
-          "id": "alchemia:herb_tangleweed_seed",
-          "properties": {
-            "age": "0"
-          }
-        },
-        "values": {
-          "type": "minecraft:uniform",
-          "max_inclusive": 3,
-          "min_inclusive": 0
-        }
-      }
+      "type": "alchemia:wild_plant",
+      "plant": "alchemia:herb_tangleweed_seed"
     },
     "placement": [
       {
@@ -71,13 +57,8 @@
   },
   "secondary_feature": {
     "feature": {
-      "type": "minecraft:simple_block",
-      "to_place": {
-        "id": "alchemia:herb_tangleweed_seed",
-        "properties": {
-          "age": "0"
-        }
-      }
+      "type": "alchemia:wild_plant",
+      "plant": "alchemia:herb_tangleweed_seed"
     },
     "placement": [
       {
@@ -129,7 +110,7 @@
       }
     ]
   },
-  "tries": 48,
+  "tries": 6,
   "xz_spread": 6,
   "y_spread": 1
 }

@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "alchemia:item/potion_glass/square_phial_overlay",
+    "layer1": "alchemia:item/potion_glass/square_phial"
+  }
+}

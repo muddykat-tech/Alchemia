@@ -1,0 +1,274 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "alchemia:block/potion_blocks/normal_potion_1_0"
+      },
+      "when": {
+        "potions": "1",
+        "slot_0": "normal_potion"
+      }
+    },
+    {
+      "apply": {
+        "model": "alchemia:block/potion_blocks/normal_potion_2_0"
+      },
+      "when": {
+        "potions": "2",
+        "slot_0": "normal_potion"
+      }
+    },
+    {
+      "apply": {
+        "model": "alchemia:block/potion_blocks/normal_potion_2_1"
+      },
+      "when": {
+        "potions": "2",
+        "slot_1": "normal_potion"
+      }
+    },
+    {
+      "apply": {
+        "model": "alchemia:block/potion_blocks/normal_potion_3_0"
+      },
+      "when": {
+        "potions": "3",
+        "slot_0": "normal_potion"
+      }
+    },
+    {
+      "apply": {
+        "model": "alchemia:block/potion_blocks/normal_potion_3_1"
+      },
+      "when": {
+        "potions": "3",
+        "slot_1": "normal_potion"
+      }
+    },
+    {
+      "apply": {
+        "model": "alchemia:block/potion_blocks/normal_potion_3_2"
+      },
+      "when": {
+        "potions": "3",
+        "slot_2": "normal_potion"
+      }
+    },
+    {
+      "apply": {
+        "model": "alchemia:block/potion_blocks/normal_potion_4_0"
+      },
+      "when": {
+        "potions": "4",
+        "slot_0": "normal_potion"
+      }
+    },
+    {
+      "apply": {
+        "model": "alchemia:block/potion_blocks/normal_potion_4_1"
+      },
+      "when": {
+        "potions": "4",
+        "slot_1": "normal_potion"
+      }
+    },
+    {
+      "apply": {
+        "model": "alchemia:block/potion_blocks/normal_potion_4_2"
+      },
+      "when": {
+        "potions": "4",
+        "slot_2": "normal_potion"
+      }
+    },
+    {
+      "apply": {
+        "model": "alchemia:block/potion_blocks/normal_potion_4_3"
+      },
+      "when": {
+        "potions": "4",
+        "slot_3": "normal_potion"
+      }
+    },
+    {
+      "apply": {
+        "model": "alchemia:block/potion_blocks/potion_phial_1_0"
+      },
+      "when": {
+        "potions": "1",
+        "slot_0": "potion_phial"
+      }
+    },
+    {
+      "apply": {
+        "model": "alchemia:block/potion_blocks/potion_phial_2_0"
+      },
+      "when": {
+        "potions": "2",
+        "slot_0": "potion_phial"
+      }
+    },
+    {
+      "apply": {
+        "model": "alchemia:block/potion_blocks/potion_phial_2_1"
+      },
+      "when": {
+        "potions": "2",
+        "slot_1": "potion_phial"
+      }
+    },
+    {
+      "apply": {
+        "model": "alchemia:block/potion_blocks/potion_phial_3_0"
+      },
+      "when": {
+        "potions": "3",
+        "slot_0": "potion_phial"
+      }
+    },
+    {
+      "apply": {
+        "model": "alchemia:block/potion_blocks/potion_phial_3_1"
+      },
+      "when": {
+        "potions": "3",
+        "slot_1": "potion_phial"
+      }
+    },
+    {
+      "apply": {
+        "model": "alchemia:block/potion_blocks/potion_phial_3_2"
+      },
+      "when": {
+        "potions": "3",
+        "slot_2": "potion_phial"
+      }
+    },
+    {
+      "apply": {
+        "model": "alchemia:block/potion_blocks/potion_phial_4_0"
+      },
+      "when": {
+        "potions": "4",
+        "slot_0": "potion_phial"
+      }
+    },
+    {
+      "apply": {
+        "model": "alchemia:block/potion_blocks/potion_phial_4_1"
+      },
+      "when": {
+        "potions": "4",
+        "slot_1": "potion_phial"
+      }
+    },
+    {
+      "apply": {
+        "model": "alchemia:block/potion_blocks/potion_phial_4_2"
+      },
+      "when": {
+        "potions": "4",
+        "slot_2": "potion_phial"
+      }
+    },
+    {
+      "apply": {
+        "model": "alchemia:block/potion_blocks/potion_phial_4_3"
+      },
+      "when": {
+        "potions": "4",
+        "slot_3": "potion_phial"
+      }
+    },
+    {
+      "apply": {
+        "model": "alchemia:block/potion_blocks/square_phial_1_0"
+      },
+      "when": {
+        "potions": "1",
+        "slot_0": "square_phial"
+      }
+    },
+    {
+      "apply": {
+        "model": "alchemia:block/potion_blocks/square_phial_2_0"
+      },
+      "when": {
+        "potions": "2",
+        "slot_0": "square_phial"
+      }
+    },
+    {
+      "apply": {
+        "model": "alchemia:block/potion_blocks/square_phial_2_1"
+      },
+      "when": {
+        "potions": "2",
+        "slot_1": "square_phial"
+      }
+    },
+    {
+      "apply": {
+        "model": "alchemia:block/potion_blocks/square_phial_3_0"
+      },
+      "when": {
+        "potions": "3",
+        "slot_0": "square_phial"
+      }
+    },
+    {
+      "apply": {
+        "model": "alchemia:block/potion_blocks/square_phial_3_1"
+      },
+      "when": {
+        "potions": "3",
+        "slot_1": "square_phial"
+      }
+    },
+    {
+      "apply": {
+        "model": "alchemia:block/potion_blocks/square_phial_3_2"
+      },
+      "when": {
+        "potions": "3",
+        "slot_2": "square_phial"
+      }
+    },
+    {
+      "apply": {
+        "model": "alchemia:block/potion_blocks/square_phial_4_0"
+      },
+      "when": {
+        "potions": "4",
+        "slot_0": "square_phial"
+      }
+    },
+    {
+      "apply": {
+        "model": "alchemia:block/potion_blocks/square_phial_4_1"
+      },
+      "when": {
+        "potions": "4",
+        "slot_1": "square_phial"
+      }
+    },
+    {
+      "apply": {
+        "model": "alchemia:block/potion_blocks/square_phial_4_2"
+      },
+      "when": {
+        "potions": "4",
+        "slot_2": "square_phial"
+      }
+    },
+    {
+      "apply": {
+        "model": "alchemia:block/potion_blocks/square_phial_4_3"
+      },
+      "when": {
+        "potions": "4",
+        "slot_3": "square_phial"
+      }
+    }
+  ]
+}

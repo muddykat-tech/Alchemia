@@ -1,6 +1,12 @@
 {
   "type": "neoforge:add_features",
   "biomes": "#c:is_nether",
-  "features": "alchemia:geode_fire_citrine",
+  "features": [
+    "alchemia:geode_fire_citrine",
+    "alchemia:geode_fire_citrine_mini",
+    "alchemia:geode_fire_citrine_giant",
+    "alchemia:geode_fire_citrine_supermassive",
+    "alchemia:geode_fire_citrine_surface"
+  ],
   "step": "underground_decoration"
 }

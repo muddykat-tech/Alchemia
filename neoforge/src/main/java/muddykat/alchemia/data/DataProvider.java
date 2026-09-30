@@ -3,6 +3,7 @@ package muddykat.alchemia.data;
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.world.WildHerbGeneration;
 import muddykat.alchemia.data.generators.AlchemiaModelProvider;
+import muddykat.alchemia.data.generators.PlacedPotionModelProvider;
 import muddykat.alchemia.data.generators.AlchemiaAdvancementProvider;
 import muddykat.alchemia.data.generators.AlchemiaBlockTagsProvider;
 import muddykat.alchemia.data.generators.AlchemiaItemTagsProvider;
@@ -27,6 +28,7 @@ public class DataProvider {
     @SubscribeEvent
     public static void gatherClientData(GatherDataEvent.Client event) {
         event.createProvider(AlchemiaModelProvider::new);
+        event.createProvider((PackOutput output) -> new PlacedPotionModelProvider(output));
     }
 
     @SubscribeEvent

@@ -3,12 +3,14 @@ package muddykat.alchemia.common.items;
 import muddykat.alchemia.common.blocks.tileentity.TileEntityAlchemyCauldron;
 import muddykat.alchemia.common.potion.BrewRecipe;
 import muddykat.alchemia.common.potion.BrewRecipeBook;
+import muddykat.alchemia.common.potion.IngredientDiscovery;
 import muddykat.alchemia.common.potion.PotionEnum;
 import muddykat.alchemia.common.potion.RecipeDiscovery;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -24,6 +26,7 @@ import java.util.function.Consumer;
 public class ItemAlchemiaGuide extends Item {
 
     private static final int TOOLTIP_LIST_LIMIT = 12;
+    private static final int SURVEY_TICKS = 10;
 
     public ItemAlchemiaGuide(Properties properties) {
         super(properties.stacksTo(1));
@@ -78,10 +81,18 @@ public class ItemAlchemiaGuide extends Item {
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
+        IngredientDiscovery.survey(player, stack);
         if (level.isClientSide()) {
             muddykat.alchemia.client.ClientHooks.openGuide(stack, hand);
         }
         return InteractionResultHolder.success(stack);
+    }
+
+    @Override
+    public void inventoryTick(ItemStack stack, Level level, Entity owner, int slot, boolean selected) {
+        if (!level.isClientSide() && owner instanceof Player player && owner.tickCount % SURVEY_TICKS == 0) {
+            IngredientDiscovery.survey(player, stack);
+        }
     }
 
     @Override

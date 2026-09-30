@@ -2,7 +2,13 @@ package muddykat.alchemia.data.generators;
 
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.blocks.BlockGeneric;
+import muddykat.alchemia.common.blocks.BlockInfectedLog;
 import muddykat.alchemia.common.blocks.BlockIngredient;
+import muddykat.alchemia.common.blocks.BlockIngredientBerry;
+import muddykat.alchemia.common.blocks.BlockIngredientShelf;
+import muddykat.alchemia.common.blocks.BlockIngredientWild;
+import muddykat.alchemia.common.blocks.BlockKelpStalk;
+import muddykat.alchemia.common.blocks.BlockTangleBranch;
 import muddykat.alchemia.common.blocks.BlockMineralBuddingGeneric;
 import muddykat.alchemia.common.blocks.BlockMineralClusterGeneric;
 import muddykat.alchemia.common.blocks.BlockMineralGeneric;
@@ -32,8 +38,16 @@ public class AlchemiaBlockStateProvider extends BlockStateProvider {
         for (var holder : BlockRegistry.BLOCK_REGISTRY.values()) {
             Block block = holder.get();
 
-            if (block instanceof BlockIngredient ingredient) {
+            if (block instanceof BlockIngredientShelf shelf) {
+                generateShelf(shelf);
+            } else if (block instanceof BlockIngredient ingredient) {
                 generateIngredientCrop(ingredient);
+            } else if (block instanceof BlockTangleBranch branch) {
+                generatePart(block, branch.getIngredient(), "branch");
+            } else if (block instanceof BlockKelpStalk stalk) {
+                generatePart(block, stalk.getIngredient(), "stalk");
+            } else if (block instanceof BlockInfectedLog log) {
+                generateInfectedLog(log);
             } else if (block instanceof BlockMineralClusterGeneric cluster) {
                 generateCluster(cluster);
             } else if (block instanceof BlockMineralBuddingGeneric budding) {
@@ -44,24 +58,61 @@ public class AlchemiaBlockStateProvider extends BlockStateProvider {
                 generateAlchemyCube(block);
             }
         }
+
+        PlantGrowthTextures.logPlaceholders();
     }
 
     private void generateIngredientCrop(BlockIngredient block) {
-        String type = block.getIngredientType().name().toLowerCase();
-        String name = block.getIngredient().name().toLowerCase();
+        Ingredients ingredient = block.getIngredient();
 
         getVariantBuilder(block).forAllStates(state -> {
             int age = state.getValue(block.getAgeProperty());
-
-            ModelFile model;
-            if (age == block.getMaxAge()) {
-                model = crossModel(blockPath(name), texturePath(type + "s/" + name));
-            } else {
-                String stage = "growth/" + type + "/growth_stage_" + age;
-                model = crossModel(blockPath(stage), texturePath(stage));
+            if (block instanceof BlockIngredientBerry && age == block.getMaxAge() && !state.getValue(BlockIngredientBerry.FRUITING)) {
+                age--;
             }
-            return ConfiguredModel.builder().modelFile(model).build();
+            boolean wild = state.hasProperty(BlockIngredientWild.WILD) && state.getValue(BlockIngredientWild.WILD);
+            PlantGrowthTextures.Sprite sprite = PlantGrowthTextures.sprite(ingredient, age, block.getMaxAge(), wild);
+
+            return ConfiguredModel.builder()
+                    .modelFile(crossModel(blockPath(sprite.model()), texturePath(sprite.texture())))
+                    .build();
         });
+    }
+
+    private void generateShelf(BlockIngredientShelf block) {
+        Ingredients ingredient = block.getIngredient();
+
+        getVariantBuilder(block).forAllStates(state -> {
+            PlantGrowthTextures.Sprite sprite = PlantGrowthTextures.sprite(ingredient, state.getValue(block.getAgeProperty()), block.getMaxAge(), false);
+            ResourceLocation texture = texturePath(sprite.texture());
+            ModelFile model = crossModels.computeIfAbsent(new ResourceLocation(Alchemia.MODID, sprite.model() + "_wall"),
+                    id -> models().getBuilder(id.getPath())
+                            .parent(new ModelFile.UncheckedModelFile(new ResourceLocation(Alchemia.MODID, "block/template_shelf")))
+                            .texture("shelf", texture)
+                            .texture("particle", texture)
+                            .renderType("cutout"));
+
+            return ConfiguredModel.builder()
+                    .modelFile(model)
+                    .rotationY(((int) BlockIngredientShelf.getFacing(state).toYRot() + 180) % 360)
+                    .build();
+        });
+    }
+
+    private void generatePart(Block block, Ingredients ingredient, String part) {
+        PlantGrowthTextures.Sprite sprite = PlantGrowthTextures.part(ingredient, part);
+        simpleBlock(block, crossModel(blockPath(sprite.model()), texturePath(sprite.texture())));
+    }
+
+    private void generateInfectedLog(BlockInfectedLog block) {
+        String wood = block.getWood().name();
+        String own = PlantGrowthTextures.ownTexture(block.getFungus(), "infected_" + wood + "_log");
+        String ownTop = PlantGrowthTextures.ownTexture(block.getFungus(), "infected_" + wood + "_log_top");
+
+        ResourceLocation side = own != null ? texturePath(own) : new ResourceLocation("block/" + wood + "_log");
+        ResourceLocation end = ownTop != null ? texturePath(ownTop) : new ResourceLocation("block/" + wood + "_log_top");
+
+        axisBlock(block, side, end);
     }
 
     private void generateCluster(BlockMineralClusterGeneric cluster) {

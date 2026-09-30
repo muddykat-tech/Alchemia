@@ -1,7 +1,9 @@
 package muddykat.alchemia.client;
 
 import muddykat.alchemia.Alchemia;
+import muddykat.alchemia.client.gui.ClientIngredientPathTooltip;
 import com.mojang.datafixers.util.Either;
+import muddykat.alchemia.common.items.helper.GuideAccess;
 import muddykat.alchemia.common.items.helper.IngredientPathTooltip;
 import muddykat.alchemia.common.items.helper.PathGeometry;
 import muddykat.alchemia.common.items.helper.PathPoint;
@@ -12,6 +14,7 @@ import muddykat.alchemia.common.utility.TextUtils;
 
 import java.util.List;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -24,6 +27,8 @@ public class VanillaIngredientTooltip {
 
     @SubscribeEvent
     public static void onItemTooltip(ItemTooltipEvent event) {
+        if (!GuideAccess.reading()) return;
+
         VanillaIngredients.Drift drift = VanillaIngredients.driftOf(event.getItemStack());
         if (drift == null) return;
 
@@ -42,6 +47,8 @@ public class VanillaIngredientTooltip {
 
     @SubscribeEvent
     public static void onModifierTooltip(ItemTooltipEvent event) {
+        if (!GuideAccess.reading()) return;
+
         var stack = event.getItemStack();
         String key = stack.is(net.minecraft.world.item.Items.REDSTONE) ? "alchemia.tooltip.use.redstone"
                 : stack.is(net.minecraft.world.item.Items.GUNPOWDER) ? "alchemia.tooltip.use.gunpowder"
@@ -55,6 +62,8 @@ public class VanillaIngredientTooltip {
 
     @SubscribeEvent
     public static void onGatherComponents(RenderTooltipEvent.GatherComponents event) {
+        if (!GuideAccess.reading()) return;
+
         VanillaIngredients.Drift drift = VanillaIngredients.driftOf(event.getItemStack());
         if (drift == null || drift.lure() || !PotionMap.isReady()) return;
 
@@ -63,5 +72,17 @@ public class VanillaIngredientTooltip {
 
         event.getTooltipElements().add(Either.right(new IngredientPathTooltip(
                 offsets, PathGeometry.length(offsets), false, Component.translatable("alchemia.tooltip.label.path"))));
+    }
+
+    @SubscribeEvent
+    public static void onTooltipPre(RenderTooltipEvent.Pre event) {
+        int width = 0;
+        for (ClientTooltipComponent line : event.getComponents()) {
+            width = Math.max(width, line.getWidth(event.getFont()));
+        }
+
+        for (ClientTooltipComponent line : event.getComponents()) {
+            if (line instanceof ClientIngredientPathTooltip path) path.frame(width);
+        }
     }
 }

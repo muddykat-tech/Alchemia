@@ -1,6 +1,12 @@
 package muddykat.alchemia.data.generators.loot;
 
+import muddykat.alchemia.common.blocks.BlockInfectedLog;
 import muddykat.alchemia.common.blocks.BlockIngredient;
+import muddykat.alchemia.common.blocks.BlockIngredientBerry;
+import muddykat.alchemia.common.blocks.BlockIngredientTall;
+import muddykat.alchemia.common.blocks.BlockIngredientWild;
+import muddykat.alchemia.common.blocks.BlockKelpStalk;
+import muddykat.alchemia.common.blocks.BlockTangleBranch;
 import muddykat.alchemia.common.blocks.BlockMineralBuddingGeneric;
 import muddykat.alchemia.common.blocks.BlockMineralClusterGeneric;
 import muddykat.alchemia.common.blocks.BlockMineralGeneric;
@@ -14,6 +20,7 @@ import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.advancements.critereon.StatePropertiesPredicate;
@@ -41,6 +48,12 @@ public class BlockLoot extends BlockLootSubProvider {
         for (Block block : getKnownBlocks()) {
             if (block instanceof BlockIngredient ingredient) {
                 add(block, cropTable(block, ingredient));
+            } else if (block instanceof BlockTangleBranch branch) {
+                add(block, LootTable.lootTable().withPool(singleItem(ItemRegistry.getItemFromRegistry(branch.getIngredient().getRegistryName()))));
+            } else if (block instanceof BlockKelpStalk stalk) {
+                add(block, LootTable.lootTable().withPool(singleItem(ItemRegistry.getItemFromRegistry(stalk.getIngredient().getRegistryName()))));
+            } else if (block instanceof BlockInfectedLog log) {
+                dropOther(block, log.getWood().log());
             } else if (block instanceof BlockAlchemyCauldron) {
                 add(block, LootTable.lootTable().withPool(singleItem(Blocks.CAULDRON)).withPool(singleItem(Blocks.CAMPFIRE)));
             } else if (block instanceof BlockAlchemyMachineCore || block instanceof BlockAlchemyMachineUpgrade) {
@@ -58,12 +71,49 @@ public class BlockLoot extends BlockLootSubProvider {
     }
 
     private LootTable.Builder cropTable(Block block, BlockIngredient ingredient) {
-        LootItemCondition.Builder mature = LootItemBlockStatePropertyCondition.hasBlockStateProperties(block)
-                .setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(BlockIngredient.AGE, ingredient.getMaxAge()));
+        ItemLike harvest = ItemRegistry.getItemFromRegistry(ingredient.getIngredient().getRegistryName());
+        ItemLike seed = ItemRegistry.getSeedByIngredient(ingredient.getIngredient());
 
-        return LootTable.lootTable()
-                .withPool(randomAmountItem(ItemRegistry.getItemFromRegistry(ingredient.getIngredient().getRegistryName()), 1, 4).when(mature))
-                .withPool(singleItem(ItemRegistry.getSeedByIngredient(ingredient.getIngredient())).when(mature.invert()));
+        if (ingredient instanceof BlockIngredientBerry) {
+            return LootTable.lootTable()
+                    .withPool(singleItem(seed).when(lowerHalf(block)))
+                    .withPool(randomAmountItem(harvest, BlockIngredientBerry.MIN_PICKED, BlockIngredientBerry.MAX_PICKED)
+                            .when(lowerHalf(block)).when(fruiting(block)));
+        }
+
+        if (ingredient instanceof BlockIngredientTall) {
+            return LootTable.lootTable()
+                    .withPool(singleItem(seed).when(lowerHalf(block)).when(mature(block, ingredient, null).invert()))
+                    .withPool(randomAmountItem(harvest, 2, 4).when(lowerHalf(block)).when(mature(block, ingredient, null)));
+        }
+
+        LootTable.Builder table = LootTable.lootTable()
+                .withPool(singleItem(ItemRegistry.getSeedByIngredient(ingredient.getIngredient())).when(mature(block, ingredient, null).invert()));
+
+        if (ingredient instanceof BlockIngredientWild) {
+            return table
+                    .withPool(randomAmountItem(harvest, 2, 4).when(mature(block, ingredient, false)))
+                    .withPool(randomAmountItem(harvest, 4, 8).when(mature(block, ingredient, true)));
+        }
+
+        return table.withPool(randomAmountItem(harvest, 2, 4).when(mature(block, ingredient, null)));
+    }
+
+    private LootItemCondition.Builder mature(Block block, BlockIngredient ingredient, Boolean wild) {
+        StatePropertiesPredicate.Builder state = StatePropertiesPredicate.Builder.properties()
+                .hasProperty(ingredient.getAgeProperty(), ingredient.getMaxAge());
+        if (wild != null) state.hasProperty(BlockIngredientWild.WILD, wild);
+        return LootItemBlockStatePropertyCondition.hasBlockStateProperties(block).setProperties(state);
+    }
+
+    private LootItemCondition.Builder lowerHalf(Block block) {
+        return LootItemBlockStatePropertyCondition.hasBlockStateProperties(block).setProperties(
+                StatePropertiesPredicate.Builder.properties().hasProperty(BlockIngredientTall.HALF, DoubleBlockHalf.LOWER));
+    }
+
+    private LootItemCondition.Builder fruiting(Block block) {
+        return LootItemBlockStatePropertyCondition.hasBlockStateProperties(block).setProperties(
+                StatePropertiesPredicate.Builder.properties().hasProperty(BlockIngredientBerry.FRUITING, true));
     }
 
     private static NumberProvider mineralYield(BlockRegistry.BudSize size) {
@@ -80,6 +130,7 @@ public class BlockLoot extends BlockLootSubProvider {
         for (var holder : BlockRegistry.BLOCK_REGISTRY.values()) {
             Block block = holder.get();
             if (block instanceof BlockIngredient || block instanceof BlockAlchemyCauldron
+                    || block instanceof BlockTangleBranch || block instanceof BlockKelpStalk || block instanceof BlockInfectedLog
                     || block instanceof BlockAlchemyMachineCore || block instanceof BlockAlchemyMachineUpgrade
                     || block instanceof BlockMineralGeneric || block instanceof BlockMineralBuddingGeneric
                     || block instanceof BlockMineralClusterGeneric) {

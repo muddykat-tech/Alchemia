@@ -2,6 +2,7 @@ package muddykat.alchemia.common.items;
 
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.items.helper.IngredientAlignment;
+import muddykat.alchemia.common.items.helper.GuideAccess;
 import muddykat.alchemia.common.items.helper.IngredientPath;
 import muddykat.alchemia.common.items.helper.IngredientPathTooltip;
 import muddykat.alchemia.common.potion.PotionMap;
@@ -126,6 +127,8 @@ public class ItemIngredient extends Item {
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltips, TooltipFlag flag) {
         super.appendHoverText(stack, level, tooltips, flag);
 
+        if (!GuideAccess.reading()) return;
+
         tooltips.add(TextUtils.brewingSource());
 
         int crush = crushOf(stack);
@@ -191,19 +194,22 @@ public class ItemIngredient extends Item {
 
         if (!shape.teleports()) return pathOffsets(potency, trim, rotation);
 
+        double ceiling = IngredientPath.teleportCeiling(ingredient);
+        double reach = IngredientPath.reachFor(potency, trim);
+
         int[] direction = shape == IngredientPath.SPIRAL_TELEPORT
-                ? IngredientPath.spiralDirection(potency)
+                ? IngredientPath.spiralDirection(ceiling, reach)
                 : new int[]{alignmentX(), alignmentY()};
         if (direction[0] == 0 && direction[1] == 0) return List.of();
 
-        double reach = IngredientPath.teleportRadius(potency);
-        double shrink = Math.max(PathGeometry.CELL, reach - trim * IngredientPath.TRIM_STEP) / reach;
         return IngredientPath.rotated(
-                shape.teleportPreview(direction[0], direction[1], potency, shrink), rotation);
+                shape.teleportPreview(direction[0], direction[1], ceiling, reach), rotation);
     }
 
     @Override
     public Optional<TooltipComponent> getTooltipImage(ItemStack stack) {
+        if (!GuideAccess.reading()) return Optional.empty();
+
         IngredientPath shape = IngredientPath.of(ingredient);
         double maxPotency = ingredient.getPotency(Ingredients.MAX_CRUSH);
 

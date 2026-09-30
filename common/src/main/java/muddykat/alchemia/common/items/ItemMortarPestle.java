@@ -24,7 +24,7 @@ import java.util.function.Consumer;
 
 public class ItemMortarPestle extends Item implements IngredientTool {
 
-    public static final int TICKS_PER_STEP = 8;
+    public static final int TICKS_PER_STEP = 4;
     private static final int USE_DURATION = TICKS_PER_STEP * Ingredients.MAX_CRUSH_UNITS;
 
     public ItemMortarPestle(Properties properties) {

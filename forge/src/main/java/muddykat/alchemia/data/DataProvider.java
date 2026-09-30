@@ -1,5 +1,6 @@
 package muddykat.alchemia.data;
 
+import muddykat.alchemia.data.generators.PlacedPotionModelProvider;
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.world.WildHerbGeneration;
 import muddykat.alchemia.data.generators.AlchemiaAdvancementProvider;
@@ -43,6 +44,7 @@ public class DataProvider {
 
         generator.addProvider(client, new AlchemiaBlockStateProvider(output, helper));
         generator.addProvider(client, new AlchemiaItemModelProvider(output, helper));
+        generator.addProvider(client, new PlacedPotionModelProvider(output, "minecraft:translucent"));
 
         AlchemiaBlockTagsProvider blockTags = new AlchemiaBlockTagsProvider(output, lookup, helper);
         generator.addProvider(server, blockTags);

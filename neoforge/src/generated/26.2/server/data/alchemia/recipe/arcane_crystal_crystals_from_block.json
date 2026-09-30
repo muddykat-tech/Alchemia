@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "alchemia:arcane_crystal_geode"
+  ],
+  "result": {
+    "count": 4,
+    "id": "alchemia:mineral_arcane_crystal"
+  }
+}

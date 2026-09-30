@@ -1,4 +1,4 @@
-// 1.20.1	2026-09-15T01:46:13.342098031	Item Models: alchemia
+// 1.20.1	2026-09-29T02:56:47.387766105	Item Models: alchemia
 28b9b4e2f92789a9f60e6521ec2f8f9757076f3f assets/alchemia/models/item/albedo.json
 7b518fef33f758f8eeac1489e030a0702de496eb assets/alchemia/models/item/albedo_worn_1.json
 8583ae84ba0c1eff5a288b4b8a684817609492cb assets/alchemia/models/item/albedo_worn_2.json
@@ -149,7 +149,9 @@ daf6b4a10aebe9658985fca6329b6a75a301491c assets/alchemia/models/item/nigredo.jso
 de3b828fade7a5d4e151208e027e08bac0603e49 assets/alchemia/models/item/nigredo_worn_1.json
 1715ad31936e45360d86ea79d00a45133e4978bc assets/alchemia/models/item/nigredo_worn_2.json
 9d4420215adf51832cc710cd2c3a020922016615 assets/alchemia/models/item/nigredo_worn_3.json
-55004be76b65adb7bc19b4902f5cc1d8e1702db1 assets/alchemia/models/item/philosopher_stone.json
+30d459edaa2896b5b4ab51c0d61c7f8fea7d6b9e assets/alchemia/models/item/philosopher_stone.json
+f57755115e30b97fcd8bd40a6d1aac48b1068f34 assets/alchemia/models/item/potion_phial.json
+413a66a1f46bd07ea0af10e6dd0577ccff951825 assets/alchemia/models/item/potion_phial_potion.json
 9dcfd000764ffef33a08f0efc5c4d9f96b35f27d assets/alchemia/models/item/root_dreambeet.json
 3dbbaff6f15732862eafbac7a6311ad728fff102 assets/alchemia/models/item/root_dreambeet_crushed.json
 5d189e18c12dfaee68c1843767cadda8b8bf6a41 assets/alchemia/models/item/root_dreambeet_seed.json
@@ -160,3 +162,5 @@ e87760c3139b4f9f9f31fe4810c6512c362c353a assets/alchemia/models/item/root_lava_r
 5596b880cf14c3d30e93ec80ed8d0703957f36f5 assets/alchemia/models/item/root_terraria_crushed.json
 1f67c55010c4d7d6bb7dcc81d6cafb5a524890ec assets/alchemia/models/item/root_terraria_seed.json
 3ba7d2f22f7688ae2625c981a62f4b9bbe9034e6 assets/alchemia/models/item/rubedo.json
+7b7077d978fa11a3c8bdd04022df097d6481e3a0 assets/alchemia/models/item/square_phial.json
+b9cb28d683c34a4850c5a131073432a7e2d7693d assets/alchemia/models/item/square_phial_potion.json

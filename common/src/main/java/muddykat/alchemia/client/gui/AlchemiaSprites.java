@@ -27,6 +27,12 @@ public final class AlchemiaSprites {
     public static final Identifier GRIND_PROGRESS = sprite("container/grind_progress");
     public static final Identifier GRIND_PANEL = sprite("hud/grind_panel");
     public static final Identifier PATH_TOOLTIP_PANEL = sprite("tooltip/path_panel");
+    public static final Identifier PATH_ORIGIN = sprite("tooltip/path_origin");
+    public static final Identifier PATH_ENDING = sprite("tooltip/path_ending");
+    public static final Identifier PATH_DASH = sprite("path/dash");
+    public static final Identifier PATH_DASH_HOLLOW = sprite("path/dash_hollow");
+    public static final Identifier PATH_DOT = sprite("path/dot");
+    public static final Identifier PATH_DOT_HOLLOW = sprite("path/dot_hollow");
     public static final Identifier DELETE_BUTTON = sprite("guide/delete_button");
     public static final Identifier DELETE_BUTTON_HIGHLIGHTED = sprite("guide/delete_button_highlighted");
     public static final Identifier ROW_HIGHLIGHT = sprite("guide/row_highlight");

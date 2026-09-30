@@ -1,0 +1,35 @@
+{
+  "feature": "alchemia:geode_earth_pyrite_supermassive",
+  "placement": [
+    {
+      "type": "minecraft:rarity_filter",
+      "chance": 3360
+    },
+    {
+      "type": "minecraft:offset",
+      "x": 8,
+      "y": 0,
+      "z": 8
+    },
+    {
+      "type": "minecraft:height_range",
+      "height": {
+        "type": "minecraft:uniform",
+        "max_inclusive": {
+          "absolute": -26
+        },
+        "min_inclusive": {
+          "above_bottom": 26
+        }
+      }
+    },
+    {
+      "type": "minecraft:surface_relative_threshold_filter",
+      "heightmap": "OCEAN_FLOOR_WG",
+      "max_inclusive": -16
+    },
+    {
+      "type": "minecraft:biome"
+    }
+  ]
+}

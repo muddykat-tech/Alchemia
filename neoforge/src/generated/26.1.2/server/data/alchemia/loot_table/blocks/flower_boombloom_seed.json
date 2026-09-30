@@ -8,10 +8,36 @@
           "condition": "minecraft:survives_explosion"
         },
         {
+          "condition": "minecraft:inverted",
+          "term": {
+            "block": "alchemia:flower_boombloom_seed",
+            "condition": "minecraft:block_state_property",
+            "properties": {
+              "age": "5"
+            }
+          }
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "alchemia:flower_boombloom_seed"
+        }
+      ],
+      "rolls": 1.0
+    },
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        },
+        {
           "block": "alchemia:flower_boombloom_seed",
           "condition": "minecraft:block_state_property",
           "properties": {
-            "age": "3"
+            "age": "5",
+            "wild": "false"
           }
         }
       ],
@@ -23,8 +49,42 @@
               "add": false,
               "count": {
                 "type": "minecraft:uniform",
-                "max": 2.0,
-                "min": 1.0
+                "max": 4.0,
+                "min": 2.0
+              },
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "alchemia:flower_boombloom"
+        }
+      ],
+      "rolls": 1.0
+    },
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        },
+        {
+          "block": "alchemia:flower_boombloom_seed",
+          "condition": "minecraft:block_state_property",
+          "properties": {
+            "age": "5",
+            "wild": "true"
+          }
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "add": false,
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 8.0,
+                "min": 4.0
               },
               "function": "minecraft:set_count"
             }

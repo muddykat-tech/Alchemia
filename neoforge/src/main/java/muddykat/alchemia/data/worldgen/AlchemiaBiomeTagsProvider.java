@@ -52,13 +52,10 @@ public class AlchemiaBiomeTagsProvider extends BiomeTagsProvider {
         rootTag(AlchemiaBiomeTags.HAS_DREAMBEET, AlchemiaBiomeTags.HAS_AIR_PLANTS);
 
         tag(AlchemiaBiomeTags.HAS_SULPHUR_SHELF)
-                .add(biome("nether_wastes"))
-#if MC_VER >= 26200
-                .add(biome("crimson_forest"))
-                .add(biome("sulfur_caves"));
-#else
-                .add(biome("crimson_forest"));
-#endif
+                .addTag(Tags.Biomes.IS_FOREST)
+                .addTag(Tags.Biomes.IS_TAIGA)
+                .addTag(Tags.Biomes.IS_JUNGLE)
+                .addTag(Tags.Biomes.IS_SWAMP);
 
         tag(AlchemiaBiomeTags.HAS_TERRORBUD)
                 .addTag(AlchemiaBiomeTags.HAS_EARTH_PLANTS)

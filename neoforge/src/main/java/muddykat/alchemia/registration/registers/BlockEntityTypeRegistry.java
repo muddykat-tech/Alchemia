@@ -5,6 +5,8 @@ import muddykat.alchemia.common.blocks.helper.UpgradeSide;
 import muddykat.alchemia.common.blocks.tileentity.TileEntityAlchemyCauldron;
 import muddykat.alchemia.common.blocks.tileentity.TileEntityAlchemyMachineCore;
 import muddykat.alchemia.common.blocks.tileentity.TileEntityAlchemyMachineUpgrade;
+import muddykat.alchemia.common.blocks.tileentity.TileEntityPlacedPotions;
+import muddykat.alchemia.common.blocks.blockentity.BlockPlacedPotions;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -24,6 +26,9 @@ public class BlockEntityTypeRegistry {
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<TileEntityAlchemyMachineUpgrade>> ALCHEMY_MACHINE_UPGRADE = TILES.register("alchemy_machine_upgrade",
             () -> new BlockEntityType<>(TileEntityAlchemyMachineUpgrade::new, upgradeBlocks()));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<TileEntityPlacedPotions>> PLACED_POTIONS = TILES.register(BlockPlacedPotions.ID,
+            () -> new BlockEntityType<>(TileEntityPlacedPotions::new, BlockRegistry.BLOCK_REGISTRY.get(BlockPlacedPotions.ID).get()));
 
     private static Block[] upgradeBlocks() {
         return Arrays.stream(UpgradeSide.values())

@@ -55,8 +55,10 @@ public class AlchemiaBiomeTagsProvider extends BiomeTagsProvider {
         rootTag(AlchemiaBiomeTags.HAS_DREAMBEET, AlchemiaBiomeTags.HAS_AIR_PLANTS);
 
         tag(AlchemiaBiomeTags.HAS_SULPHUR_SHELF)
-                .add(Biomes.NETHER_WASTES)
-                .add(Biomes.CRIMSON_FOREST);
+                .addTag(BiomeTags.IS_FOREST)
+                .addTag(BiomeTags.IS_TAIGA)
+                .addTag(BiomeTags.IS_JUNGLE)
+                .addTag(Tags.Biomes.IS_SWAMP);
 
         tag(AlchemiaBiomeTags.HAS_TERRORBUD)
                 .addTag(AlchemiaBiomeTags.HAS_EARTH_PLANTS)

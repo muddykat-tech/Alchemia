@@ -77,6 +77,34 @@ public class AlchemiaRecipeProvider extends RecipeProvider {
                     .save(this.output, recipeKey(side.registryName()));
         }
 
+        shaped(RecipeCategory.BREWING, ItemRegistry.getItemFromRegistry("potion_phial"), 3)
+                .pattern(" G ")
+                .pattern("G G")
+                .pattern(" G ")
+                .define('G', Items.GLASS)
+                .unlockedBy("has_glass", has(Items.GLASS))
+                .save(this.output, recipeKey("potion_phial"));
+
+        shaped(RecipeCategory.BREWING, ItemRegistry.getItemFromRegistry("square_phial"), 3)
+                .pattern("GG")
+                .pattern("GG")
+                .define('G', Items.GLASS)
+                .unlockedBy("has_glass", has(Items.GLASS))
+                .save(this.output, recipeKey("square_phial"));
+
+        for (Ingredients ingredient : Ingredients.values()) {
+            if (!ingredient.getType().equals(IngredientType.Mineral)) continue;
+
+            String name = ingredient.name().toLowerCase();
+            ItemLike crystalBlock = ItemRegistry.getItemFromRegistry(name + "_geode");
+            ItemLike crystal = ItemRegistry.getItemFromRegistry(ingredient.getRegistryName());
+
+            shapeless(RecipeCategory.MISC, crystal, CRYSTALS_PER_BLOCK)
+                    .requires(crystalBlock)
+                    .unlockedBy("has_" + name + "_geode", has(crystalBlock))
+                    .save(this.output, recipeKey(name + "_crystals_from_block"));
+        }
+
         for (Ingredients ingredient : Ingredients.values()) {
             if (ingredient.getType().equals(IngredientType.Mineral)) continue;
 
@@ -87,6 +115,8 @@ public class AlchemiaRecipeProvider extends RecipeProvider {
                     .save(this.output, recipeKey(ingredient.name().toLowerCase() + "_seeds_from_ingredient"));
         }
     }
+
+    public static final int CRYSTALS_PER_BLOCK = 4;
 
     private static final Map<UpgradeSide, Ingredients> UPGRADE_MINERALS = Map.of(
             UpgradeSide.TOP, Ingredients.Cloud_Crystal,

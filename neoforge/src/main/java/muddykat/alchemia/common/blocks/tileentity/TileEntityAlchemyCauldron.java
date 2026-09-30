@@ -1,5 +1,7 @@
 package muddykat.alchemia.common.blocks.tileentity;
 
+import muddykat.alchemia.common.items.ItemPotionGlass;
+import muddykat.alchemia.common.potion.PotionGlasses;
 import muddykat.alchemia.common.blocks.tileentity.container.AlchemicalCauldronMenu;
 import muddykat.alchemia.common.items.ItemIngredient;
 import muddykat.alchemia.common.items.ItemRubedo;
@@ -8,6 +10,9 @@ import muddykat.alchemia.common.items.helper.IngredientTool;
 import muddykat.alchemia.common.items.helper.Ingredients;
 import muddykat.alchemia.common.potion.BrewBase;
 import muddykat.alchemia.common.potion.BrewBases;
+import muddykat.alchemia.common.potion.BrewCourse;
+import muddykat.alchemia.common.potion.PotionEnum;
+import muddykat.alchemia.common.potion.WorldEffects;
 import muddykat.alchemia.common.items.helper.PathPoint;
 import muddykat.alchemia.common.potion.PotionMap;
 import muddykat.alchemia.common.utility.ParticleUtils;
@@ -80,13 +85,13 @@ import net.minecraft.resources.Identifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
+import java.util.UUID;
 
 import static net.minecraft.world.InteractionResult.FAIL;
 import static net.minecraft.world.InteractionResult.SUCCESS;
@@ -99,6 +104,12 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
     public static final int TOOL_SLOT = 3;
     private static final int INVENTORY_SLOT_COUNT = 4;
     public static final int MAX_QUEUE = 12;
+
+    public static final double STIR_STEP = 2.0;
+    public static final double STIR_FINE_STEP = 0.5;
+    private static final int STIR_BUDGET = 10;
+    private static final int STIR_SOUND_INTERVAL = 12;
+    private static final int FINISH_LIMIT = 4096;
 
     private static final int ALIGNMENT_SPACE = 1;
 
@@ -121,11 +132,13 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
     private final Random random = new Random();
     private int cooldown = 0;
 
-    private final List<ItemStack> contents = new ArrayList<>();
-    private int additionTimer = 20;
     private boolean needsUpdate = false;
     private final List<String> addedIngredients = new ArrayList<>();
-    private final List<ItemStack> queue = new ArrayList<>();
+    private final List<String> script = new ArrayList<>();
+    private final BrewCourse course = new BrewCourse(0.0, 0.0);
+    private int stirCount = 0;
+    private int stirBudget = STIR_BUDGET;
+    private UUID lastStirrer;
     private long lastApply = Long.MIN_VALUE;
     private String brewName = "";
     private boolean spoiled = false;
@@ -153,20 +166,18 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         this.balanceAlignment = map().getMiddlePosition();
         this.xAlignment = map().getMiddlePosition();
         this.yAlignment = map().getMiddlePosition();
+        this.course.reset(xAlignment, yAlignment);
     }
 
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
 
-        queue.clear();
-        for (ItemStack stack : input.read("queue", ItemStack.CODEC.listOf()).orElse(List.of())) {
-            if (!stack.isEmpty() && queue.size() < MAX_QUEUE) queue.add(stack);
-        }
+        List<ItemStack> legacyQueue = new ArrayList<>(input.read("queue", ItemStack.CODEC.listOf()).orElse(List.of()));
 
         input.child("Inventory").ifPresent(saved -> {
             inventory.deserialize(saved);
-            inventory = resizeInventory(inventory);
+            inventory = resizeInventory(inventory, legacyQueue);
         });
         waterLevel = input.getIntOr("waterLevel", 0);
         xAlignment = input.getIntOr("xAlignment", balanceAlignment);
@@ -190,6 +201,29 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         instability = input.getIntOr("instability", 0);
         bonusInstability = input.getIntOr("bonusInstability", 0);
         durationBonus = input.getIntOr("durationBonus", 0);
+        stirCount = input.getIntOr("stirCount", 0);
+
+        script.clear();
+        Optional<Double> courseX = input.read("courseX", Codec.DOUBLE);
+
+        if (courseX.isPresent()) {
+            script.addAll(input.read("script", Codec.STRING.listOf()).orElse(List.of()));
+            course.restore(courseX.get(), input.read("courseY", Codec.DOUBLE).orElse((double) yAlignment),
+                    input.read("course", ItemStack.CODEC.listOf()).orElse(List.of()),
+                    input.read("courseAnchors", Codec.INT.listOf()).orElse(List.of()),
+                    input.getIntOr("courseSpent", 0),
+                    input.read("courseProgress", Codec.DOUBLE).orElse(0.0));
+        } else {
+            List<String> upgraded = BrewRecipe.upgradeEntries(addedIngredients);
+            addedIngredients.clear();
+            addedIngredients.addAll(upgraded);
+            script.addAll(BrewRecipe.legacySteps(upgraded));
+
+            course.reset(xAlignment, yAlignment);
+            for (ItemStack stack : legacyQueue) plan(stack);
+        }
+
+        refreshAlignment();
         updateWaterColor();
     }
 
@@ -204,7 +238,14 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         output.putBoolean("needsUpdate", needsUpdate);
         output.putInt("cooldown", cooldown);
         output.store("addedIngredients", Codec.STRING.listOf(), List.copyOf(addedIngredients));
-        output.store("queue", ItemStack.CODEC.listOf(), List.copyOf(queue));
+        output.store("script", Codec.STRING.listOf(), List.copyOf(script));
+        output.store("course", ItemStack.CODEC.listOf(), course.entries());
+        output.store("courseAnchors", Codec.INT.listOf(), course.anchors());
+        output.store("courseX", Codec.DOUBLE, course.originX());
+        output.store("courseY", Codec.DOUBLE, course.originY());
+        output.putInt("courseSpent", course.spent());
+        output.store("courseProgress", Codec.DOUBLE, course.progress());
+        output.putInt("stirCount", stirCount);
         output.store("effects", MobEffectInstance.CODEC.listOf(), List.copyOf(effectList));
         output.putString("brewName", brewName);
         output.putBoolean("spoiled", spoiled);
@@ -242,15 +283,22 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         }
 
         if (heldItem instanceof ItemIngredient) {
-            if (getWaterLevel() > 0) {
-                if (!level.isClientSide()) IngredientDiscovery.record(player, heldStack);
-                addIngredient(heldStack.copyWithCount(1));
-                heldStack.shrink(1);
-                player.setItemInHand(hand, heldStack);
+            if (getWaterLevel() <= 0) return InteractionResult.FAIL;
+            if (level.isClientSide()) return InteractionResult.CONSUME;
 
-                return InteractionResult.CONSUME;
+            if (!plan(heldStack)) {
+                message(player, spoiled ? "alchemia.brew.ruined" : "alchemia.brew.queue_full");
+                return InteractionResult.FAIL;
             }
-            return InteractionResult.FAIL;
+
+            IngredientDiscovery.record(player, heldStack);
+            heldStack.shrink(1);
+            player.setItemInHand(hand, heldStack);
+
+            level.playSound(null, pos, SoundEvents.POINTED_DRIPSTONE_DRIP_WATER_INTO_CAULDRON, SoundSource.BLOCKS, 1.0F, 1.0F);
+            level.gameEvent(null, GameEvent.SPLASH, pos);
+            sync();
+            return InteractionResult.CONSUME;
         }
 
         if (heldItem.equals(Items.DRAGON_BREATH)) {
@@ -263,12 +311,14 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
             lingeringRequested = true;
         }
 
-        if (heldItem.equals(Items.GLASS_BOTTLE) || heldItem.equals(Items.DRAGON_BREATH)) {
+        if (heldItem.equals(Items.GLASS_BOTTLE) || heldItem.equals(Items.DRAGON_BREATH) || heldItem instanceof ItemPotionGlass) {
             if (getWaterLevel() > 0) {
                 takeWaterPortion();
                 ItemStack potion = getPotion();
+                if (heldItem instanceof ItemPotionGlass glass) PotionGlasses.apply(potion, glass.glass());
                 Collection<MobEffectInstance> brewed = List.copyOf(getEffectList());
-                List<String> used = getAddedIngredients();
+                List<String> used = recipeEntries(addedIngredients, "");
+                List<String> steps = recipeEntries(script, String.valueOf(BrewRecipe.STEP_ADD));
                 heldStack.shrink(1);
                 player.getInventory().add(potion);
 
@@ -277,7 +327,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
                 }
                 lingeringRequested = false;
 
-                if (!level.isClientSide() && !spoiled) BrewRecipeBook.record(player, base, brewed, used, getBrewName());
+                if (!level.isClientSide() && !spoiled) BrewRecipeBook.record(player, base, brewed, used, steps, getBrewName());
 
                 if (!level.isClientSide() && !spoiled && RecipeDiscovery.record(player, brewed) > 0) {
                     level.playSound(null, pos, SoundEvents.PLAYER_LEVELUP, SoundSource.BLOCKS, 0.4F, 1.6F);
@@ -336,7 +386,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
             return InteractionResult.FAIL;
         }
 
-        if (!isUntouched()) {
+        if (!isUntouched() || course.planned() > 0) {
             serverPlayer.sendOverlayMessage(Component.translatable("alchemia.brew.not_clean"));
             return InteractionResult.FAIL;
         }
@@ -361,10 +411,11 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
 
         setBrewName(recipe.name());
 
-        for (ItemStack recipeStack : recipe.resolve()) {
-            if (!level.isClientSide()) IngredientDiscovery.record(player, recipeStack);
-            addIngredient(recipeStack);
+        for (String step : recipe.steps()) {
+            perform(step);
+            if (spoiled) break;
         }
+        refreshAlignment();
 
         level.playSound(null, pos, SoundEvents.BREWING_STAND_BREW, SoundSource.BLOCKS, 1.0F, 1.2F);
         level.gameEvent(null, GameEvent.SPLASH, pos);
@@ -442,7 +493,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         potion_type = Items.POTION;
     }
 
-    private ItemStacksResourceHandler resizeInventory(ItemStacksResourceHandler saved) {
+    private ItemStacksResourceHandler resizeInventory(ItemStacksResourceHandler saved, List<ItemStack> queue) {
         if (saved.size() == INVENTORY_SLOT_COUNT) return saved;
 
         ItemStacksResourceHandler resized = createHandler();
@@ -546,8 +597,6 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         if (waterLevel == 0) {
             resetEffectList();
             this.base = filled;
-            alchemicalCauldronData.set(1, xAlignment);
-            alchemicalCauldronData.set(2, yAlignment);
         }
 
         this.waterLevel = Math.min(this.maxWaterLevel, this.waterLevel + levels);
@@ -590,17 +639,73 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
     }
 
     public List<ItemStack> getQueuedIngredients() {
-        List<ItemStack> queued = new ArrayList<>(queue.size());
-        for (ItemStack stack : queue) queued.add(stack.copy());
-        return queued;
+        return course.plannedStacks();
     }
 
     public int queueSize() {
-        return queue.size();
+        return course.planned();
     }
 
     public boolean queueFull() {
-        return queue.size() >= MAX_QUEUE;
+        return course.planned() >= MAX_QUEUE;
+    }
+
+    public BrewCourse getCourse() {
+        return course;
+    }
+
+    public int getStirCount() {
+        return stirCount;
+    }
+
+    public PathPoint getBrewPosition() {
+        return PotionMap.isReady() ? course.position(map()) : new PathPoint(xAlignment, yAlignment);
+    }
+
+    private void refreshAlignment() {
+        if (!PotionMap.isReady()) return;
+
+        PathPoint at = course.position(map());
+        xAlignment = at.roundedX();
+        yAlignment = at.roundedY();
+    }
+
+    private boolean plan(ItemStack stack) {
+        if (spoiled || queueFull() || !isBrewingInput(stack)) return false;
+
+        String entry = encodeOf(stack);
+        if (entry == null) return false;
+
+        course.add(stack);
+        script.add(BrewRecipe.STEP_ADD + entry);
+        addedIngredients.add(entry);
+        setChanged();
+        return true;
+    }
+
+    private static void dropFromEnd(List<String> list, String value, int occurrence) {
+        int seen = 0;
+        for (int index = list.size() - 1; index >= 0; index--) {
+            if (!list.get(index).equals(value)) continue;
+            if (++seen < occurrence) continue;
+
+            list.remove(index);
+            return;
+        }
+    }
+
+    private List<String> recipeEntries(List<String> recorded, String prefix) {
+        List<ItemStack> idle = course.unstarted();
+        for (ItemStack stack : idle) {
+            if (VanillaIngredients.isLure(stack)) return List.copyOf(recorded);
+        }
+
+        List<String> trimmed = new ArrayList<>(recorded);
+        for (int index = idle.size() - 1; index >= 0; index--) {
+            String entry = encodeOf(idle.get(index));
+            if (entry != null) dropFromEnd(trimmed, prefix + entry, 1);
+        }
+        return List.copyOf(trimmed);
     }
 
     public ItemStack getActiveIngredient() {
@@ -626,6 +731,10 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         return !spoiled && !queueFull() && isBrewingInput(getActiveIngredient());
     }
 
+    public boolean canStir() {
+        return !spoiled && waterLevel > 0 && course.canStir();
+    }
+
     private void setActive(ItemStack stack) {
         if (stack.isEmpty()) {
             inventory.set(ACTIVE_SLOT, ItemResource.EMPTY, 0);
@@ -647,7 +756,8 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
             return InteractionResult.FAIL;
         }
 
-        queue.add(active.copyWithCount(1));
+        if (!plan(active)) return InteractionResult.FAIL;
+
         active.shrink(1);
         setActive(active);
 
@@ -660,13 +770,27 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
 
     public InteractionResult unqueue(Player player, int index) {
         if (level == null || level.isClientSide()) return InteractionResult.SUCCESS;
-        if (index < 0 || index >= queue.size()) return InteractionResult.FAIL;
+        if (!course.canRemove(index)) return InteractionResult.FAIL;
 
-        ItemStack removed = queue.remove(index);
+        List<ItemStack> planned = course.plannedStacks();
+        String entry = encodeOf(planned.get(index));
+        int occurrence = 0;
+        for (int later = index; later < planned.size(); later++) {
+            if (entry != null && entry.equals(encodeOf(planned.get(later)))) occurrence++;
+        }
+
+        ItemStack removed = course.remove(index);
+        if (entry != null) {
+            dropFromEnd(script, BrewRecipe.STEP_ADD + entry, occurrence);
+            dropFromEnd(addedIngredients, entry, occurrence);
+        }
+
         if (!player.getInventory().add(removed)) {
             Containers.dropItemStack(level, player.getX(), player.getY(), player.getZ(), removed);
         }
 
+        course.compact(map());
+        refreshAlignment();
         setChanged();
         sync();
         return InteractionResult.SUCCESS;
@@ -701,42 +825,207 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         return true;
     }
 
-    public InteractionResult commitQueue(Player player) {
+    public enum BrewCheck {
+        READY,
+        NOTHING,
+        WEAKER,
+        TOO_POTENT,
+        DORMANT,
+        UNAVAILABLE
+    }
+
+    public boolean isDormant(PotionMap.PotionEffectPosition found) {
+        return found.getRecipe() != null && WorldEffects.dormant(found.getRecipe(), level, getBlockPos());
+    }
+
+    private void noteReached(Player player) {
+        if (player == null || !PotionMap.isReady()) return;
+
+        PathPoint at = getBrewPosition();
+        PotionMap.MapEntry entry = map().nearest(at.x(), at.y(), PotionMap.EFFECT_RADIUS);
+        if (entry == null) return;
+
+        WorldEffects.note(player, entry.effect().getRecipe());
+    }
+
+    private int heldPotency(Holder<MobEffect> effect) {
+        for (MobEffectInstance instance : effectList) {
+            if (instance.getEffect().equals(effect)) return instance.getAmplifier() + 1;
+        }
+        return 0;
+    }
+
+    public PotionMap.PotionEffectPosition rawEffectAt(PathPoint at) {
+        return map().getEffectPotion(at);
+    }
+
+    public int levelCap(PotionEnum recipe) {
+        return WorldEffects.levelCap(recipe, level, getBlockPos());
+    }
+
+    public PotionMap.PotionEffectPosition effectAt(PathPoint at) {
+        PotionMap.PotionEffectPosition found = rawEffectAt(at);
+        if (found.getEffect() == null) return found;
+
+        int cap = levelCap(found.getRecipe());
+        return cap == Integer.MAX_VALUE ? found : found.capped(cap - 1);
+    }
+
+    public int gainAt(PathPoint at) {
+        PotionMap.PotionEffectPosition found = effectAt(at);
+        if (found.getEffect() == null) return 0;
+        return Math.max(0, found.getStrength() + 1 - heldPotency(found.getEffect()));
+    }
+
+    private boolean effectReady(PathPoint at) {
+        PotionMap.PotionEffectPosition found = effectAt(at);
+        int gain = gainAt(at);
+        return found.getEffect() != null && gain > 0 && !isDormant(found) && totalPotency() + gain <= maxPotency();
+    }
+
+    private boolean redstoneReady() {
+        return hasRedstone() && totalPotency() < maxPotency();
+    }
+
+    public BrewCheck checkBrew(PathPoint at) {
+        if (spoiled || waterLevel <= 0 || !PotionMap.isReady()) return BrewCheck.UNAVAILABLE;
+        if (effectReady(at)) return BrewCheck.READY;
+
+        PotionMap.PotionEffectPosition found = effectAt(at);
+        if (found.getEffect() != null && isDormant(found)) return redstoneReady() ? BrewCheck.READY : BrewCheck.DORMANT;
+        if (found.getEffect() != null && gainAt(at) > 0) return BrewCheck.TOO_POTENT;
+        if (redstoneReady()) return BrewCheck.READY;
+        return found.getEffect() != null ? BrewCheck.WEAKER : BrewCheck.NOTHING;
+    }
+
+    private boolean brewEffect() {
+        PathPoint at = getBrewPosition();
+        if (!effectReady(at)) return false;
+
+        applyEffectPosition(effectAt(at));
+        script.add(String.valueOf(BrewRecipe.STEP_BREW));
+        updateWaterColor();
+        return true;
+    }
+
+    public InteractionResult brew(Player player) {
         if (level == null || level.isClientSide()) return InteractionResult.SUCCESS;
 
-        List<ItemStack> queued = getQueuedIngredients();
-        if (queued.isEmpty() && !hasRedstone()) {
-            message(player, "alchemia.brew.empty_queue");
-            return InteractionResult.FAIL;
-        }
-        if (waterLevel <= 0) {
-            message(player, "alchemia.brew.no_water");
-            return InteractionResult.FAIL;
-        }
+        switch (checkBrew(getBrewPosition())) {
+            case NOTHING -> message(player, "alchemia.brew.nothing");
+            case WEAKER -> message(player, "alchemia.brew.weaker");
+            case TOO_POTENT -> message(player, "alchemia.brew.too_potent");
+            case DORMANT -> message(player, "alchemia.brew.dormant");
+            case UNAVAILABLE -> message(player, waterLevel <= 0 ? "alchemia.brew.no_water" : "alchemia.brew.ruined");
+            case READY -> {
+                brewEffect();
+                applyRedstone();
 
-        queue.clear();
-
-        for (PotionMap.RouteLeg leg : map().route(xAlignment, yAlignment, queued)) {
-            IngredientDiscovery.record(player, leg.stack());
-
-            if (leg.stack().is(Items.REDSTONE)) {
-                addRedstoneCharge();
-                continue;
+                BlockPos pos = getBlockPos();
+                level.playSound(null, pos, SoundEvents.BREWING_STAND_BREW, SoundSource.BLOCKS, 1.0F, 1.1F);
+                level.gameEvent(null, GameEvent.SPLASH, pos);
+                setChanged();
+                sync();
+                return InteractionResult.SUCCESS;
             }
+        }
+        return InteractionResult.FAIL;
+    }
 
-            applyLeg(leg.stack(), leg.path());
-            if (spoiled) break;
+    private boolean arrive(BrewCourse.Arrival arrival) {
+        if (level == null) return true;
+        BlockPos pos = getBlockPos();
+
+        if (arrival.path().dead()) return destabilise();
+
+        if (arrival.path().stalled()) {
+            level.playSound(null, pos, SoundEvents.SCULK_CATALYST_BLOOM, SoundSource.BLOCKS, 0.7F, 0.6F);
+            return true;
         }
 
-        applyRedstone();
-
-        BlockPos pos = getBlockPos();
-        level.playSound(null, pos, SoundEvents.BREWING_STAND_BREW, SoundSource.BLOCKS, 1.0F, 1.1F);
+        level.playSound(null, pos, SoundEvents.POINTED_DRIPSTONE_DRIP_WATER_INTO_CAULDRON, SoundSource.BLOCKS, 1.0F, 1.0F);
         level.gameEvent(null, GameEvent.SPLASH, pos);
+        return true;
+    }
+
+    private void recordStir(boolean fine) {
+        char kind = fine ? BrewRecipe.STEP_FINE : BrewRecipe.STEP_STIR;
+
+        if (!script.isEmpty()) {
+            String last = script.get(script.size() - 1);
+            if (!last.isEmpty() && last.charAt(0) == kind) {
+                script.set(script.size() - 1, kind + String.valueOf(countOf(last) + 1));
+                return;
+            }
+        }
+        script.add(kind + "1");
+    }
+
+    private static int countOf(String step) {
+        try {
+            return Math.max(0, Integer.parseInt(step.substring(1)));
+        } catch (NumberFormatException error) {
+            return 0;
+        }
+    }
+
+    private boolean teleporting() {
+        return PotionMap.isReady() && course.teleporting(map());
+    }
+
+    private boolean stirOnce(boolean fine) {
+        if (!canStir() || !PotionMap.isReady()) return false;
+        if (!course.stir(map(), fine ? STIR_FINE_STEP : STIR_STEP, this::arrive)) return false;
+
+        recordStir(fine);
+        return true;
+    }
+
+    private void stirRepeatedly(int limit, boolean fine) {
+        for (int count = 0; count < limit; count++) {
+            if (!stirOnce(fine)) return;
+        }
+    }
+
+    public boolean stir(Player player, boolean fine) {
+        if (level == null || level.isClientSide()) return false;
+
+        stirCount++;
+        boolean stirred = stirBudget > 0 && !teleporting() && stirOnce(fine);
+
+        if (stirred) {
+            stirBudget--;
+            refreshAlignment();
+            if (player != null) lastStirrer = player.getUUID();
+            noteReached(player);
+
+            if (stirCount % STIR_SOUND_INTERVAL == 0) {
+                level.playSound(null, getBlockPos(), SoundEvents.BOAT_PADDLE_WATER, SoundSource.BLOCKS,
+                        0.25F, 0.8F + random.nextFloat() * 0.4F);
+            }
+        }
+
         setChanged();
         sync();
+        return stirred;
+    }
 
-        return InteractionResult.SUCCESS;
+    private void perform(String step) {
+        if (step.isEmpty()) return;
+
+        char kind = step.charAt(0);
+        String value = step.substring(1);
+
+        switch (kind) {
+            case BrewRecipe.STEP_ADD -> plan(BrewRecipe.stackFor(value));
+            case BrewRecipe.STEP_STIR -> stirRepeatedly(countOf(step), false);
+            case BrewRecipe.STEP_FINE -> stirRepeatedly(countOf(step), true);
+            case BrewRecipe.STEP_FINISH -> stirRepeatedly(FINISH_LIMIT, false);
+            case BrewRecipe.STEP_BREW -> brewEffect();
+            case BrewRecipe.STEP_REDSTONE -> addRedstoneCharge();
+            default -> {
+            }
+        }
     }
 
     public void addRedstoneCharge() {
@@ -744,6 +1033,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
 
         durationBonus += REDSTONE_DURATION_BONUS;
         addedIngredients.add(BrewRecipe.encode(BuiltInRegistries.ITEM.getKey(Items.REDSTONE).toString(), 0));
+        script.add(String.valueOf(BrewRecipe.STEP_REDSTONE));
         updateWaterColor();
     }
 
@@ -757,6 +1047,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
 
         for (int charge = 0; charge < taken; charge++) {
             addedIngredients.add(BrewRecipe.encode(BuiltInRegistries.ITEM.getKey(Items.REDSTONE).toString(), 0));
+            script.add(String.valueOf(BrewRecipe.STEP_REDSTONE));
         }
 
         int left = held - taken;
@@ -776,30 +1067,11 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         }
     }
 
-    public int[] previewAlignment(List<ItemStack> queued) {
-        if (!PotionMap.isReady()) return new int[]{xAlignment, yAlignment};
-
-        PathPoint at = new PathPoint(xAlignment, yAlignment);
-        for (PotionMap.RouteLeg leg : map().route(xAlignment, yAlignment, queued)) {
-            at = leg.end(at.x(), at.y());
-        }
-        return new int[]{at.roundedX(), at.roundedY()};
-    }
-
-    public List<String> getAddedIngredients() {
-        return List.copyOf(addedIngredients);
-    }
-
     public boolean isUntouched() {
-        return addedIngredients.isEmpty();
-    }
-
-    public boolean wouldStall(ItemStack stack) {
-        if (!(stack.getItem() instanceof ItemIngredient)) return false;
-        if (!PotionMap.isReady()) return false;
-
-        int[] landing = map().step(xAlignment, yAlignment, stack);
-        return landing[0] == xAlignment && landing[1] == yAlignment;
+        for (String step : script) {
+            if (step.isEmpty() || step.charAt(0) != BrewRecipe.STEP_ADD) return false;
+        }
+        return effectList.isEmpty() && instability == 0;
     }
 
     public static boolean isBrewingInput(ItemStack stack) {
@@ -812,92 +1084,6 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
 
         String name = stack.getItem() instanceof ItemIngredient ? id.getPath() : id.toString();
         return BrewRecipe.encode(name, ItemIngredient.crushOf(stack));
-    }
-
-    public void addIngredient(ItemStack stack) {
-        if (stack.is(Items.REDSTONE)) {
-            addRedstoneCharge();
-            return;
-        }
-
-        if (!isBrewingInput(stack)) return;
-
-        applyLeg(stack, map().walk(this.xAlignment, this.yAlignment, stack));
-    }
-
-    private void applyLeg(ItemStack stack, PotionMap.PotionPath path) {
-        BlockPos here = getBlockPos();
-
-        if (path.dead()) {
-            String deadEntry = encodeOf(stack);
-            if (deadEntry != null) addedIngredients.add(deadEntry);
-
-            if (!destabilise()) return;
-
-            PathPoint stranded = path.end();
-            this.xAlignment = stranded.roundedX();
-            this.yAlignment = stranded.roundedY();
-            alchemicalCauldronData.set(1, xAlignment);
-            alchemicalCauldronData.set(2, yAlignment);
-
-            markUpdated();
-            if (level != null && !level.isClientSide()) sync();
-            return;
-        }
-
-        if (path.stalled()) {
-            if (level != null && !level.isClientSide()) {
-                level.playSound(null, here, SoundEvents.SCULK_CATALYST_BLOOM, SoundSource.BLOCKS, 0.7F, 0.6F);
-                sync();
-            }
-            return;
-        }
-
-        String entry = encodeOf(stack);
-        if (entry != null) addedIngredients.add(entry);
-
-        for (PotionMap.MapEntry passed : map().touched(path.points(), false)) {
-            applyEffectPosition(passed.effect());
-        }
-
-        PathPoint landing = path.end();
-        this.xAlignment = landing.roundedX();
-        this.yAlignment = landing.roundedY();
-
-        updateEffectList();
-        BlockPos pos = getBlockPos();
-
-        if (totalPotency() > maxPotency()) {
-            spoil();
-            return;
-        }
-
-        updateWaterColor();
-        if (level != null && !level.isClientSide()) {
-            level.playSound(null, pos, SoundEvents.POINTED_DRIPSTONE_DRIP_WATER_INTO_CAULDRON, SoundSource.BLOCKS, 1.0F, 1.0F);
-            level.gameEvent(null, GameEvent.SPLASH, pos);
-
-            sync();
-        }
-    }
-
-    private void updateEffectList() {
-        if (level == null) return;
-
-        alchemicalCauldronData.set(1, xAlignment);
-        alchemicalCauldronData.set(2, yAlignment);
-
-        applyEffectPosition(map().getEffectPotion(xAlignment, yAlignment));
-
-        BlockPos pos = getBlockPos();
-        if (level.isClientSide() && additionTimer < 1) {
-            for (int i = 0; i < 10; i++) {
-                Minecraft.getInstance().particleEngine.createParticle(ParticleTypes.SPLASH, pos.getX() + .5d, pos.getY() + 1D, pos.getZ() + .5d, 0, 0.1, 0);
-            }
-            additionTimer = 20;
-        }
-
-        updateWaterColor();
     }
 
     private boolean slotHolds(int slot, Item item) {
@@ -964,58 +1150,6 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         }
         sync();
         return true;
-    }
-
-    public Map<Holder<MobEffect>, Integer> previewPotencies(List<ItemStack> queued) {
-        Map<Holder<MobEffect>, Integer> potencies = new LinkedHashMap<>();
-        for (MobEffectInstance instance : effectList) {
-            potencies.put(instance.getEffect(), instance.getAmplifier() + 1);
-        }
-        if (!PotionMap.isReady()) return potencies;
-
-        int x = xAlignment;
-        int y = yAlignment;
-        int simulated = instability;
-
-        for (PotionMap.RouteLeg leg : map().route(xAlignment, yAlignment, queued)) {
-            if (leg.stack().is(Items.REDSTONE)) continue;
-
-            PotionMap.PotionPath path = leg.path();
-            if (path.dead()) {
-                simulated++;
-                if (simulated >= getInstabilityCap()) return null;
-
-                PathPoint stranded = path.end();
-                x = stranded.roundedX();
-                y = stranded.roundedY();
-                continue;
-            }
-            if (path.stalled()) continue;
-
-            for (PotionMap.MapEntry passed : map().touched(path.points(), false)) {
-                if (passed.effect().getEffect() == null) continue;
-                potencies.put(passed.effect().getEffect(), passed.effect().getStrength() + 1);
-            }
-
-            PathPoint end = path.end(x, y);
-            x = end.roundedX();
-            y = end.roundedY();
-
-            PotionMap.PotionEffectPosition landing = map().getEffectPotion(x, y);
-            if (landing.getEffect() != null) {
-                potencies.put(landing.getEffect(), landing.getStrength() + 1);
-            }
-        }
-        return potencies;
-    }
-
-    public int previewPotency(List<ItemStack> queued) {
-        Map<Holder<MobEffect>, Integer> potencies = previewPotencies(queued);
-        if (potencies == null) return -1;
-
-        int total = redstoneCharges();
-        for (int potency : potencies.values()) total += potency;
-        return total;
     }
 
     private boolean destabilise() {
@@ -1171,7 +1305,10 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
     }
 
     public void resetEffectList() {
+        List<ItemStack> kept = course.unstarted();
+
         addedIngredients.clear();
+        script.clear();
         spoiled = false;
         instability = 0;
         bonusInstability = 0;
@@ -1181,8 +1318,9 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         xAlignment = map().getMiddlePosition();
         yAlignment = map().getMiddlePosition();
 
-        alchemicalCauldronData.set(1, xAlignment);
-        alchemicalCauldronData.set(2, yAlignment);
+        course.reset(xAlignment, yAlignment);
+        for (ItemStack stack : kept) plan(stack);
+
         markUpdated();
         updateWaterColor();
         if (level != null) {
@@ -1277,29 +1415,36 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
             }
         }
 
-        if (additionTimer > 0) additionTimer--;
-        if (waterLevel > 0) {
+        if (stirBudget < STIR_BUDGET) stirBudget++;
+
+        if (!level.isClientSide() && teleporting() && stirOnce(false)) {
+            refreshAlignment();
+            if (!teleporting() && lastStirrer != null) noteReached(level.getPlayerByUUID(lastStirrer));
+            sync();
+        }
+
+        if (waterLevel > 0 && !level.isClientSide()) {
             List<ItemEntity> items = level.getEntitiesOfClass(ItemEntity.class, new AABB(worldPosition).inflate(1.125));
             if (items.isEmpty()) cooldown = 20;
+
             for (ItemEntity entity : items) {
-                ItemStack stack = entity.getItem().copy();
-                int stack_size = stack.getCount();
-                if (stack.getItem() instanceof ItemIngredient && cooldown < 1) {
-                    for (int i = 0; i < stack_size; i++) {
-                        contents.add(stack.copyWithCount(1));
-                    }
+                ItemStack thrown = entity.getItem();
+                if (!(thrown.getItem() instanceof ItemIngredient) || cooldown >= 1) continue;
 
-                    cooldown = 20;
+                int taken = 0;
+                while (taken < thrown.getCount() && plan(thrown)) taken++;
+                if (taken == 0) continue;
+
+                thrown.shrink(taken);
+                if (thrown.isEmpty()) {
                     entity.remove(Entity.RemovalReason.DISCARDED);
-                    needsUpdate = true;
+                } else {
+                    entity.setItem(thrown);
                 }
-            }
 
-            Iterator<ItemStack> iterator = contents.iterator();
-            while (iterator.hasNext()) {
-                addIngredient(iterator.next());
-                iterator.remove();
-                if (!level.isClientSide()) sync();
+                cooldown = 20;
+                needsUpdate = true;
+                level.playSound(null, pos, SoundEvents.POINTED_DRIPSTONE_DRIP_WATER_INTO_CAULDRON, SoundSource.BLOCKS, 1.0F, 1.0F);
             }
         }
 
