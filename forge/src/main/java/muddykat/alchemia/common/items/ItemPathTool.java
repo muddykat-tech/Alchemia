@@ -1,6 +1,9 @@
 package muddykat.alchemia.common.items;
 
+import muddykat.alchemia.common.items.helper.IngredientTool;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -22,7 +25,7 @@ import net.minecraft.world.level.Level;
 
 import java.util.function.Consumer;
 
-public abstract class ItemPathTool extends Item {
+public abstract class ItemPathTool extends Item implements IngredientTool {
 
     public static final int USES = 100;
     public static final int TICKS_PER_STEP = 10;
@@ -37,9 +40,30 @@ public abstract class ItemPathTool extends Item {
         return !stack.isDamaged();
     }
 
-    protected abstract boolean canApply(ItemStack target);
+    @Override
+    public abstract boolean canApply(ItemStack target);
 
     protected abstract void apply(ItemStack target);
+
+    @Override
+    public int ticksPerStep() {
+        return TICKS_PER_STEP;
+    }
+
+    @Override
+    public void applyStep(ItemStack target, ItemStack tool, ServerLevel level, @Nullable LivingEntity user) {
+        apply(target);
+        if (tool.hurt(1, level.getRandom(), user instanceof ServerPlayer player ? player : null)) {
+            tool.shrink(1);
+            tool.setDamageValue(0);
+        }
+    }
+
+    @Override
+    public void playStep(Level level, BlockPos pos) {
+        level.playSound(null, pos, SoundEvents.BREWING_STAND_BREW, SoundSource.BLOCKS,
+                0.6F, 1.2F + level.getRandom().nextFloat() * 0.2F);
+    }
 
     public abstract String tooltipKey();
 

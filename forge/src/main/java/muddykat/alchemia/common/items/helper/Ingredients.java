@@ -48,6 +48,7 @@ public enum Ingredients {
     Lava_Root(Root, IngredientAlignment.Fire, MobEffects.HARM, 1, Rarity.COMMON),
     Terraria(Root, IngredientAlignment.Earth, MobEffects.DIG_SPEED, 1, Rarity.COMMON),
     Dreambeet(Root, IngredientAlignment.Air, IngredientAlignment.Water, MobEffects.LUCK, 1, Rarity.COMMON),
+    Grasping_Root(Root, IngredientAlignment.Earth, IngredientAlignment.Water, MobEffects.DIG_SLOWDOWN, 1, Rarity.COMMON),
     Marshroom(IngredientType.Mushroom, IngredientAlignment.Earth, IngredientAlignment.Fire, MobEffects.HUNGER, 1, Rarity.COMMON),
     Sulphur_Shelf(IngredientType.Mushroom, IngredientAlignment.Fire, MobEffects.POISON, 1, Rarity.COMMON),
     Witch_Mushroom(IngredientType.Mushroom, IngredientAlignment.Earth, IngredientAlignment.Fire, MobEffects.WITHER, 1, Rarity.COMMON),

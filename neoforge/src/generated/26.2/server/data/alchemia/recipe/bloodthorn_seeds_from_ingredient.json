@@ -6,5 +6,6 @@
   ],
   "result": {
     "id": "alchemia:herb_bloodthorn_seed"
-  }
+  },
+  "show_notification": false
 }

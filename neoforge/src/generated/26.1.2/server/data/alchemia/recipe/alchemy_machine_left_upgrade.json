@@ -14,5 +14,6 @@
   ],
   "result": {
     "id": "alchemia:alchemy_machine_left_upgrade"
-  }
+  },
+  "show_notification": false
 }

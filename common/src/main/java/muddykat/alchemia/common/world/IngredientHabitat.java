@@ -28,6 +28,7 @@ public enum IngredientHabitat {
         OVERRIDES.put(Ingredients.Sulphur_Shelf, TREE);
         OVERRIDES.put(Ingredients.Magma_Morel, MAGMA);
         OVERRIDES.put(Ingredients.Terrorbud, NYLIUM);
+        OVERRIDES.put(Ingredients.Dreambeet, SURFACE);
     }
 
     public static IngredientHabitat of(Ingredients ingredient) {

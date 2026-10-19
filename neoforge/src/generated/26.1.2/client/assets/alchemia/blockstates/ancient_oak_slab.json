@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "alchemia:block/ancient_oak_slab"
+    },
+    "type=double": {
+      "model": "alchemia:block/ancient_oak_planks"
+    },
+    "type=top": {
+      "model": "alchemia:block/ancient_oak_slab_top"
+    }
+  }
+}

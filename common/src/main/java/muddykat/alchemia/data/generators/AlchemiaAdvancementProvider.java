@@ -75,8 +75,17 @@ public class AlchemiaAdvancementProvider implements AdvancementSubProvider {
 
         Item[] crystals = crystals();
 
-        AdvancementHolder crystal = child(output, pot, crystals[0], "crystal", AdvancementType.TASK,
-                InventoryChangeTrigger.TriggerInstance.hasItems(crystals));
+        Advancement.Builder anyCrystal = Advancement.Builder.advancement()
+                .parent(pot)
+#if MC_VER >= 26300
+                .display(crystals[0], title("crystal"), description("crystal"), AdvancementType.TASK, true, true, false);
+#else
+                .display(crystals[0], title("crystal"), description("crystal"), null, AdvancementType.TASK, true, true, false);
+#endif
+        for (Item item : crystals) {
+            anyCrystal.addCriterion(key(item), InventoryChangeTrigger.TriggerInstance.hasItems(item));
+        }
+        AdvancementHolder crystal = anyCrystal.requirements(AdvancementRequirements.anyOf(names(crystals))).save(output, id("crystal"));
 
         Advancement.Builder spectrum = Advancement.Builder.advancement()
                 .parent(crystal)
@@ -127,6 +136,32 @@ public class AlchemiaAdvancementProvider implements AdvancementSubProvider {
             herbalist.addCriterion(key(item), InventoryChangeTrigger.TriggerInstance.hasItems(item));
         }
         herbalist.requirements(AdvancementRequirements.allOf(names(everything))).save(output, id("herbalist"));
+
+        Item tablet = ItemRegistry.getItemFromRegistry("alchemy_tablet").asItem();
+        Item notes = ItemRegistry.getItemFromRegistry("alchemist_notes").asItem();
+        Item rosemary = ItemRegistry.getItemFromRegistry(Ingredients.Druids_Rosemary.getRegistryName()).asItem();
+        AdvancementHolder effects = awarded(output, book, net.minecraft.world.item.Items.GLOWSTONE_DUST, "all_effects", AdvancementType.GOAL);
+        AdvancementHolder secrets = awarded(output, book, notes, "all_secrets", AdvancementType.GOAL);
+        AdvancementHolder lore = awarded(output, book, rosemary, "all_ingredients", AdvancementType.GOAL);
+        AdvancementHolder work = awarded(output, book, tablet, "all_stages", AdvancementType.GOAL);
+        awarded(output, work, guide, "complete_guide", AdvancementType.CHALLENGE);
+    }
+
+#if MC_VER >= 26300
+    private AdvancementHolder awarded(net.minecraft.data.worldgen.BootstrapContext<Advancement> output, AdvancementHolder parent,
+                                      ItemLike icon, String name, AdvancementType type) {
+#else
+    private AdvancementHolder awarded(Consumer<AdvancementHolder> output, AdvancementHolder parent,
+                                      ItemLike icon, String name, AdvancementType type) {
+#endif
+#if MC_VER >= 26200
+        var criterion = net.minecraft.advancements.triggers.CriteriaTriggers.IMPOSSIBLE.createCriterion(
+                new net.minecraft.advancements.triggers.ImpossibleTrigger.TriggerInstance());
+#else
+        var criterion = net.minecraft.advancements.CriteriaTriggers.IMPOSSIBLE.createCriterion(
+                new net.minecraft.advancements.criterion.ImpossibleTrigger.TriggerInstance());
+#endif
+        return child(output, parent, icon, name, type, criterion);
     }
 
 #if MC_VER >= 26300

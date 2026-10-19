@@ -1,5 +1,18 @@
 {
   "values": [
+    "alchemia:ancient_oak_log",
+    "alchemia:ancient_oak_wood",
+    "alchemia:stripped_ancient_oak_log",
+    "alchemia:stripped_ancient_oak_wood",
+    "alchemia:ancient_oak_planks",
+    "alchemia:ancient_oak_stairs",
+    "alchemia:ancient_oak_slab",
+    "alchemia:ancient_oak_fence",
+    "alchemia:ancient_oak_fence_gate",
+    "alchemia:ancient_oak_button",
+    "alchemia:ancient_oak_pressure_plate",
+    "alchemia:ancient_oak_trapdoor",
+    "alchemia:ancient_oak_door",
     "alchemia:sulphur_shelf_infected_oak_log",
     "alchemia:sulphur_shelf_infected_spruce_log",
     "alchemia:sulphur_shelf_infected_birch_log",
@@ -9,6 +22,9 @@
     "alchemia:sulphur_shelf_infected_dark_oak_log",
     "alchemia:sulphur_shelf_infected_mangrove_log",
     "alchemia:sulphur_shelf_infected_pale_oak_log",
-    "alchemia:sulphur_shelf_infected_poplar_log"
+    "alchemia:sulphur_shelf_infected_poplar_log",
+    "alchemia:sulphur_shelf_infected_ancient_oak_log",
+    "alchemia:research_desk",
+    "alchemia:placed_guide"
   ]
 }

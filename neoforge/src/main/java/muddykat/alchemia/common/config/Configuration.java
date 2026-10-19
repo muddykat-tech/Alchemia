@@ -15,6 +15,7 @@ public class Configuration {
 
     public static final HashMap<Ingredients, ModConfigSpec.IntValue> INGREDIENT_CONFIG = new HashMap<>();
     public static final ModConfigSpec.IntValue MAX_POTENCY;
+    public static final ModConfigSpec.BooleanValue GREAT_WORK_SEEDED;
     public static final ModConfigSpec.ConfigValue<List<? extends String>> WORLD_EFFECTS;
     public static final List<String> DEFAULT_WORLD_EFFECTS = List.of(
             "Dolphins_Grace = rain",
@@ -25,7 +26,14 @@ public class Configuration {
             "Luck@2 = moonlight:0.5",
             "Luck@3 = full_moon",
             "Levitation@2 = above:90",
-            "Levitation@3 = above:90, night");
+            "Levitation@3 = above:90, night",
+            "Blindness@2 = night",
+            "Blindness@3 = new_moon",
+            "Invisibility@2 = night",
+            "Invisibility@3 = new_moon",
+            "Harm@3 = thunder",
+            "Health_Boost@3 = day, clear",
+            "Darkness = biome:minecraft:deep_dark");
 
     public static final ModConfigSpec.DoubleValue NOISE_SCALE;
     public static final ModConfigSpec.DoubleValue MIN_THRESHOLD;
@@ -60,6 +68,15 @@ public class Configuration {
                         "Each effect contributes its own potency, The default of 5 allows",
                         "five level 1 effects, or one level 3 alongside one level 2. and so forth.")
                 .defineInRange("max_potency", DEFAULT_MAX_POTENCY, 1, 10);
+        serverBuilder.pop();
+
+        serverBuilder.comment("The Great Work").push("great_work");
+        GREAT_WORK_SEEDED = serverBuilder
+                .comment("Build the potions each Great Work stage asks for from the world seed, each stage harder",
+                        "than the last. Turn off to use the fixed classic recipes instead.",
+                        "Generated recipes are saved with the world the first time it starts, so later changes",
+                        "to brew bases, potency or world effects do not move them.")
+                .define("seeded", true);
         serverBuilder.pop();
 
         serverBuilder.comment("Effects that only wake under certain conditions in the world around the cauldron.",
@@ -144,6 +161,10 @@ public class Configuration {
 
     public static List<? extends String> worldEffects() {
         return SERVER_CONFIG.isLoaded() ? WORLD_EFFECTS.get() : DEFAULT_WORLD_EFFECTS;
+    }
+
+    public static boolean greatWorkSeeded() {
+        return !SERVER_CONFIG.isLoaded() || GREAT_WORK_SEEDED.get();
     }
 
     public static int maxPotency() {

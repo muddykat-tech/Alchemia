@@ -19,7 +19,8 @@ public final class BrewBases {
 
     public static final String DEFAULT_ID = "water";
 
-    private static final Map<String, BrewBase> BASES = new LinkedHashMap<>();
+    private static volatile Map<String, BrewBase> BASES = Map.of();
+    private static volatile int generation;
 
     private static final java.util.Set<String> WATER_ONLY = java.util.Set.of(
             "Water_Breathing", "Conduit_Power", "Dolphins_Grace", "Breath_Of_The_Nautilus", "Oozing",
@@ -67,7 +68,7 @@ public final class BrewBases {
         return java.util.Arrays.stream(PotionEnum.values()).map(Enum::name).collect(Collectors.toList());
     }
 
-    public static void install(List<BrewBase> bases) {
+    public static synchronized void install(List<BrewBase> bases) {
         Map<String, BrewBase> accepted = new LinkedHashMap<>();
         for (BrewBase base : bases) {
             String id = base.id().toLowerCase(Locale.ROOT);
@@ -93,8 +94,12 @@ public final class BrewBases {
             accepted = withWater;
         }
 
-        BASES.clear();
-        BASES.putAll(accepted);
+        BASES = java.util.Collections.unmodifiableMap(accepted);
+        generation++;
+    }
+
+    public static int generation() {
+        return generation;
     }
 
     public static Collection<BrewBase> values() {
@@ -106,8 +111,9 @@ public final class BrewBases {
     }
 
     public static BrewBase defaultBase() {
-        BrewBase base = BASES.get(DEFAULT_ID);
-        return base != null ? base : BASES.values().iterator().next();
+        Map<String, BrewBase> bases = BASES;
+        BrewBase base = bases.get(DEFAULT_ID);
+        return base != null ? base : bases.values().iterator().next();
     }
 
     public static BrewBase byId(@Nullable String id) {

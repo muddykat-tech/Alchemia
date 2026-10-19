@@ -1,6 +1,7 @@
 package muddykat.alchemia.registration.registers;
 
 import muddykat.alchemia.Alchemia;
+import muddykat.alchemia.common.world.configuration.AncientOakConfiguration;
 import muddykat.alchemia.common.world.configuration.CrystalGeodeConfiguration;
 import muddykat.alchemia.common.world.configuration.ShelfInfectionConfiguration;
 import muddykat.alchemia.common.world.configuration.WildHerbConfiguration;
@@ -12,6 +13,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 #if MC_VER >= 26300
 import com.mojang.serialization.MapCodec;
 #else
+import muddykat.alchemia.common.world.feature.AncientOakFeature;
 import muddykat.alchemia.common.world.feature.CrystalGeodeFeature;
 import muddykat.alchemia.common.world.feature.ShelfInfectionFeature;
 import muddykat.alchemia.common.world.feature.WildHerbFeature;
@@ -34,6 +36,9 @@ public class BiomeFeatureRegistry {
 
     public static final DeferredHolder<MapCodec<? extends Feature>, MapCodec<ShelfInfectionConfiguration>> SHELF_INFECTION =
             FEATURES.register("shelf_infection", () -> ShelfInfectionConfiguration.CODEC);
+
+    public static final DeferredHolder<MapCodec<? extends Feature>, MapCodec<AncientOakConfiguration>> ANCIENT_OAK =
+            FEATURES.register("ancient_oak", () -> AncientOakConfiguration.CODEC);
 #else
     public static final DeferredRegister<Feature<?>> FEATURES = DeferredRegister.create(Registries.FEATURE, Alchemia.MODID);
 
@@ -48,5 +53,8 @@ public class BiomeFeatureRegistry {
 
     public static final DeferredHolder<Feature<?>, Feature<ShelfInfectionConfiguration>> SHELF_INFECTION =
             FEATURES.register("shelf_infection", () -> new ShelfInfectionFeature(ShelfInfectionConfiguration.CODEC.codec()));
+
+    public static final DeferredHolder<Feature<?>, Feature<AncientOakConfiguration>> ANCIENT_OAK =
+            FEATURES.register("ancient_oak", () -> new AncientOakFeature(AncientOakConfiguration.CODEC.codec()));
 #endif
 }

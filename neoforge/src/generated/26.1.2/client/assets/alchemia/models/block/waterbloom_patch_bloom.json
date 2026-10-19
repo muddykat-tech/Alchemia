@@ -1,0 +1,10 @@
+{
+  "parent": "alchemia:block/template_patch_bloom",
+  "textures": {
+    "base": "alchemia:block/flowers/waterbloom/waterbloom_base",
+    "centre": "alchemia:block/flowers/waterbloom/waterbloom_flower_centre",
+    "flower": "alchemia:block/flowers/waterbloom/waterbloom_flower_overlay",
+    "petal": "alchemia:block/flowers/waterbloom/waterbloom_petal",
+    "top": "alchemia:block/flowers/waterbloom/waterbloom_top"
+  }
+}

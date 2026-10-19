@@ -2,6 +2,7 @@ package muddykat.alchemia.common.world;
 
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.blocks.BlockIngredient;
+import muddykat.alchemia.common.blocks.BlockIngredientPatch;
 import muddykat.alchemia.common.blocks.BlockIngredientTangle;
 import muddykat.alchemia.common.blocks.BlockIngredientWild;
 import muddykat.alchemia.common.blocks.WildGrowth;
@@ -144,6 +145,7 @@ public class WildHerbGeneration {
     }
 
     public static void bootstrapConfiguredFeatures(BootstapContext<ConfiguredFeature<?, ?>> context) {
+        AncientOakGeneration.bootstrapConfigured(context);
         HolderGetter<Block> blocks = context.lookup(Registries.BLOCK);
 
         for (Ingredients ingredient : Ingredients.values()) {
@@ -172,7 +174,7 @@ public class WildHerbGeneration {
                     ? BlockPredicate.matchesFluids(Fluids.WATER)
                     : BlockPredicate.ONLY_IN_AIR_PREDICATE;
 
-            BlockPredicate grownOn = switch (habitat) {
+            BlockPredicate grownOn = block instanceof BlockIngredientPatch ? BlockPredicate.alwaysTrue() : switch (habitat) {
                 case SURFACE -> BlockPredicate.matchesTag(BLOCK_BELOW, BlockTags.DIRT);
                 case NYLIUM -> BlockPredicate.anyOf(
                         BlockPredicate.matchesTag(BLOCK_BELOW, BlockTags.DIRT),
@@ -211,6 +213,7 @@ public class WildHerbGeneration {
 
     public static void bootstrapPlacedFeatures(BootstapContext<PlacedFeature> context) {
         HolderGetter<ConfiguredFeature<?, ?>> configured = context.lookup(Registries.CONFIGURED_FEATURE);
+        AncientOakGeneration.bootstrapPlaced(context, configured);
 
         for (Ingredients ingredient : Ingredients.values()) {
             if (!generates(ingredient)) continue;

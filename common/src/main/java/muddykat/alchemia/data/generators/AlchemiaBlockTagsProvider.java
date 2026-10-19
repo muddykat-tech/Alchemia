@@ -1,5 +1,7 @@
 package muddykat.alchemia.data.generators;
 
+import muddykat.alchemia.common.blocks.blockentity.BlockPlacedGuide;
+import muddykat.alchemia.common.blocks.blockentity.BlockResearchDesk;
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.blocks.BlockInfectedLog;
 import muddykat.alchemia.common.blocks.BlockIngredient;
@@ -17,6 +19,8 @@ import net.minecraft.data.tags.TagsProvider;
 import net.minecraft.data.tags.KeyTagProvider;
 #endif
 import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.TagKey;
+import muddykat.alchemia.common.blocks.AncientOak;
 import net.minecraft.world.level.block.Block;
 
 import java.util.concurrent.CompletableFuture;
@@ -31,6 +35,40 @@ public class AlchemiaBlockTagsProvider extends KeyTagProvider<Block> {
         super(output, Registries.BLOCK, registries, Alchemia.MODID);
     }
 
+    private boolean ancientOak(String name, net.minecraft.resources.ResourceKey<Block> key) {
+        if (name.equals(AncientOak.LEAVES)) {
+            tag(BlockTags.LEAVES).add(key);
+            tag(BlockTags.MINEABLE_WITH_HOE).add(key);
+            return true;
+        }
+        if (name.equals(AncientOak.SAPLING)) {
+#if MC_VER < 26200 || MC_VER >= 26300
+            tag(BlockTags.SAPLINGS).add(key);
+#endif
+            return true;
+        }
+
+        TagKey<Block> family = switch (name) {
+            case AncientOak.LOG, AncientOak.WOOD, AncientOak.STRIPPED_LOG, AncientOak.STRIPPED_WOOD -> BlockTags.LOGS;
+            case AncientOak.PLANKS -> BlockTags.PLANKS;
+            case AncientOak.STAIRS -> BlockTags.WOODEN_STAIRS;
+            case AncientOak.SLAB -> BlockTags.WOODEN_SLABS;
+            case AncientOak.FENCE -> BlockTags.WOODEN_FENCES;
+            case AncientOak.FENCE_GATE -> BlockTags.FENCE_GATES;
+            case AncientOak.DOOR -> BlockTags.WOODEN_DOORS;
+            case AncientOak.TRAPDOOR -> BlockTags.WOODEN_TRAPDOORS;
+            case AncientOak.BUTTON -> BlockTags.WOODEN_BUTTONS;
+            case AncientOak.PRESSURE_PLATE -> BlockTags.WOODEN_PRESSURE_PLATES;
+            default -> null;
+        };
+        if (family == null) return false;
+
+        tag(family).add(key);
+        tag(BlockTags.MINEABLE_WITH_AXE).add(key);
+        if (name.equals(AncientOak.LOG)) tag(BlockTags.OVERWORLD_NATURAL_LOGS).add(key);
+        return true;
+    }
+
     @Override
     protected void addTags(HolderLookup.Provider registries) {
         var pickaxe = tag(BlockTags.MINEABLE_WITH_PICKAXE);
@@ -40,6 +78,15 @@ public class AlchemiaBlockTagsProvider extends KeyTagProvider<Block> {
             Block block = holder.get();
 
             if (block instanceof BlockAlchemyMachinePart) {
+                return;
+            }
+
+            if (block instanceof BlockResearchDesk || block instanceof BlockPlacedGuide) {
+                tag(BlockTags.MINEABLE_WITH_AXE).add(block.builtInRegistryHolder().key());
+                return;
+            }
+
+            if (ancientOak(name, block.builtInRegistryHolder().key())) {
                 return;
             }
 

@@ -6,6 +6,7 @@ import muddykat.alchemia.common.items.helper.GuideAccess;
 import muddykat.alchemia.common.items.helper.IngredientPath;
 import muddykat.alchemia.common.items.helper.IngredientPathTooltip;
 import muddykat.alchemia.common.potion.PotionMap;
+import muddykat.alchemia.common.potion.VanillaIngredients;
 import muddykat.alchemia.common.utility.TextUtils;
 import muddykat.alchemia.common.items.helper.IngredientType;
 import muddykat.alchemia.common.items.helper.Ingredients;
@@ -52,7 +53,8 @@ public class ItemIngredient extends Item {
     }
 
     public static boolean canCrush(ItemStack stack) {
-        return stack.getItem() instanceof ItemIngredient && crushOf(stack) < Ingredients.MAX_CRUSH_UNITS;
+        return (stack.getItem() instanceof ItemIngredient || VanillaIngredients.isVanillaIngredient(stack))
+                && crushOf(stack) < Ingredients.MAX_CRUSH_UNITS;
     }
 
     public static int trimOf(ItemStack stack) {
@@ -111,12 +113,20 @@ public class ItemIngredient extends Item {
 
     @Override
     public int getBarWidth(ItemStack stack) {
-        return Math.round(13.0F * crushOf(stack) / Ingredients.MAX_CRUSH_UNITS);
+        return crushBarWidth(crushOf(stack));
     }
 
     @Override
     public int getBarColor(ItemStack stack) {
-        float progress = (float) crushOf(stack) / Ingredients.MAX_CRUSH_UNITS;
+        return crushBarColor(crushOf(stack));
+    }
+
+    public static int crushBarWidth(int crush) {
+        return Math.round(13.0F * crush / Ingredients.MAX_CRUSH_UNITS);
+    }
+
+    public static int crushBarColor(int crush) {
+        float progress = (float) crush / Ingredients.MAX_CRUSH_UNITS;
         int red = Math.round(201 - progress * 94);
         int green = Math.round(169 - progress * 95);
         int blue = Math.round(110 - progress * 70);
@@ -132,8 +142,6 @@ public class ItemIngredient extends Item {
         tooltips.add(TextUtils.brewingSource());
 
         int crush = crushOf(stack);
-        tooltips.add(Component.translatable("alchemia.tooltip.potency",
-                String.format("%.2f", getPotency(stack))).withStyle(ChatFormatting.GRAY));
         tooltips.add(Component.translatable("alchemia.tooltip.drift", describeDrift(getDriftX(stack), getDriftY(stack))).withStyle(ChatFormatting.DARK_GRAY));
 
         if (IngredientPath.of(ingredient).teleports()) {

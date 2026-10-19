@@ -12,7 +12,7 @@
             "block": "alchemia:flower_firebell_seed",
             "condition": "minecraft:block_state_property",
             "properties": {
-              "age": "3"
+              "age": "5"
             }
           }
         }
@@ -34,7 +34,8 @@
           "block": "alchemia:flower_firebell_seed",
           "condition": "minecraft:block_state_property",
           "properties": {
-            "age": "3"
+            "age": "5",
+            "wild": "false"
           }
         }
       ],
@@ -47,6 +48,38 @@
                 "type": "minecraft:uniform",
                 "max": 4.0,
                 "min": 2.0
+              },
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "alchemia:flower_firebell"
+        }
+      ],
+      "rolls": 1.0
+    },
+    {
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        },
+        {
+          "block": "alchemia:flower_firebell_seed",
+          "condition": "minecraft:block_state_property",
+          "properties": {
+            "age": "5",
+            "wild": "true"
+          }
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 8.0,
+                "min": 4.0
               },
               "function": "minecraft:set_count"
             }

@@ -1,6 +1,7 @@
 package muddykat.alchemia.data.generators;
 
 import muddykat.alchemia.Alchemia;
+import muddykat.alchemia.common.blocks.AncientOak;
 import muddykat.alchemia.common.blocks.helper.UpgradeSide;
 import muddykat.alchemia.common.items.helper.IngredientType;
 import muddykat.alchemia.common.items.helper.Ingredients;
@@ -27,6 +28,11 @@ public class AlchemiaRecipeProvider extends RecipeProvider {
 
     @Override
     protected void buildRecipes(Consumer<FinishedRecipe> writer) {
+        planksFromLog(writer, AncientOak.block(AncientOak.PLANKS), AlchemiaItemTags.ANCIENT_OAK_LOGS, 4);
+        woodFromLogs(writer, AncientOak.block(AncientOak.WOOD), AncientOak.block(AncientOak.LOG));
+        woodFromLogs(writer, AncientOak.block(AncientOak.STRIPPED_WOOD), AncientOak.block(AncientOak.STRIPPED_LOG));
+        generateRecipes(writer, AncientOak.family());
+
         ShapelessRecipeBuilder.shapeless(RecipeCategory.TOOLS, ItemRegistry.getItemFromRegistry("mortar_and_pestle"))
                 .requires(Items.STICK)
                 .requires(Items.STONE)

@@ -1,0 +1,35 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_grasping_root_ingredient": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "alchemia:root_grasping_root"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "alchemia:grasping_root_seeds_from_ingredient"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_grasping_root_ingredient",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "alchemia:grasping_root_seeds_from_ingredient"
+    ]
+  },
+  "sends_telemetry_event": false
+}

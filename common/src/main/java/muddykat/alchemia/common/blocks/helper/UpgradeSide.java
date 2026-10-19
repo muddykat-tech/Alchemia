@@ -22,7 +22,7 @@ public enum UpgradeSide implements StringRepresentable {
     }
 
     public @Nullable UpgradeSide requires() {
-        return this == TOP ? RIGHT : null;
+        return this == TOP ? LEFT : null;
     }
 
     public int potionSlots() {

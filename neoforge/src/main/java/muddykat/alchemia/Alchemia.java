@@ -6,6 +6,7 @@ import muddykat.alchemia.common.WorldEventHandler;
 import muddykat.alchemia.common.config.Configuration;
 import muddykat.alchemia.registration.registers.IngredientTypeRegistry;
 import muddykat.alchemia.common.network.NetworkHandler;
+import muddykat.alchemia.common.network.packets.PacketImbuements;
 import muddykat.alchemia.common.network.packets.PacketBrewBases;
 import muddykat.alchemia.common.network.packets.PacketPotionRecipe;
 import muddykat.alchemia.common.potion.BrewBases;
@@ -50,6 +51,8 @@ public class Alchemia {
         LOGGER.info(MOD_NAME + " Registering Event Handlers");
         NeoForge.EVENT_BUS.register(WorldEventHandler.class);
         NeoForge.EVENT_BUS.register(muddykat.alchemia.common.PhilosopherStoneHandler.class);
+        NeoForge.EVENT_BUS.register(muddykat.alchemia.common.guide.GuideNews.class);
+        NeoForge.EVENT_BUS.register(muddykat.alchemia.common.crafting.GreatWorkSetup.class);
         NeoForge.EVENT_BUS.register(this);
 
         LOGGER.info(MOD_NAME + " Setup Complete");
@@ -68,7 +71,9 @@ public class Alchemia {
             long map_seed = rand.nextLong();
             LOGGER.info("Player Joined - Sending Brew Bases and Potion Map Seed");
             NetworkHandler.sendToPlayer(new PacketBrewBases(BrewBases.definitions()), player);
+            NetworkHandler.sendToPlayer(new PacketImbuements(muddykat.alchemia.common.potion.Imbuements.definitions()), player);
             NetworkHandler.sendToPlayer(new PacketPotionRecipe(map_seed), player);
+            NetworkHandler.sendToPlayer(new muddykat.alchemia.common.network.packets.PacketGreatWork(muddykat.alchemia.common.crafting.MagnumOpus.stages()), player);
             PotionMap.scramble(map_seed);
         }
     }

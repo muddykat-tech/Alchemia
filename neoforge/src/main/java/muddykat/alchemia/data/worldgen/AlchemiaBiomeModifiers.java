@@ -4,6 +4,7 @@ import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.items.helper.IngredientAlignment;
 import muddykat.alchemia.common.items.helper.Ingredients;
 import muddykat.alchemia.common.world.IngredientHabitat;
+import muddykat.alchemia.common.world.AncientOakGeneration;
 import muddykat.alchemia.common.world.WildHerbGeneration;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderGetter;
@@ -45,6 +46,7 @@ public class AlchemiaBiomeModifiers {
         BIOME_OVERRIDES.put(Ingredients.Lava_Root, AlchemiaBiomeTags.HAS_LAVA_ROOT);
         BIOME_OVERRIDES.put(Ingredients.Terraria, AlchemiaBiomeTags.HAS_TERRARIA);
         BIOME_OVERRIDES.put(Ingredients.Dreambeet, AlchemiaBiomeTags.HAS_DREAMBEET);
+        BIOME_OVERRIDES.put(Ingredients.Grasping_Root, AlchemiaBiomeTags.HAS_GRASPING_ROOT);
 
         BIOME_OVERRIDES.put(Ingredients.Spellbloom, AlchemiaBiomeTags.HAS_SPELLBLOOM);
         BIOME_OVERRIDES.put(Ingredients.Boombloom, Tags.Biomes.IS_DARK_FOREST);
@@ -102,6 +104,11 @@ public class AlchemiaBiomeModifiers {
             context.register(modifierKey(name), new BiomeModifiers.AddFeaturesBiomeModifier(
                     biomes.getOrThrow(groupTag.get(name)), HolderSet.direct(holders), groupStep.get(name)));
         });
+
+        context.register(modifierKey(AncientOakGeneration.NAME), new BiomeModifiers.AddFeaturesBiomeModifier(
+                biomes.getOrThrow(AlchemiaBiomeTags.HAS_ANCIENT_OAK),
+                HolderSet.direct(features.getOrThrow(AncientOakGeneration.PLACED)),
+                GenerationStep.Decoration.VEGETAL_DECORATION));
 
         context.register(modifierKey(WildHerbGeneration.PEAK_CLUSTER_NAME), new BiomeModifiers.AddFeaturesBiomeModifier(
                 biomes.getOrThrow(Tags.Biomes.IS_MOUNTAIN_PEAK),

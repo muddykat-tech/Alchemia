@@ -9,6 +9,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.item.component.Consumable;
+import net.minecraft.world.item.component.Consumables;
 import net.minecraft.world.item.component.UseRemainder;
 
 public final class PotionGlasses {
@@ -40,6 +42,10 @@ public final class PotionGlasses {
         stack.set(DataComponentRegistry.POTION_GLASS.get(), glass);
         if (stack.is(Items.POTION)) {
             stack.set(DataComponents.USE_REMAINDER, new UseRemainder(new ItemStackTemplate(emptyItem(glass))));
+
+            Consumable drink = stack.getOrDefault(DataComponents.CONSUMABLE, Consumables.DEFAULT_DRINK);
+            stack.set(DataComponents.CONSUMABLE, new Consumable(glass.drinkSeconds(), drink.animation(), drink.sound(),
+                    drink.hasConsumeParticles(), drink.onConsumeEffects()));
         }
     }
 

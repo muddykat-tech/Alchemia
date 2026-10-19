@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/cross",
   "textures": {
-    "cross": "alchemia:block/flowers/fluffbloom"
+    "cross": "alchemia:block/flowers/fluffbloom/fluffbloom_growth_5"
   }
 }

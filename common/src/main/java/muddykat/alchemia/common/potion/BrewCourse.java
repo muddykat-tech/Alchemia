@@ -19,6 +19,7 @@ public final class BrewCourse {
 
     private final List<ItemStack> entries = new ArrayList<>();
     private final List<Integer> anchors = new ArrayList<>();
+    private final List<Double> anchorFrom = new ArrayList<>();
     private double originX;
     private double originY;
     private int spent;
@@ -36,6 +37,7 @@ public final class BrewCourse {
         BrewCourse twin = new BrewCourse(originX, originY);
         twin.entries.addAll(entries);
         twin.anchors.addAll(anchors);
+        twin.anchorFrom.addAll(anchorFrom);
         twin.spent = spent;
         twin.progress = progress;
         twin.routedOn = routedOn;
@@ -46,6 +48,7 @@ public final class BrewCourse {
     public void reset(double x, double y) {
         entries.clear();
         anchors.clear();
+        anchorFrom.clear();
         originX = x;
         originY = y;
         spent = 0;
@@ -54,7 +57,16 @@ public final class BrewCourse {
     }
 
     public void restore(double x, double y, List<ItemStack> stacks, List<Integer> pulls, int walked, double stirred) {
-        boolean unchanged = x == originX && y == originY && pulls.equals(anchors) && stacks.size() == entries.size();
+        restore(x, y, stacks, pulls, List.of(), walked, stirred);
+    }
+
+    public void restore(double x, double y, List<ItemStack> stacks, List<Integer> pulls, List<Double> pullFrom,
+                        int walked, double stirred) {
+        List<Double> partial = new ArrayList<>(stacks.size());
+        for (int index = 0; index < stacks.size(); index++) partial.add(index < pullFrom.size() ? pullFrom.get(index) : 0.0);
+
+        boolean unchanged = x == originX && y == originY && pulls.equals(anchors) && partial.equals(anchorFrom)
+                && stacks.size() == entries.size();
         for (int index = 0; unchanged && index < stacks.size(); index++) {
             unchanged = ItemStack.matches(stacks.get(index), entries.get(index));
         }
@@ -62,9 +74,11 @@ public final class BrewCourse {
         if (!unchanged) {
             entries.clear();
             anchors.clear();
+            anchorFrom.clear();
             for (int index = 0; index < stacks.size(); index++) {
                 entries.add(stacks.get(index));
                 anchors.add(index < pulls.size() ? pulls.get(index) : 0);
+                anchorFrom.add(partial.get(index));
             }
             originX = x;
             originY = y;
@@ -99,6 +113,10 @@ public final class BrewCourse {
         return List.copyOf(anchors);
     }
 
+    public List<Double> anchorFrom() {
+        return List.copyOf(anchorFrom);
+    }
+
     public int planned() {
         return entries.size() - spent;
     }
@@ -125,26 +143,45 @@ public final class BrewCourse {
 
     public void add(ItemStack stack) {
         entries.add(stack.copyWithCount(1));
-        anchors.add(spent + (started() ? 1 : 0));
+        boolean midLeg = started() && VanillaIngredients.isLure(stack);
+        anchors.add(spent + (started() && !midLeg ? 1 : 0));
+        anchorFrom.add(midLeg ? progress : 0.0);
         routedOn = null;
     }
 
     public boolean canRemove(int plannedIndex) {
         if (plannedIndex < 0 || plannedIndex >= planned()) return false;
-        return plannedIndex > 0 || !started();
+        if (plannedIndex == 0 && started()) return false;
+        return !bentByLure(plannedIndex);
+    }
+
+    public boolean bentByLure(int plannedIndex) {
+        int index = spent + plannedIndex;
+        if (index < spent || index >= entries.size()) return false;
+
+        for (int lure = index; lure < entries.size(); lure++) {
+            if (!VanillaIngredients.isLure(entries.get(lure))) continue;
+
+            int anchor = anchors.get(lure);
+            double partial = lure < anchorFrom.size() ? anchorFrom.get(lure) : 0.0;
+            boolean reached = anchor < spent || (anchor == spent && progress > partial + EPSILON);
+            if (anchor <= index && reached) return true;
+        }
+        return false;
     }
 
     public ItemStack remove(int plannedIndex) {
         if (!canRemove(plannedIndex)) return ItemStack.EMPTY;
 
         anchors.remove(spent + plannedIndex);
+        anchorFrom.remove(spent + plannedIndex);
         routedOn = null;
         return entries.remove(spent + plannedIndex);
     }
 
     public List<PotionMap.RouteLeg> legs(PotionMap map) {
         if (routedOn != map) {
-            routed = map.route(originX, originY, entries, anchors);
+            routed = map.route(originX, originY, entries, anchors, anchorFrom);
             routedOn = map;
         }
         return routed;
@@ -229,6 +266,7 @@ public final class BrewCourse {
         PathPoint start = legStart(map);
         entries.subList(0, spent).clear();
         anchors.subList(0, spent).clear();
+        anchorFrom.subList(0, spent).clear();
         for (int index = 0; index < anchors.size(); index++) anchors.set(index, Math.max(0, anchors.get(index) - spent));
 
         originX = start.x();

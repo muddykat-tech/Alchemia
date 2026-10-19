@@ -3,21 +3,138 @@
   "model": "alchemia:models/alchemy_machine_left_upgrade.obj",
   "flip_v": true,
   "automatic_culling": false,
+  "emissive_ambient": false,
   "gui_light": "side",
   "transform": {
-    "translation": [-1.21875, -0.65625, 0.21875]
+    "translation": [
+      -1.21875,
+      -0.65625,
+      0.21875
+    ]
   },
   "textures": {
     "alchemy_machine": "alchemia:block/alchemy/alchemy_machine",
     "particle": "alchemia:block/alchemy/alchemy_machine"
   },
   "display": {
-    "gui": { "rotation": [30, 225, 0], "translation": [0, 0, 0], "scale": [0.233, 0.233, 0.233] },
-    "ground": { "rotation": [0, 0, 0], "translation": [0, 3, 0], "scale": [0.093, 0.093, 0.093] },
-    "fixed": { "rotation": [0, 0, 0], "translation": [0, 0, 0], "scale": [0.186, 0.186, 0.186] },
-    "thirdperson_righthand": { "rotation": [75, 45, 0], "translation": [0, 2.5, 0], "scale": [0.14, 0.14, 0.14] },
-    "thirdperson_lefthand": { "rotation": [75, 45, 0], "translation": [0, 2.5, 0], "scale": [0.14, 0.14, 0.14] },
-    "firstperson_righthand": { "rotation": [0, 45, 0], "translation": [0, 0, 0], "scale": [0.149, 0.149, 0.149] },
-    "firstperson_lefthand": { "rotation": [0, 225, 0], "translation": [0, 0, 0], "scale": [0.149, 0.149, 0.149] }
+    "gui": {
+      "rotation": [
+        30,
+        225,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.233,
+        0.233,
+        0.233
+      ]
+    },
+    "ground": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "translation": [
+        0,
+        3,
+        0
+      ],
+      "scale": [
+        0.093,
+        0.093,
+        0.093
+      ]
+    },
+    "fixed": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.186,
+        0.186,
+        0.186
+      ]
+    },
+    "thirdperson_righthand": {
+      "rotation": [
+        75,
+        45,
+        0
+      ],
+      "translation": [
+        0,
+        2.5,
+        0
+      ],
+      "scale": [
+        0.14,
+        0.14,
+        0.14
+      ]
+    },
+    "thirdperson_lefthand": {
+      "rotation": [
+        75,
+        45,
+        0
+      ],
+      "translation": [
+        0,
+        2.5,
+        0
+      ],
+      "scale": [
+        0.14,
+        0.14,
+        0.14
+      ]
+    },
+    "firstperson_righthand": {
+      "rotation": [
+        0,
+        45,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.149,
+        0.149,
+        0.149
+      ]
+    },
+    "firstperson_lefthand": {
+      "rotation": [
+        0,
+        225,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.149,
+        0.149,
+        0.149
+      ]
+    }
   }
 }

@@ -19,9 +19,11 @@ import net.minecraft.world.item.alchemy.Potions;
 import java.util.*;
 
 public class PotionMap {
-    private static final Map<String, PotionMap> MAPS = new LinkedHashMap<>();
-    private static long currentSeed;
-    private static boolean seeded;
+    private static volatile Map<String, PotionMap> MAPS = Map.of();
+    private static volatile long currentSeed;
+    private static volatile boolean seeded;
+    private static int builtGeneration = -1;
+    private static long builtSeed;
 
     public static final double CELL = PathGeometry.CELL;
     public static final int HARD_MARGIN = (int) (3 * CELL);
@@ -332,6 +334,10 @@ public class PotionMap {
     }
 
     public List<PathPoint> fixedDriftOffsets(PotionEnum target) {
+        return fixedDriftOffsets(target, 0);
+    }
+
+    public List<PathPoint> fixedDriftOffsets(PotionEnum target, int crushUnits) {
         PathPoint goal = positionOf(target);
         if (goal == null) return List.of();
 
@@ -339,12 +345,12 @@ public class PotionMap {
         if (bearing.isZero()) return List.of();
 
         return PathGeometry.resample(
-                List.of(PathPoint.ORIGIN, bearing.scale(VanillaIngredients.DRIFT_LENGTH * CELL)),
+                List.of(PathPoint.ORIGIN, bearing.scale(VanillaIngredients.DRIFT_LENGTH * CELL * VanillaIngredients.grindScale(crushUnits))),
                 PathGeometry.SAMPLE_SPACING);
     }
 
-    private PotionPath fixedPath(double x, double y, PotionEnum target) {
-        return trail(x, y, fixedDriftOffsets(target));
+    private PotionPath fixedPath(double x, double y, PotionEnum target, int crushUnits) {
+        return trail(x, y, fixedDriftOffsets(target, crushUnits));
     }
 
     public PotionPath project(double x, double y, List<PathPoint> offsets, boolean throughDeadzones) {
@@ -369,7 +375,7 @@ public class PotionMap {
 
     public PotionPath walk(double x, double y, ItemStack stack) {
         VanillaIngredients.Drift drift = VanillaIngredients.driftOf(stack);
-        if (drift != null) return drift.lure() ? stalledAt(x, y) : fixedPath(x, y, drift.target());
+        if (drift != null) return drift.lure() ? stalledAt(x, y) : fixedPath(x, y, drift.target(), ItemIngredient.crushOf(stack));
 
         if (!(stack.getItem() instanceof ItemIngredient ingredient)) return stalledAt(x, y);
 
@@ -402,6 +408,13 @@ public class PotionMap {
 
 
     public static final double LURE_PULL = 4 * CELL;
+    public static final double LURE_DRIFT = Math.toRadians(1.5) / CELL;
+    public static final double LURE_GRAVITY = Math.toRadians(45.0);
+    public static final double LURE_CORE = 1.5 * CELL;
+    public static final double LURE_MAX_TURN = Math.PI;
+    public static final double LURE_CAPTURE = EFFECT_CORE;
+    private static final double SHORT_PULL_STEP = 1.0;
+    private static final int FLIGHT_EASE_STEPS = 20;
 
     public record RouteLeg(ItemStack stack, PotionPath path, List<PathPoint> curve, boolean lure) {
         public PathPoint end(double fromX, double fromY) {
@@ -439,6 +452,11 @@ public class PotionMap {
     }
 
     public List<RouteLeg> route(double startX, double startY, List<ItemStack> queue, List<Integer> anchors) {
+        return route(startX, startY, queue, anchors, List.of());
+    }
+
+    public List<RouteLeg> route(double startX, double startY, List<ItemStack> queue, List<Integer> anchors,
+                                List<Double> anchorFrom) {
         List<Span> spans = new ArrayList<>(queue.size());
         double x = startX;
         double y = startY;
@@ -448,7 +466,8 @@ public class PotionMap {
 
             if (drift != null && drift.lure()) {
                 int anchor = spans.size() < anchors.size() ? anchors.get(spans.size()) : 0;
-                boolean pulled = pull(spans, stack, drift.target(), anchor);
+                double partial = spans.size() < anchorFrom.size() ? anchorFrom.get(spans.size()) : 0.0;
+                boolean pulled = pull(spans, stack, drift.target(), anchor, partial);
                 PathPoint here = pulled ? chainEnd(spans, startX, startY) : new PathPoint(x, y);
 
                 spans.add(new Span(stack, true,
@@ -479,54 +498,208 @@ public class PotionMap {
         return new PathPoint(startX, startY);
     }
 
-    private boolean pull(List<Span> spans, ItemStack stack, PotionEnum target, int anchor) {
+    private boolean pull(List<Span> spans, ItemStack stack, PotionEnum target, int anchor, double partial) {
         PathPoint goal = positionOf(target);
         if (goal == null) return false;
 
         int from = 0;
         for (int index = spans.size() - 1; index >= 0; index--) {
             Span span = spans.get(index);
-            if (span.dead || (span.lure && span.stack.getItem() == stack.getItem())) {
+            if (span.dead && !span.teleport) {
                 from = index + 1;
                 break;
             }
         }
         from = Math.max(from, Math.min(anchor, spans.size()));
 
-        List<PathPoint> chain = new ArrayList<>();
-        for (int index = from; index < spans.size(); index++) chain.addAll(spans.get(index).points);
-        if (chain.size() < 2) return false;
-
-        List<PathPoint> pulled = new ArrayList<>(chain.size());
-        for (int index = 0; index < chain.size(); index++) {
-            PathPoint point = chain.get(index);
-            PathPoint toGoal = goal.minus(point);
-            double reach = Math.min(toGoal.length(), LURE_PULL * index / (chain.size() - 1));
-            PathPoint moved = point.plus(toGoal.normalised().scale(reach));
-
-            if (index > 0 && (!inBounds(moved) || isDeadzone(moved))) break;
-            pulled.add(moved);
+        double head = 0.0;
+        if (partial > 0.0 && from == anchor && from < spans.size()) {
+            Span first = spans.get(from);
+            if (first.teleport || follows(first) || partial >= PathGeometry.length(first.points) - 1.0E-6) {
+                from++;
+            } else {
+                head = partial;
+            }
         }
 
-        int cursor = 0;
+        int stacked = 0;
+        int bendable = 0;
+        PathPoint at = null;
         for (int index = from; index < spans.size(); index++) {
             Span span = spans.get(index);
-            int size = span.points.size();
+            if (span.lure) stacked++;
+            if (follows(span)) continue;
+            bendable += span.points.size();
+            if (at == null) at = index == from && head > 0.0 ? PathGeometry.pointAt(span.points, head) : span.points.get(0);
+        }
+        if (bendable < 2) return false;
 
-            List<PathPoint> slice = new ArrayList<>(size);
-            for (int step = 0; step < size && cursor + step < pulled.size(); step++) {
-                slice.add(pulled.get(cursor + step));
+        Steer steer = new Steer(at, goal, lureTurn(stacked) * VanillaIngredients.grindScale(stack));
+        boolean halted = false;
+
+        for (int index = from; index < spans.size(); index++) {
+            Span span = spans.get(index);
+
+            if (follows(span) || halted) {
+                span.points = List.of(steer.at);
+                if (halted && !span.lure) {
+                    span.stalled = true;
+                    span.teleport = false;
+                    span.curve = List.of();
+                }
+                continue;
             }
-            cursor += size;
 
-            if (slice.isEmpty()) slice.add(pulled.get(pulled.size() - 1));
+            if (span.teleport) {
+                halted = !steerFlight(span, steer);
+                continue;
+            }
 
-            span.points = slice;
+            boolean split = index == from && head > 0.0;
+            List<PathPoint> source = split ? PathGeometry.tail(span.points, head) : span.points;
+            List<PathPoint> walked = new ArrayList<>(span.points.size() + 1);
+            if (split) {
+                walked.addAll(PathGeometry.truncate(span.points, head));
+            } else {
+                walked.add(steer.at);
+            }
+            for (int step = 1; step < source.size() && !steer.captured; step++) {
+                PathPoint next = steer.advance(source.get(step).minus(source.get(step - 1)));
+                if (!landable(next)) {
+                    PathPoint edge = pulledShort(walked.get(walked.size() - 1), next);
+                    if (edge.distanceTo(walked.get(walked.size() - 1)) > 1.0E-6) walked.add(edge);
+                    steer.at = walked.get(walked.size() - 1);
+                    halted = true;
+                    break;
+                }
+                walked.add(next);
+            }
+
+            span.points = walked;
             span.curve = List.of();
-            span.stalled = slice.size() < 2;
-            if (span.stalled) span.teleport = false;
+            span.stalled = walked.size() < 2;
+            if (steer.captured) halted = true;
         }
         return true;
+    }
+
+    public static double lureTurn(int stacked) {
+        return LureReach.stackScale(stacked);
+    }
+
+    private static final class Steer {
+        PathPoint at;
+        double offset;
+        final PathPoint goal;
+        final double turn;
+
+        Steer(PathPoint at, PathPoint goal, double turn) {
+            this.at = at;
+            this.goal = goal;
+            this.turn = turn;
+        }
+
+        boolean captured;
+
+        Steer copy(double factor) {
+            Steer twin = new Steer(at, goal, turn * factor);
+            twin.offset = offset;
+            return twin;
+        }
+
+        PathPoint advance(PathPoint segment) {
+            double length = segment.length();
+            if (length < 1.0E-9 || captured) return at;
+
+            double heading = Math.atan2(segment.y(), segment.x()) + offset;
+            PathPoint toGoal = goal.minus(at);
+            if (toGoal.length() > 1.0E-6) {
+                double wanted = Math.atan2(toGoal.y(), toGoal.x());
+                double limit = turn * (LURE_DRIFT + LURE_GRAVITY / Math.max(toGoal.length(), LURE_CORE)) * length;
+                double change = Math.max(-limit, Math.min(limit, Math.IEEEremainder(wanted - heading, 2 * Math.PI)));
+                double turned = Math.max(-LURE_MAX_TURN, Math.min(LURE_MAX_TURN, offset + change));
+                heading += turned - offset;
+                offset = turned;
+            }
+
+            PathPoint from = at;
+            at = new PathPoint(at.x() + Math.cos(heading) * length, at.y() + Math.sin(heading) * length);
+
+            if (from.distanceTo(goal) > LURE_CAPTURE && passesWithin(from, at, goal, LURE_CAPTURE)) {
+                at = goal;
+                captured = true;
+            }
+            return at;
+        }
+
+        private static boolean passesWithin(PathPoint from, PathPoint to, PathPoint point, double radius) {
+            PathPoint run = to.minus(from);
+            double span = run.x() * run.x() + run.y() * run.y();
+            if (span < 1.0E-12) return from.distanceTo(point) <= radius;
+
+            PathPoint offset = point.minus(from);
+            double t = Math.max(0.0, Math.min(1.0, (offset.x() * run.x() + offset.y() * run.y()) / span));
+            return from.plus(run.scale(t)).distanceTo(point) <= radius;
+        }
+    }
+
+    private boolean steerFlight(Span span, Steer steer) {
+        PathPoint start = span.points.get(0);
+        PathPoint landing = span.points.get(span.points.size() - 1);
+        boolean curved = span.curve.size() > 1;
+        List<PathPoint> flight = new ArrayList<>(curved ? span.curve : List.of(start, landing));
+        if (flight.get(flight.size() - 1).distanceTo(landing) > 1.0E-3) flight.add(landing);
+
+        for (int attempt = FLIGHT_EASE_STEPS; attempt >= -1; attempt--) {
+            Steer trial = steer.copy(Math.max(0, attempt) / (double) FLIGHT_EASE_STEPS);
+            if (attempt < 0) trial.offset = 0.0;
+
+            PathPoint origin = trial.at;
+            List<PathPoint> steered = new ArrayList<>(flight.size());
+            steered.add(origin);
+            for (int step = 1; step < flight.size() && !trial.captured; step++) {
+                steered.add(trial.advance(flight.get(step).minus(flight.get(step - 1))));
+            }
+
+            PathPoint end = steered.get(steered.size() - 1);
+            if (!inBounds(end)) continue;
+
+            span.points = List.of(origin, end);
+            span.curve = curved ? List.copyOf(steered) : List.of();
+            span.stalled = false;
+            span.dead = isDeadzone(end);
+            steer.at = end;
+            steer.offset = attempt < 0 ? steer.offset : trial.offset;
+            steer.captured = trial.captured;
+            return !trial.captured;
+        }
+
+        span.points = List.of(steer.at);
+        span.curve = List.of();
+        span.stalled = true;
+        span.teleport = false;
+        return false;
+    }
+
+    private boolean landable(PathPoint point) {
+        return inBounds(point) && !isDeadzone(point);
+    }
+
+    private PathPoint pulledShort(PathPoint from, PathPoint wanted) {
+        PathPoint run = wanted.minus(from);
+        double length = run.length();
+        if (length <= SHORT_PULL_STEP) return from;
+
+        PathPoint direction = run.normalised();
+        for (double reach = length - SHORT_PULL_STEP; reach > 0.0; reach -= SHORT_PULL_STEP) {
+            PathPoint candidate = from.plus(direction.scale(reach));
+            if (landable(candidate)) return candidate;
+        }
+        return from;
+    }
+
+    private static boolean follows(Span span) {
+        return span.lure || span.points.size() < 2;
     }
 
     public List<PathPoint> teleportFlight(double x, double y, ItemStack stack) {
@@ -926,18 +1099,24 @@ public class PotionMap {
         return unreachable;
     }
 
-    public static void scramble(long seed) {
+    public static synchronized void scramble(long seed) {
+        if (seeded && seed == builtSeed && builtGeneration == BrewBases.generation()) return;
         currentSeed = seed;
         seeded = true;
         rebuild();
     }
 
-    public static void rebuild() {
+    public static synchronized void rebuild() {
         if (!seeded) return;
-        MAPS.clear();
+        long seed = currentSeed;
+        int generation = BrewBases.generation();
+        Map<String, PotionMap> built = new LinkedHashMap<>();
         for (BrewBase brewBase : BrewBases.values()) {
-            MAPS.put(brewBase.id(), new PotionMap(seedFor(currentSeed, brewBase), brewBase));
+            built.put(brewBase.id(), new PotionMap(seedFor(seed, brewBase), brewBase));
         }
+        MAPS = java.util.Collections.unmodifiableMap(built);
+        builtSeed = seed;
+        builtGeneration = generation;
     }
 
     public static long seedFor(long seed, BrewBase base) {
@@ -949,8 +1128,9 @@ public class PotionMap {
     }
 
     public static PotionMap get(BrewBase base) {
-        PotionMap map = MAPS.get(base.id());
-        return map != null ? map : MAPS.get(BrewBases.defaultBase().id());
+        Map<String, PotionMap> maps = MAPS;
+        PotionMap map = maps.get(base.id());
+        return map != null ? map : maps.get(BrewBases.defaultBase().id());
     }
 
     public static boolean isReady() {
@@ -1044,6 +1224,11 @@ public class PotionMap {
 
         public boolean isPerfect() {
             return perfect;
+        }
+
+        public PotionEffectPosition capped(int maxStrength) {
+            if (strength <= maxStrength) return this;
+            return new PotionEffectPosition(recipe, effect, duration, Math.max(0, maxStrength), potion, false);
         }
     }
 }

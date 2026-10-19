@@ -7,5 +7,6 @@
   ],
   "result": {
     "id": "alchemia:herb_dragon_pepper_seed"
-  }
+  },
+  "show_notification": false
 }

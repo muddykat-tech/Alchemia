@@ -1,0 +1,78 @@
+{
+  "multipart": [
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "alchemia:block/research_desk"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "has_guide": "true"
+      },
+      "apply": {
+        "model": "alchemia:block/research_desk_book"
+      }
+    },
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "model": "alchemia:block/research_desk",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "has_guide": "true"
+      },
+      "apply": {
+        "model": "alchemia:block/research_desk_book",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "model": "alchemia:block/research_desk",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "has_guide": "true"
+      },
+      "apply": {
+        "model": "alchemia:block/research_desk_book",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "model": "alchemia:block/research_desk",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "has_guide": "true"
+      },
+      "apply": {
+        "model": "alchemia:block/research_desk_book",
+        "y": 270
+      }
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "condition": {
+        "type": "minecraft:all_of",
+        "terms": [
+          {
+            "type": "minecraft:survives_explosion"
+          },
+          {
+            "type": "minecraft:inverted",
+            "term": {
+              "type": "minecraft:match_block",
+              "blocks": "alchemia:root_grasping_root_seed",
+              "state": {
+                "age": "3"
+              }
+            }
+          }
+        ]
+      },
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "alchemia:root_grasping_root_seed"
+        }
+      ],
+      "rolls": 1
+    },
+    {
+      "condition": {
+        "type": "minecraft:all_of",
+        "terms": [
+          {
+            "type": "minecraft:survives_explosion"
+          },
+          {
+            "type": "minecraft:match_block",
+            "blocks": "alchemia:root_grasping_root_seed",
+            "state": {
+              "age": "3"
+            }
+          }
+        ]
+      },
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "modifier": {
+            "type": "minecraft:set_count",
+            "count": {
+              "type": "minecraft:uniform",
+              "max": 4,
+              "min": 2
+            }
+          },
+          "name": "alchemia:root_grasping_root"
+        }
+      ],
+      "rolls": 1
+    }
+  ],
+  "random_sequence": "alchemia:blocks/root_grasping_root_seed"
+}

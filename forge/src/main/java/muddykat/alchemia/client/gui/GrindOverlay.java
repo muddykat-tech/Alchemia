@@ -4,6 +4,9 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.Util;
 import muddykat.alchemia.common.items.ItemIngredient;
+import muddykat.alchemia.common.potion.BrewBases;
+import muddykat.alchemia.common.potion.PotionMap;
+import muddykat.alchemia.common.potion.VanillaIngredients;
 import muddykat.alchemia.common.items.ItemMortarPestle;
 import muddykat.alchemia.common.items.ItemPathTool;
 import muddykat.alchemia.common.items.helper.IngredientPath;
@@ -41,6 +44,7 @@ public class GrindOverlay {
     private static float alpha = 0.0F;
     private static long lastFrame = 0L;
     private static Ingredients cached;
+    private static VanillaIngredients.Drift cachedDrift;
     private static int cachedCrush;
     private static int cachedTrim;
     private static Component cachedName;
@@ -49,7 +53,7 @@ public class GrindOverlay {
     private static int cachedProgressValue;
     private static int cachedUsesLeft;
 
-    private record Shape(Ingredients ingredient, int crush, int trim, int rotation) {
+    private record Shape(Object source, int crush, int trim, int rotation) {
     }
 
     private static Shape shape;
@@ -79,7 +83,11 @@ public class GrindOverlay {
             alpha = Math.max(0.0F, alpha - step / FADE_SECONDS);
         }
 
-        if (alpha <= 0.01F || cached == null) return;
+        if (alpha <= 0.01F || (cached == null && cachedDrift == null)) return;
+        if (cachedDrift != null && cachedDrift.lure()) {
+            drawLure(graphics, alpha);
+            return;
+        }
         draw(graphics, alpha, step);
     }
 
@@ -103,9 +111,17 @@ public class GrindOverlay {
             return false;
         }
 
-        if (target.isEmpty() || !(target.getItem() instanceof ItemIngredient item)) return false;
+        if (target.isEmpty()) return false;
+        if (target.getItem() instanceof ItemIngredient item) {
+            cached = item.getIngredient();
+            cachedDrift = null;
+        } else {
+            VanillaIngredients.Drift drift = VanillaIngredients.driftOf(target);
+            if (drift == null) return false;
+            cached = null;
+            cachedDrift = drift;
+        }
 
-        cached = item.getIngredient();
         cachedCrush = ItemIngredient.crushOf(target);
         cachedTrim = ItemIngredient.trimOf(target);
         cachedRotation = ItemIngredient.rotationOf(target);
@@ -114,15 +130,17 @@ public class GrindOverlay {
     }
 
     private static boolean build() {
-        Shape key = new Shape(cached, cachedCrush, cachedTrim, cachedRotation);
+        Shape key = new Shape(cached != null ? cached : cachedDrift, cachedCrush, cachedTrim, cachedRotation);
         if (key.equals(shape)) return shaped;
 
-        boolean reground = shaped && key.ingredient() == shape.ingredient()
+        boolean reground = shaped && key.source() == shape.source()
                 && key.trim() == shape.trim() && key.rotation() == shape.rotation();
 
         shape = key;
         shaped = false;
         shapePotential = List.of();
+
+        if (cachedDrift != null) return shapeBearing(reground);
 
         Ingredients ingredient = cached;
         IngredientPath path = IngredientPath.of(ingredient);
@@ -152,6 +170,49 @@ public class GrindOverlay {
         return true;
     }
 
+    private static boolean shapeBearing(boolean reground) {
+        if (!PotionMap.isReady()) return false;
+
+        PotionMap map = PotionMap.get(BrewBases.defaultBase());
+        List<PathPoint> full = map.fixedDriftOffsets(cachedDrift.target(), Ingredients.MAX_CRUSH_UNITS);
+        List<PathPoint> current = map.fixedDriftOffsets(cachedDrift.target(), cachedCrush);
+        if (full.size() < 2) return false;
+
+        PathGeometry.Fit fit = PathGeometry.fit(full, BOX_WIDTH, BOX_HEIGHT, true);
+        shapePotential = fit.apply(full);
+        shapeWidth = (int) Math.ceil(fit.width()) + THICKNESS * 2;
+        shapeHeight = (int) Math.ceil(fit.height()) + THICKNESS * 2;
+        shapeStart = fit.apply(PathPoint.ORIGIN);
+        shapeEnding = shapePotential.get(shapePotential.size() - 1);
+        shapeTarget = Math.min(PathGeometry.length(shapePotential), PathGeometry.length(current) * fit.scale());
+        if (!reground) shapeWalked = shapeTarget;
+
+        shaped = true;
+        return true;
+    }
+
+    private static void drawLure(GuiGraphics graphics, float fade) {
+        Minecraft minecraft = Minecraft.getInstance();
+        Component progress = Component.translatable("alchemia.tooltip.grind", cachedCrush, Ingredients.MAX_CRUSH_UNITS);
+        Component pull = Component.translatable("alchemia.gui.queue.lure.strength",
+                String.format(java.util.Locale.ROOT, "%.1f", VanillaIngredients.grindScale(cachedCrush)));
+
+        int textW = Math.max(minecraft.font.width(cachedName), Math.max(minecraft.font.width(progress), minecraft.font.width(pull)));
+        int panelW = textW + PADDING * 2;
+        int panelH = 30 + PADDING * 2;
+        int panelX = (graphics.guiWidth() - panelW) / 2;
+        int panelY = graphics.guiHeight() * TOP_MARGIN_PERCENT / 100;
+
+        AlchemiaSprites.GRIND_PANEL.blit(graphics, panelX, panelY, panelW, panelH, shade(0xFFFFFF, fade));
+
+        int y = panelY + PADDING;
+        for (Component line : List.of(cachedName, progress, pull)) {
+            graphics.drawString(minecraft.font, line, panelX + (panelW - minecraft.font.width(line)) / 2, y,
+                    shade(line == cachedName ? LABEL_INK_RGB : LABEL_FAINT_RGB, fade), false);
+            y += 10;
+        }
+    }
+
     private static void draw(GuiGraphics graphics, float fade, float step) {
         Minecraft minecraft = Minecraft.getInstance();
         if (!build()) return;
@@ -164,7 +225,7 @@ public class GrindOverlay {
         List<PathPoint> taken = PathGeometry.truncate(shapePotential, shapeWalked);
         List<PathPoint> remaining = PathGeometry.tail(shapePotential, shapeWalked);
 
-        boolean teleport = IngredientPath.of(cached).teleports();
+        boolean teleport = cached != null && IngredientPath.of(cached).teleports();
 
         Component progress = cachedProgressKey != null
                 ? Component.translatable(cachedProgressKey, cachedProgressValue, cachedUsesLeft)

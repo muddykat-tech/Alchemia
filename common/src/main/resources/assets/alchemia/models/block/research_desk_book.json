@@ -1,0 +1,54 @@
+{
+  "ambientocclusion": false,
+  "textures": {
+    "particle": "alchemia:block/research_desk/book",
+    "book": "alchemia:block/research_desk/book",
+    "pages": "alchemia:block/guide/tome_pages"
+  },
+  "elements": [
+    {
+      "from": [
+        2.5,
+        15,
+        6.5
+      ],
+      "to": [
+        13.5,
+        15.75,
+        14.5
+      ],
+      "faces": {
+        "up": {
+          "texture": "#book",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "north": {
+          "texture": "#pages"
+        },
+        "south": {
+          "texture": "#pages"
+        },
+        "east": {
+          "texture": "#pages"
+        },
+        "west": {
+          "texture": "#pages"
+        }
+      },
+      "rotation": {
+        "origin": [
+          8,
+          14,
+          6
+        ],
+        "axis": "x",
+        "angle": -22.5
+      }
+    }
+  ]
+}

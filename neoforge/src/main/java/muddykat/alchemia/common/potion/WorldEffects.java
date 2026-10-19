@@ -20,10 +20,13 @@ import net.minecraft.world.level.MoonPhase;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -37,6 +40,9 @@ public final class WorldEffects {
     private static final String BELOW_PREFIX = "below:";
     private static final String MOONLIGHT_PREFIX = "moonlight:";
     private static final char LEVEL_MARK = '@';
+    private static final String HINT_PREFIX = "alchemia.world_effect.";
+    private static final String GUIDE_PREFIX = "alchemia.guide.world_effect.";
+    private static final String NOUN_PREFIX = "alchemia.world_effect.noun.";
 
     public enum Rule {
         RAIN,
@@ -52,6 +58,10 @@ public final class WorldEffects {
         BIOME
     }
 
+    public record Imbued(List<Holder<Biome>> biomes, boolean high, boolean low) {
+        public static final Imbued NONE = new Imbued(List.of(), false, false);
+    }
+
     public record Condition(Rule rule, List<ResourceKey<Biome>> biomes, List<TagKey<Biome>> tags, double value) {
 
         static Condition of(Rule rule) {
@@ -63,6 +73,10 @@ public final class WorldEffects {
         }
 
         public boolean holds(Level level, BlockPos pos) {
+            return holds(level, pos, Imbued.NONE);
+        }
+
+        public boolean holds(Level level, BlockPos pos, Imbued attuned) {
             return switch (rule) {
                 case RAIN -> level.isRaining();
                 case THUNDER -> level.isThundering();
@@ -73,14 +87,13 @@ public final class WorldEffects {
                 case NEW_MOON -> level.isDarkOutside() && moon(level, pos) == MoonPhase.NEW_MOON;
                 case MOONLIGHT -> level.isDarkOutside()
                         && DimensionType.MOON_BRIGHTNESS_PER_PHASE[moon(level, pos).index()] >= value - 1.0E-4;
-                case ABOVE -> pos.getY() >= value;
-                case BELOW -> pos.getY() <= value;
-                case BIOME -> inBiome(level, pos);
+                case ABOVE -> pos.getY() >= value || attuned.high();
+                case BELOW -> pos.getY() <= value || attuned.low();
+                case BIOME -> inBiome(level.getBiome(pos)) || attuned.biomes().stream().anyMatch(this::inBiome);
             };
         }
 
-        private boolean inBiome(Level level, BlockPos pos) {
-            Holder<Biome> biome = level.getBiome(pos);
+        private boolean inBiome(Holder<Biome> biome) {
             for (TagKey<Biome> tag : tags) {
                 if (biome.is(tag)) return true;
             }
@@ -90,16 +103,31 @@ public final class WorldEffects {
             return false;
         }
 
+        public Component guide() {
+            return phrase(GUIDE_PREFIX);
+        }
+
+        public String noun() {
+            return switch (rule) {
+                case FULL_MOON, NEW_MOON, MOONLIGHT -> "moon";
+                default -> rule.name().toLowerCase(Locale.ROOT);
+            };
+        }
+
         public Component hint() {
+            return phrase(HINT_PREFIX);
+        }
+
+        private Component phrase(String prefix) {
             if (rule == Rule.ABOVE || rule == Rule.BELOW) {
-                return Component.translatable("alchemia.world_effect." + rule.name().toLowerCase(Locale.ROOT), (int) value);
+                return Component.translatable(prefix + rule.name().toLowerCase(Locale.ROOT), (int) value);
             }
             if (rule == Rule.MOONLIGHT) {
-                if (value >= 1.0) return Component.translatable("alchemia.world_effect.full_moon");
-                if (Math.abs(value - 0.5) < 1.0E-4) return Component.translatable("alchemia.world_effect.half_moon");
-                return Component.translatable("alchemia.world_effect.moonlight", (int) Math.round(value * 100));
+                if (value >= 1.0) return Component.translatable(prefix + "full_moon");
+                if (Math.abs(value - 0.5) < 1.0E-4) return Component.translatable(prefix + "half_moon");
+                return Component.translatable(prefix + "moonlight", (int) Math.round(value * 100));
             }
-            if (rule != Rule.BIOME) return Component.translatable("alchemia.world_effect." + rule.name().toLowerCase(Locale.ROOT));
+            if (rule != Rule.BIOME) return Component.translatable(prefix + rule.name().toLowerCase(Locale.ROOT));
 
             List<Component> names = new ArrayList<>();
             for (TagKey<Biome> tag : tags) names.add(tagName(tag.location()));
@@ -111,15 +139,19 @@ public final class WorldEffects {
             for (int index = 1; index < names.size(); index++) {
                 joined = Component.translatable("alchemia.world_effect.either", joined, names.get(index));
             }
-            return Component.translatable("alchemia.world_effect.biome", joined);
+            return Component.translatable(prefix + "biome", joined);
         }
     }
 
     public record Requirement(List<Condition> conditions) {
 
         public boolean holds(Level level, BlockPos pos) {
+            return holds(level, pos, Imbued.NONE);
+        }
+
+        public boolean holds(Level level, BlockPos pos, Imbued attuned) {
             for (Condition condition : conditions) {
-                if (!condition.holds(level, pos)) return false;
+                if (!condition.holds(level, pos, attuned)) return false;
             }
             return true;
         }
@@ -131,13 +163,21 @@ public final class WorldEffects {
             }
             return joined;
         }
+
+        public Component guide() {
+            Component joined = conditions.get(0).guide();
+            for (int index = 1; index < conditions.size(); index++) {
+                joined = Component.translatable(GUIDE_PREFIX + "and", joined, conditions.get(index).guide());
+            }
+            return joined;
+        }
     }
 
     public record Rules(Requirement wake, TreeMap<Integer, Requirement> levels) {
 
-        public int cap(Level level, BlockPos pos) {
+        public int cap(Level level, BlockPos pos, Imbued attuned) {
             for (Map.Entry<Integer, Requirement> tier : levels.entrySet()) {
-                if (!tier.getValue().holds(level, pos)) return tier.getKey() - 1;
+                if (!tier.getValue().holds(level, pos, attuned)) return tier.getKey() - 1;
             }
             return Integer.MAX_VALUE;
         }
@@ -300,13 +340,58 @@ public final class WorldEffects {
     }
 
     public static boolean dormant(PotionEnum recipe, Level level, BlockPos pos) {
+        return dormant(recipe, level, pos, Imbued.NONE);
+    }
+
+    public static boolean dormant(PotionEnum recipe, Level level, BlockPos pos, Imbued attuned) {
         Requirement requirement = requirement(recipe);
-        return requirement != null && level != null && !requirement.holds(level, pos);
+        return requirement != null && level != null && !requirement.holds(level, pos, attuned);
     }
 
     public static int levelCap(PotionEnum recipe, Level level, BlockPos pos) {
+        return levelCap(recipe, level, pos, Imbued.NONE);
+    }
+
+    public static int levelCap(PotionEnum recipe, Level level, BlockPos pos, Imbued attuned) {
         Rules found = rules(recipe);
-        return found == null || level == null ? Integer.MAX_VALUE : found.cap(level, pos);
+        return found == null || level == null ? Integer.MAX_VALUE : found.cap(level, pos, attuned);
+    }
+
+    private static final List<Rule> SHIFT_PRIORITY = List.of(Rule.FULL_MOON, Rule.NEW_MOON, Rule.MOONLIGHT,
+            Rule.THUNDER, Rule.RAIN, Rule.CLEAR, Rule.NIGHT, Rule.DAY);
+
+    public static Set<Condition> holding(PotionEnum recipe, Level level, BlockPos pos) {
+        return holding(recipe, level, pos, Imbued.NONE);
+    }
+
+    public static Set<Condition> holding(PotionEnum recipe, Level level, BlockPos pos, Imbued attuned) {
+        Set<Condition> holding = new HashSet<>();
+        Rules found = rules(recipe);
+        if (found == null || level == null) return holding;
+
+        List<Requirement> requirements = new ArrayList<>(found.levels().values());
+        if (found.wake() != null) requirements.add(found.wake());
+        for (Requirement requirement : requirements) {
+            for (Condition condition : requirement.conditions()) {
+                if (condition.holds(level, pos, attuned)) holding.add(condition);
+            }
+        }
+        return holding;
+    }
+
+    public static @Nullable Rule shifted(Set<Condition> before, Set<Condition> after) {
+        Set<Rule> flipped = EnumSet.noneOf(Rule.class);
+        for (Condition condition : before) {
+            if (!after.contains(condition)) flipped.add(condition.rule());
+        }
+        for (Condition condition : after) {
+            if (!before.contains(condition)) flipped.add(condition.rule());
+        }
+
+        for (Rule rule : SHIFT_PRIORITY) {
+            if (flipped.contains(rule)) return rule;
+        }
+        return flipped.isEmpty() ? null : flipped.iterator().next();
     }
 
     public static Component levelHint(PotionEnum recipe, int tier) {
@@ -326,40 +411,154 @@ public final class WorldEffects {
         return hints;
     }
 
-    public static Set<PotionEnum> notedIn(ItemStack guide) {
-        Set<PotionEnum> noted = EnumSet.noneOf(PotionEnum.class);
-        for (String name : guide.getOrDefault(DataComponentRegistry.NOTED_EFFECTS.get(), List.<String>of())) {
-            PotionEnum recipe = RecipeDiscovery.byName(name);
-            if (recipe != null) noted.add(recipe);
-        }
-        return noted;
+    public static Set<String> notesIn(ItemStack guide) {
+        return new HashSet<>(guide.getOrDefault(DataComponentRegistry.NOTED_EFFECTS.get(), List.<String>of()));
     }
 
-    public static Set<PotionEnum> notedBy(Player player) {
-        Set<PotionEnum> noted = EnumSet.noneOf(PotionEnum.class);
-        if (player == null) return noted;
+    public static Set<String> notesOf(Player player) {
+        Set<String> notes = new HashSet<>();
+        if (player == null) return notes;
 
         Inventory inventory = player.getInventory();
         for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
             ItemStack stack = inventory.getItem(slot);
-            if (stack.getItem() instanceof ItemAlchemiaGuide) noted.addAll(notedIn(stack));
+            if (stack.getItem() instanceof ItemAlchemiaGuide) notes.addAll(notesIn(stack));
         }
-        return noted;
+        return notes;
+    }
+
+    private static String tierMark(PotionEnum recipe, int tier) {
+        return recipe.name() + LEVEL_MARK + tier;
+    }
+
+    public static boolean wakeVisible(Set<String> notes, PotionEnum recipe) {
+        return recipe != null && requirement(recipe) != null && notes.contains(recipe.name());
+    }
+
+    public static boolean tierVisible(Set<String> notes, PotionEnum recipe, int tier) {
+        return recipe != null && notes.contains(tierMark(recipe, tier));
+    }
+
+    public static boolean anyVisible(Set<String> notes, PotionEnum recipe) {
+        if (wakeVisible(notes, recipe)) return true;
+
+        Rules found = rules(recipe);
+        if (found == null) return false;
+        for (int tier : found.levels().keySet()) {
+            if (tierVisible(notes, recipe, tier)) return true;
+        }
+        return false;
+    }
+
+    public static List<Component> guideLines(Set<String> notes, PotionEnum recipe) {
+        List<Component> lines = new ArrayList<>();
+        Rules found = rules(recipe);
+        if (found == null) return lines;
+
+        if (wakeVisible(notes, recipe)) {
+            lines.add(Component.translatable(GUIDE_PREFIX + "wake", found.wake().guide()));
+        }
+        for (Map.Entry<Integer, Requirement> tier : found.levels().entrySet()) {
+            if (!tierVisible(notes, recipe, tier.getKey())) continue;
+            lines.add(Component.translatable(GUIDE_PREFIX + "tier",
+                    Component.translatable("enchantment.level." + tier.getKey()), tier.getValue().guide()));
+        }
+        return lines;
+    }
+
+    public static @Nullable Component newsOf(Set<String> before, Set<String> after) {
+        Set<String> nouns = new java.util.LinkedHashSet<>();
+        for (String mark : after) {
+            if (before.contains(mark)) continue;
+
+            Requirement requirement = requirementFor(mark);
+            if (requirement == null) continue;
+            for (Condition condition : requirement.conditions()) nouns.add(condition.noun());
+        }
+        if (nouns.isEmpty()) return null;
+
+        Component joined = null;
+        for (String noun : nouns) {
+            Component part = Component.translatable(NOUN_PREFIX + noun);
+            joined = joined == null ? part : Component.translatable(GUIDE_PREFIX + "and", joined, part);
+        }
+        return joined;
+    }
+
+    public static Set<String> allMarks() {
+        Set<String> marks = new HashSet<>();
+        for (Map.Entry<PotionEnum, Rules> entry : rules().entrySet()) {
+            if (entry.getValue().wake() != null) marks.add(entry.getKey().name());
+            for (int tier : entry.getValue().levels().keySet()) marks.add(tierMark(entry.getKey(), tier));
+        }
+        return marks;
+    }
+
+    public static @Nullable PotionEnum recipeOfMark(String mark) {
+        int split = mark.lastIndexOf(LEVEL_MARK);
+        return requirementFor(mark) == null ? null : RecipeDiscovery.byName(split < 0 ? mark : mark.substring(0, split));
+    }
+
+    private static @Nullable Requirement requirementFor(String mark) {
+        int split = mark.lastIndexOf(LEVEL_MARK);
+        PotionEnum recipe = RecipeDiscovery.byName(split < 0 ? mark : mark.substring(0, split));
+        Rules found = rules(recipe);
+        if (found == null) return null;
+        if (split < 0) return found.wake();
+
+        try {
+            return found.levels().get(Integer.parseInt(mark.substring(split + 1)));
+        } catch (NumberFormatException error) {
+            return null;
+        }
     }
 
     public static boolean note(Player player, PotionEnum recipe) {
-        if (player == null || !conditional(recipe)) return false;
+        return player != null && note(RecipeDiscovery.guidesOf(player), recipe);
+    }
+
+    public static boolean note(Iterable<ItemStack> guides, PotionEnum recipe) {
+        if (requirement(recipe) == null) return false;
+        return addNotes(guides, List.of(recipe.name()));
+    }
+
+    public static boolean reveal(Player player, PotionEnum recipe, int brewedLevel) {
+        return player != null && reveal(RecipeDiscovery.guidesOf(player), recipe, brewedLevel);
+    }
+
+    public static boolean reveal(Iterable<ItemStack> guides, PotionEnum recipe, int brewedLevel) {
+        Rules found = rules(recipe);
+        if (found == null) return false;
+
+        List<String> marks = new ArrayList<>();
+        for (int tier : found.levels().keySet()) {
+            if (tier <= brewedLevel + 1) marks.add(tierMark(recipe, tier));
+        }
+        return addNotes(guides, marks);
+    }
+
+    public static boolean learnNotes(ItemStack guide, Collection<String> marks) {
+        List<String> valid = new ArrayList<>();
+        for (String mark : marks) {
+            if (requirementFor(mark) != null) valid.add(mark);
+        }
+        return addNotes(List.of(guide), valid);
+    }
+
+    private static boolean addNotes(Iterable<ItemStack> guides, List<String> marks) {
+        if (marks.isEmpty()) return false;
 
         boolean changed = false;
-        Inventory inventory = player.getInventory();
-        for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
-            ItemStack stack = inventory.getItem(slot);
-            if (!(stack.getItem() instanceof ItemAlchemiaGuide)) continue;
-
+        for (ItemStack stack : guides) {
             List<String> names = new ArrayList<>(stack.getOrDefault(DataComponentRegistry.NOTED_EFFECTS.get(), List.<String>of()));
-            if (names.contains(recipe.name())) continue;
+            boolean grew = false;
+            for (String mark : marks) {
+                if (names.contains(mark)) continue;
+                names.add(mark);
+                grew = true;
+            }
+            if (!grew) continue;
 
-            names.add(recipe.name());
             names.sort(null);
             stack.set(DataComponentRegistry.NOTED_EFFECTS.get(), List.copyOf(names));
             changed = true;

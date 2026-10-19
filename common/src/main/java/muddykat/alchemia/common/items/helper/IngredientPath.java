@@ -14,17 +14,22 @@ public enum IngredientPath {
     CURVED(0.0),
     TELEPORT(0.0),
     SPIRAL_TELEPORT(0.0),
-    SERPENT_TELEPORT(0.0);
+    SERPENT_TELEPORT(0.0),
+    SAWTOOTH_TELEPORT(0.0),
+    STEPPED_TELEPORT(0.0),
+    RIPPLE_TELEPORT(0.0);
 
     public static final double BASE_LENGTH = 5.0 * PathGeometry.CELL;
     public static final double LENGTH_PER_POTENCY = 2.0 * PathGeometry.CELL;
     public static final double TRIM_STEP = PathGeometry.CELL;
 
     private static final Map<Ingredients, IngredientPath> OVERRIDES = Map.of(
-            Ingredients.Flameweed, WAVE,
             Ingredients.Rainbow_Cap, SPIRAL,
             Ingredients.Fable_Bismuth, SPIRAL_TELEPORT,
-            Ingredients.Cloud_Crystal, SERPENT_TELEPORT
+            Ingredients.Cloud_Crystal, SERPENT_TELEPORT,
+            Ingredients.Frost_Sapphire, SAWTOOTH_TELEPORT,
+            Ingredients.Earth_Pyrite, STEPPED_TELEPORT,
+            Ingredients.Fire_Citrine, RIPPLE_TELEPORT
     );
 
     private final double amplitude;
@@ -34,12 +39,7 @@ public enum IngredientPath {
     }
 
     private static final Map<Ingredients, int[][]> SCRIPTS = Map.of(
-            Ingredients.Featherbloom, new int[][]{{0, -3}, {1, -5}, {1, -8}, {0, -10}, {0, -11}},
-            Ingredients.Fluffbloom, new int[][]{{-2, -2}, {-4, -4}, {-5, -6},
-                    {-7, -8}, {-6, -10}, {-4, -11}, {-2, -10}, {-2, -8}, {-4, -7},
-                    {-3, -10}, {-2, -13}, {-1, -16}},
-            Ingredients.Boombloom, new int[][]{{-1, 0}, {-1, -3}, {2, 0}, {0, 0}, {7, 7}},
-            Ingredients.Coldleaf, new int[][]{{2, 1}, {4, 3}, {6, 3}, {7, 2}, {8, 1}}
+            Ingredients.Featherbloom, new int[][]{{0, -3}, {1, -5}, {1, -8}, {0, -10}, {0, -11}}
     );
 
     private record Curve(List<PathPoint> points, double baseLength) {
@@ -47,10 +47,6 @@ public enum IngredientPath {
 
     private static List<PathPoint> arc(DoubleFunction<PathPoint> curve, double from, double to, int samples) {
         return PathGeometry.scale(PathGeometry.sample(curve, from, to, samples), PathGeometry.CELL);
-    }
-
-    private static DoubleFunction<PathPoint> line(double angle) {
-        return t -> PathPoint.polar(angle, t);
     }
 
     private static DoubleFunction<PathPoint> ellipse(double centreX, double centreY, double width, double height) {
@@ -113,21 +109,12 @@ public enum IngredientPath {
         return marked(PathGeometry.spline(waypoints), waypoints.get(mark));
     }
 
+    private static Curve angled(double[][] route, int mark) {
+        List<PathPoint> waypoints = corners(route);
+        return marked(straights(waypoints), waypoints.get(mark));
+    }
+
     private static final int CURVE_SAMPLES_PER_TURN = 120;
-    private static final double TANGLE_RADIUS = 2.5;
-    private static final double TANGLE_DRIFT = 0.8;
-
-    private static DoubleFunction<PathPoint> tangleLoop() {
-        return t -> new PathPoint(
-                TANGLE_DRIFT * t + TANGLE_RADIUS * Math.sin(t),
-                TANGLE_RADIUS * (Math.cos(t) - 1));
-    }
-
-    private static Curve tangleweedLoops() {
-        return curve(
-                arc(tangleLoop(), 0, 2 * Math.PI, CURVE_SAMPLES_PER_TURN),
-                arc(tangleLoop(), 2 * Math.PI, 4 * Math.PI, CURVE_SAMPLES_PER_TURN));
-    }
 
     private static final double GOLDTHORN_DROP = 5.0;
 
@@ -168,16 +155,6 @@ public enum IngredientPath {
     private static Curve icefruitSpike() {
         List<PathPoint> waypoints = corners(ICEFRUIT_ROUTE);
         return marked(straights(waypoints), waypoints.get(ICEFRUIT_MARK));
-    }
-
-    private static final double THORNSTICK_BASE_LENGTH = 5.0;
-    private static final double THORNSTICK_LENGTH = 12.0;
-
-    private static Curve thornstickRun() {
-        DoubleFunction<PathPoint> run = line(Math.atan2(1, -2));
-        return curve(
-                arc(run, 0, THORNSTICK_BASE_LENGTH, 20),
-                arc(run, THORNSTICK_BASE_LENGTH, THORNSTICK_LENGTH, 28));
     }
 
     private static final double PEPPER_WIDTH = 6.0;
@@ -241,12 +218,180 @@ public enum IngredientPath {
                 base.get(base.size() - 1));
     }
 
+    private static final double[][] WATERBLOOM_ROUTE = {
+            {0, 0}, {0.9, 0.4}, {2.1, -0.3}, {3.2, -1.3}, {5.5, -0.6}, {7.4, 0.5}, {8.6, -0.5}, {9.7, -1.5},
+            {10.9, -1.5}, {11.7, -0.7}
+    };
+    private static final int WATERBLOOM_MARK = 4;
+
+    private static final double[][] TANGLEWEED_ROUTE = {
+            {0, 0}, {1.4, 0.5}, {2.4, 0.5}, {3.2, 0.4}, {3.7, 0.1}, {4.3, -0.6}, {4.3, -1.7}, {3.6, -2.3},
+            {2.6, -2.1}, {2.1, -1.3}, {2.2, -0.2}, {2.6, 0.5}, {3.1, 0.9}, {3.9, 1}, {5, 0.7}, {5.8, 0.1}, {6.5, -1},
+            {7.2, -2}, {8, -2.6}, {9.2, -2.8}, {10.3, -2.5}, {10.9, -1.4}, {10.8, -0.2}, {9.9, 0.5}, {8.9, 0.3},
+            {8.4, -0.8}, {8.8, -1.8}, {9.9, -2.3}, {11.4, -2.4}, {12.4, -2.1}, {13.1, -1.6}
+    };
+    private static final int TANGLEWEED_MARK = 16;
+
+    private static final double[][] COLDLEAF_ROUTE = {
+            {0, 0}, {0.6, 0.9}, {1.4, 1.6}, {3.1, 2.5}, {5.5, 3.2}, {7.8, 3.3}, {10.1, 3.2}, {12.3, 2.6},
+            {13.5, 1.6}, {14.2, 0.9}
+    };
+    private static final int COLDLEAF_MARK = 3;
+
+    private static final double[][] SPELLBLOOM_ROUTE = {
+            {0, 0}, {1.4, -0.6}, {3, -2.3}, {4.2, -4.2}, {5, -6}, {5.9, -7.9}, {7, -9.4}, {8.2, -10.5}, {9.7, -11.1},
+            {10.4, -11.3}
+    };
+    private static final int SPELLBLOOM_MARK = 2;
+
+    private static final double[][] LIFELEAF_ROUTE = {
+            {0, 0}, {1.3, 0.1}, {2.5, 0.5}, {3.4, 1.4}, {3.7, 2.7}, {3.2, 4.1}, {2.8, 5.4}, {2.8, 6.6}, {3.4, 7.6},
+            {4.5, 8.2}, {5.8, 8.3}, {6.6, 8.1}
+    };
+    private static final int LIFELEAF_MARK = 5;
+
+    private static final double[][] HEALERS_HEATHER_ROUTE = {
+            {0, 0}, {1.3, 0.5}, {2.7, 1.3}, {4.5, 2.8}, {6.5, 4.7}, {7.8, 7}, {8.8, 9.4}, {9.2, 11.3}, {9.3, 12}
+    };
+    private static final int HEALERS_HEATHER_MARK = 2;
+
+    private static final double[][] EVERGREEN_FERN_ROUTE = {
+            {0, 0}, {0.9, -0.2}, {2.1, -0.1}, {3.2, 0.2}, {3.8, 0.4}, {4.9, 1.1}, {5.8, 1.8}, {6.5, 2.9}, {6.8, 3.9},
+            {6.7, 5}, {6.3, 5.9}, {5.6, 6.7}, {4.7, 7.3}, {3.5, 7.4}, {2.4, 7.2}, {1.5, 6.6}, {1, 5.8}, {0.9, 4.7},
+            {1.1, 3.7}, {1.7, 3}, {2.5, 2.6}, {3.5, 2.6}, {4.4, 3}, {4.7, 3.8}, {4.6, 4.7}, {4, 5.2}, {3.3, 5.2},
+            {2.9, 4.8}, {3, 4.3}, {3.2, 4}
+    };
+    private static final int EVERGREEN_FERN_MARK = 3;
+
+    private static final double[][] THUNDER_THISTLE_ROUTE = {
+            {0, 0}, {4.8, -3.9}, {-0.3, -3.9}, {4.7, -8.2}
+    };
+    private static final int THUNDER_THISTLE_MARK = 1;
+
+    private static final double[][] FLUFFBLOOM_ROUTE = {
+            {0, 0}, {-1.2, -0.3}, {-2.2, -1.1}, {-2.9, -2.3}, {-3.1, -3.8}, {-2.9, -4.9}, {-2, -6}, {-1.5, -6.5},
+            {-0.6, -7.1}, {0.3, -7.3}, {1.6, -7.2}, {2.9, -6.7}, {3.8, -5.7}, {4.2, -4.3}, {3.9, -3}, {3.2, -2.1},
+            {2, -1.6}, {0.9, -1.4}, {-0.3, -1.8}, {-1.1, -2.5}, {-1.6, -3.5}, {-1.5, -4.7}, {-1.3, -5.9},
+            {-0.8, -7.1}, {-0.6, -8.5}, {-0.5, -9.8}, {-0.4, -10.7}
+    };
+    private static final int FLUFFBLOOM_MARK = 6;
+
+    private static final double[][] TERRORBUD_ROUTE = {
+            {0, 0}, {-0.3, 1}, {-1, 1.8}, {-2.2, 2.5}, {-3.6, 3}, {-4.6, 2.5}, {-5.4, 1.6}, {-6, 0.3}, {-6.2, -1.4},
+            {-6.1, -3}, {-5.8, -4.6}, {-5.5, -5.7}, {-5.1, -6}, {-4.7, -5.6}, {-4.2, -4.6}, {-3.8, -3.8}
+    };
+    private static final int TERRORBUD_MARK = 4;
+
+    private static final double[][] FIREBELL_ROUTE = {
+            {0, 0}, {-2.6, -2.1}, {-6.3, 0.7}, {-9.8, -2.1}, {-12.6, 0.2}
+    };
+    private static final int FIREBELL_MARK = 2;
+
+    private static final double[][] FLAMEWEED_ROUTE = {
+            {0, 0}, {-0.8, 0.3}, {-1.8, 0.5}, {-3.3, -0.1}, {-4.2, -0.8}, {-5.3, -0.2}, {-6.4, 0.5}, {-7.3, -0.1},
+            {-8.2, -0.8}, {-9.4, -0.1}, {-10.5, 0.7}, {-11.4, 0}, {-12.3, -0.8}, {-13.2, -0.3}, {-14.2, 0.5},
+            {-15.1, 0.1}
+    };
+    private static final int FLAMEWEED_MARK = 3;
+
+    private static final double[][] THORNSTICK_ROUTE = {
+            {0, 0}, {-3, 2.2}, {-9.8, 7.4}, {-7.7, 4.2}
+    };
+    private static final int THORNSTICK_MARK = 1;
+
+    private static final double[][] SULPHUR_SHELF_ROUTE = {
+            {0, 0}, {0.4, 0.5}, {-0.5, 1.1}, {-1.5, 1.2}, {-2.4, 1.2}, {-3.1, 0.7}, {-2.9, -0.1}, {-2.2, -0.7},
+            {-1.8, -1.5}, {-2.7, -2}, {-3.6, -2.1}, {-4.5, -2}, {-5.4, -1.6}, {-5.3, -0.8}, {-4.5, -0.1},
+            {-4.1, 0.5}, {-4.8, 1.1}, {-6, 1.2}, {-6.7, 1.1}, {-7.6, 0.8}, {-7.6, -0.1}, {-6.9, -0.7}, {-6.3, -1.5},
+            {-7, -2}, {-7.9, -2.1}, {-9, -2.1}, {-9.8, -1.7}, {-9.9, -0.9}, {-9.1, -0.2}, {-8.6, 0.5}, {-9.2, 1},
+            {-10.2, 1.2}, {-11.1, 1.2}, {-12, 0.9}, {-12.1, 0.1}, {-11.8, -0.3}
+    };
+    private static final int SULPHUR_SHELF_MARK = 17;
+
+    private static final double[][] WITCH_MUSHROOM_ROUTE = {
+            {0, 0}, {0.2, -1.2}, {0.8, -2.5}, {1.8, -3.5}, {3.1, -4.1}, {4.3, -4.5}, {5.3, -4.7}, {7.1, -5.1},
+            {8.3, -5.5}, {9.4, -6.3}, {10.2, -7.6}, {10.6, -8.9}, {10.7, -9.7}
+    };
+    private static final int WITCH_MUSHROOM_MARK = 6;
+
+    private static final double[][] MAGMA_MOREL_ROUTE = {
+            {0, 0}, {-0.8, -0.6}, {-2.8, -1.2}, {-4.4, -1.4}, {-6.1, -1.4}, {-8.2, -1.1}, {-10.4, -0.5},
+            {-12.5, 0.3}, {-14.1, 1}, {-15.1, 1.7}
+    };
+    private static final int MAGMA_MOREL_MARK = 2;
+
+    private static final double[][] DREAMBEET_ROUTE = {
+            {0, 0}, {0.2, 0.8}, {0.8, 1.6}, {1.8, 2.1}, {3, 2.3}, {4.3, 2}, {5.1, 1.2}, {5.7, 0.2}, {6, -0.9},
+            {5.8, -2.1}, {5.3, -3.1}, {4.3, -3.7}, {3.2, -3.8}, {3.2, -4.7}, {3.4, -5.6}, {3.9, -6.4}, {4.6, -7.1},
+            {5.4, -7.6}, {6.4, -7.8}, {7.1, -8}
+    };
+    private static final int DREAMBEET_MARK = 12;
+
+    private static final double[][] GRASPING_ROOT_ROUTE = {
+            {0, 0}, {-0.3, -0.9}, {-1.2, -1.9}, {-2.5, -2.5}, {-3.6, -2.6}, {-4.6, -2.7}, {-6.0, -2.7}, {-6.8, -2.9},
+            {-7.7, -3.3}, {-8.3, -3.9}, {-8.8, -4.8}, {-8.9, -5.8}, {-8.7, -6.8}, {-8.2, -7.6}, {-7.3, -8.2},
+            {-6.3, -8.4}, {-5.3, -8.2}, {-4.5, -7.5}, {-4.2, -6.6}, {-4.4, -5.7}
+    };
+    private static final int GRASPING_ROOT_MARK = 6;
+
+    private static final double[][] WHIRLWEED_ROUTE = {
+            {0, 0}, {0.4, -0.2}, {0.8, -0.6}, {1, -1.1}, {0.7, -1.9}, {0, -2.4}, {-1, -2.7}, {-1.8, -3.5},
+            {-1.9, -4.5}, {-1.7, -5.4}, {-1.2, -6}, {-0.7, -6.2}, {-0.2, -6.2}, {0.3, -6}, {0.7, -5.6}, {1, -5.1},
+            {1, -4.6}, {0.6, -4.1}, {0.2, -3.8}, {-0.3, -3.7}, {-0.8, -3.8}, {-1.3, -4.2}, {-1.5, -4.8},
+            {-1.3, -5.6}, {-1.1, -6.2}, {-0.9, -6.7}, {-0.6, -7.2}, {-0.3, -7.7}, {0.1, -8.1}, {0.3, -8.6},
+            {0.2, -9.1}, {-0.1, -9.3}
+    };
+    private static final int WHIRLWEED_MARK = 4;
+
+    private static final double[][] MARSHROOM_ROUTE = {
+            {0, 0}, {0.7, 0.2}, {1.2, 1.0}, {1.1, 2.0}, {0.7, 2.9}, {0.1, 3.8}, {-0.6, 4.5}, {-1.4, 5.3}, {-2.6, 6.5},
+            {-4.3, 7.7}, {-6.1, 8.6}, {-7.1, 8.7}, {-8.0, 8.3}, {-8.4, 7.7}, {-8.5, 7.1}
+    };
+    private static final int MARSHROOM_MARK = 6;
+
+    private static final double[][] BOOMBLOOM_RISE = {
+            {0, 0}, {-1.1, -4.4}
+    };
+
+    private static final double[][] BOOMBLOOM_CURL = {
+            {-1.1, -4.4}, {-1.1, -3.3}, {-1.2, -2.4}, {-1.6, -1.6}, {-2.2, -1.2}, {-3, -1}, {-4.3, -1}
+    };
+
+    private static final double[][] BOOMBLOOM_LAUNCH = {
+            {-4.3, -1}, {0, 0}, {-9.5, -9.3}
+    };
+
+    private static Curve boombloomFuse() {
+        List<PathPoint> rise = corners(BOOMBLOOM_RISE);
+        return marked(joined(straights(rise), PathGeometry.spline(corners(BOOMBLOOM_CURL)),
+                straights(corners(BOOMBLOOM_LAUNCH))), rise.get(rise.size() - 1));
+    }
+
     private static final Map<Ingredients, Curve> CURVES = Map.ofEntries(
-            Map.entry(Ingredients.Tangleweed, tangleweedLoops()),
+            Map.entry(Ingredients.Waterbloom, routed(WATERBLOOM_ROUTE, WATERBLOOM_MARK)),
+            Map.entry(Ingredients.Tangleweed, routed(TANGLEWEED_ROUTE, TANGLEWEED_MARK)),
+            Map.entry(Ingredients.Coldleaf, routed(COLDLEAF_ROUTE, COLDLEAF_MARK)),
+            Map.entry(Ingredients.Spellbloom, routed(SPELLBLOOM_ROUTE, SPELLBLOOM_MARK)),
+            Map.entry(Ingredients.Lifeleaf, routed(LIFELEAF_ROUTE, LIFELEAF_MARK)),
+            Map.entry(Ingredients.Healers_Heather, routed(HEALERS_HEATHER_ROUTE, HEALERS_HEATHER_MARK)),
+            Map.entry(Ingredients.Evergreen_Fern, routed(EVERGREEN_FERN_ROUTE, EVERGREEN_FERN_MARK)),
+            Map.entry(Ingredients.Thunder_Thistle, angled(THUNDER_THISTLE_ROUTE, THUNDER_THISTLE_MARK)),
+            Map.entry(Ingredients.Fluffbloom, routed(FLUFFBLOOM_ROUTE, FLUFFBLOOM_MARK)),
+            Map.entry(Ingredients.Terrorbud, routed(TERRORBUD_ROUTE, TERRORBUD_MARK)),
+            Map.entry(Ingredients.Boombloom, boombloomFuse()),
+            Map.entry(Ingredients.Sulphur_Shelf, routed(SULPHUR_SHELF_ROUTE, SULPHUR_SHELF_MARK)),
+            Map.entry(Ingredients.Witch_Mushroom, routed(WITCH_MUSHROOM_ROUTE, WITCH_MUSHROOM_MARK)),
+            Map.entry(Ingredients.Magma_Morel, routed(MAGMA_MOREL_ROUTE, MAGMA_MOREL_MARK)),
+            Map.entry(Ingredients.Dreambeet, routed(DREAMBEET_ROUTE, DREAMBEET_MARK)),
+            Map.entry(Ingredients.Grasping_Root, routed(GRASPING_ROOT_ROUTE, GRASPING_ROOT_MARK)),
+            Map.entry(Ingredients.Marshroom, routed(MARSHROOM_ROUTE, MARSHROOM_MARK)),
+            Map.entry(Ingredients.Whirlweed, routed(WHIRLWEED_ROUTE, WHIRLWEED_MARK)),
             Map.entry(Ingredients.Goldthorn, goldthornSpiral()),
             Map.entry(Ingredients.Goodberry, goodberryDiagonal()),
             Map.entry(Ingredients.Icefruit, icefruitSpike()),
-            Map.entry(Ingredients.Thornstick, thornstickRun()),
+            Map.entry(Ingredients.Thornstick, angled(THORNSTICK_ROUTE, THORNSTICK_MARK)),
+            Map.entry(Ingredients.Firebell, angled(FIREBELL_ROUTE, FIREBELL_MARK)),
+            Map.entry(Ingredients.Flameweed, routed(FLAMEWEED_ROUTE, FLAMEWEED_MARK)),
             Map.entry(Ingredients.Dragon_Pepper, dragonPepperOval()),
             Map.entry(Ingredients.Bloodthorn, bloodthornSweep()),
             Map.entry(Ingredients.Windbloom, routed(WINDBLOOM_ROUTE, WINDBLOOM_MARK)),
@@ -282,11 +427,11 @@ public enum IngredientPath {
     }
 
     public boolean teleports() {
-        return this == TELEPORT || this == SPIRAL_TELEPORT || this == SERPENT_TELEPORT;
+        return this == TELEPORT || followsFlight();
     }
 
     public boolean followsFlight() {
-        return this == SPIRAL_TELEPORT || this == SERPENT_TELEPORT;
+        return this == SPIRAL_TELEPORT || this == SERPENT_TELEPORT || markedFlight() != null;
     }
 
     public boolean needsDirection() {
@@ -456,10 +601,70 @@ public enum IngredientPath {
         return PathGeometry.spline(waypoints);
     }
 
+    private static final double[][] SAWTOOTH_LEAD = {
+            {0.000, 0.000}, {-0.018, 0.030}, {0.023, 0.064}, {0.076, 0.095}, {0.116, 0.129}, {0.138, 0.158},
+            {0.105, 0.187}, {0.022, 0.201}
+    };
+    private static final double[][] SAWTOOTH_TEETH = {
+            {0.022, 0.201}, {-0.135, 0.264}, {0.131, 0.446}, {-0.155, 0.576}, {0.091, 0.744}, {-0.186, 0.863},
+            {0.000, 1.000}
+    };
+
+    private static List<PathPoint> bearingPoints(double[][] waypoints, PathPoint bearing, double ceiling) {
+        PathPoint side = new PathPoint(-bearing.y(), bearing.x());
+        List<PathPoint> points = new ArrayList<>(waypoints.length);
+        for (double[] waypoint : waypoints) {
+            points.add(bearing.scale(waypoint[1] * ceiling).plus(side.scale(waypoint[0] * ceiling)));
+        }
+        return points;
+    }
+
+    private static final double[][] STEPPED_LEAD = {{0.000, 0.000}, {0.000, 0.132}};
+    private static final double[][] STEPPED_BODY = {
+            {0.000, 0.132}, {0.142, 0.179}, {0.147, 0.505}, {-0.153, 0.505}, {-0.153, 0.837}, {0.000, 0.837},
+            {0.000, 1.000}
+    };
+
+    private static final double[][] RIPPLE_LEAD = {
+            {0.000, 0.000}, {-0.041, 0.030}, {-0.063, 0.080}, {-0.044, 0.132}, {0.007, 0.163}
+    };
+    private static final double[][] RIPPLE_BODY = {
+            {0.007, 0.163}, {0.057, 0.200}, {0.102, 0.232}, {0.137, 0.273}, {0.136, 0.329}, {0.095, 0.359},
+            {0.038, 0.389}, {-0.009, 0.418}, {-0.055, 0.448}, {-0.072, 0.504}, {-0.027, 0.550}, {0.019, 0.577},
+            {0.064, 0.608}, {0.114, 0.640}, {0.134, 0.692}, {0.102, 0.732}, {0.056, 0.766}, {0.004, 0.791},
+            {-0.042, 0.826}, {-0.074, 0.871}, {-0.070, 0.927}, {-0.035, 0.974}, {0.000, 1.000}
+    };
+
+    private record MarkedFlight(double[][] lead, double[][] body, boolean smooth) {
+    }
+
+    private MarkedFlight markedFlight() {
+        return switch (this) {
+            case SAWTOOTH_TELEPORT -> new MarkedFlight(SAWTOOTH_LEAD, SAWTOOTH_TEETH, false);
+            case STEPPED_TELEPORT -> new MarkedFlight(STEPPED_LEAD, STEPPED_BODY, false);
+            case RIPPLE_TELEPORT -> new MarkedFlight(RIPPLE_LEAD, RIPPLE_BODY, true);
+            default -> null;
+        };
+    }
+
+    private static List<PathPoint> markedLead(MarkedFlight marked, int dx, int dy, double ceiling) {
+        PathPoint bearing = new PathPoint(dx, dy).normalised();
+        if (bearing.isZero()) return List.of(PathPoint.ORIGIN);
+        return PathGeometry.spline(bearingPoints(marked.lead(), bearing, ceiling));
+    }
+
+    private static List<PathPoint> markedShape(MarkedFlight marked, int dx, int dy, double ceiling) {
+        PathPoint bearing = new PathPoint(dx, dy).normalised();
+        if (bearing.isZero()) return List.of(PathPoint.ORIGIN);
+        List<PathPoint> body = bearingPoints(marked.body(), bearing, ceiling);
+        return joined(markedLead(marked, dx, dy, ceiling), marked.smooth() ? PathGeometry.spline(body) : straights(body));
+    }
+
     public List<PathPoint> flight(int dx, int dy, double ceiling) {
         return switch (this) {
             case SPIRAL_TELEPORT -> squareSpiral(ceiling);
             case SERPENT_TELEPORT -> serpent(dx, dy, ceiling);
+            case SAWTOOTH_TELEPORT, STEPPED_TELEPORT, RIPPLE_TELEPORT -> markedShape(markedFlight(), dx, dy, ceiling);
             default -> List.of(PathPoint.ORIGIN, new PathPoint(dx, dy).normalised().scale(ceiling));
         };
     }
@@ -468,8 +673,21 @@ public enum IngredientPath {
         List<PathPoint> shape = flight(dx, dy, ceiling);
         if (ceiling <= 0.0) return shape;
 
+        double total = PathGeometry.length(shape);
+        MarkedFlight marked = markedFlight();
+        if (marked != null) {
+            double lead = PathGeometry.length(markedLead(marked, dx, dy, ceiling));
+            return PathGeometry.truncate(shape, markedWalk(lead, total, ceiling, reach));
+        }
+
         double walked = Math.min(1.0, Math.max(0.0, reach / ceiling));
-        return PathGeometry.truncate(shape, PathGeometry.length(shape) * walked);
+        return PathGeometry.truncate(shape, total * walked);
+    }
+
+    private static double markedWalk(double lead, double total, double ceiling, double reach) {
+        if (reach <= TELEPORT_BASE) return lead * Math.max(0.0, reach) / TELEPORT_BASE;
+        double past = Math.min(1.0, (reach - TELEPORT_BASE) / Math.max(1.0E-6, ceiling - TELEPORT_BASE));
+        return lead + (total - lead) * past;
     }
 
     public PathPoint flightEnd(int dx, int dy, double ceiling, double reach) {

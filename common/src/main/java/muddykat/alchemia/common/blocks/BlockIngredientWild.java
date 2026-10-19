@@ -17,7 +17,8 @@ import java.util.Set;
 
 public class BlockIngredientWild extends BlockIngredient {
 
-    public static final Set<Ingredients> FULLY_GROWN = EnumSet.of(Ingredients.Boombloom, Ingredients.Featherbloom);
+    public static final Set<Ingredients> FULLY_GROWN = EnumSet.of(Ingredients.Boombloom, Ingredients.Featherbloom,
+            Ingredients.Firebell, Ingredients.Fluffbloom);
 
     public static final IntegerProperty STAGE = BlockStateProperties.AGE_5;
     public static final BooleanProperty WILD = BooleanProperty.create("wild");

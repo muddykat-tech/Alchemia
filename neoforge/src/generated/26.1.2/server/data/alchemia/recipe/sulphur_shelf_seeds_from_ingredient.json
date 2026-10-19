@@ -7,5 +7,6 @@
   ],
   "result": {
     "id": "alchemia:mushroom_sulphur_shelf_seed"
-  }
+  },
+  "show_notification": false
 }

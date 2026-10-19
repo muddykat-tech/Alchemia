@@ -1,8 +1,12 @@
 package muddykat.alchemia.data.generators.loot;
 
+import muddykat.alchemia.common.blocks.blockentity.BlockResearchDesk;
+import muddykat.alchemia.common.blocks.AncientOak;
+
 import muddykat.alchemia.common.blocks.BlockInfectedLog;
 import muddykat.alchemia.common.blocks.BlockIngredient;
 import muddykat.alchemia.common.blocks.BlockIngredientBerry;
+import muddykat.alchemia.common.blocks.BlockIngredientPatch;
 import muddykat.alchemia.common.blocks.BlockIngredientTall;
 import muddykat.alchemia.common.blocks.BlockIngredientWild;
 import muddykat.alchemia.common.blocks.BlockKelpStalk;
@@ -64,8 +68,27 @@ public class BlockLoot extends BlockLootSubProvider {
     }
 #endif
 
+    private static final float[] ANCIENT_OAK_SAPLING_CHANCES = {0.025F, 0.027777778F, 0.03125F, 0.041666668F, 0.1F};
+
+    private void ancientOak() {
+        for (String id : List.of(AncientOak.LOG, AncientOak.WOOD, AncientOak.STRIPPED_LOG, AncientOak.STRIPPED_WOOD,
+                AncientOak.PLANKS, AncientOak.STAIRS, AncientOak.FENCE, AncientOak.FENCE_GATE, AncientOak.TRAPDOOR,
+                AncientOak.BUTTON, AncientOak.PRESSURE_PLATE, AncientOak.SAPLING)) {
+            dropSelf(AncientOak.block(id));
+        }
+
+        Block slab = AncientOak.block(AncientOak.SLAB);
+        add(slab, createSlabItemTable(slab));
+        Block door = AncientOak.block(AncientOak.DOOR);
+        add(door, createDoorTable(door));
+        Block leaves = AncientOak.block(AncientOak.LEAVES);
+        add(leaves, createLeavesDrops(leaves, AncientOak.block(AncientOak.SAPLING), ANCIENT_OAK_SAPLING_CHANCES));
+    }
+
     @Override
     protected void generate() {
+        ancientOak();
+
         for (Block block : getKnownBlocks()) {
             if (block instanceof BlockIngredient ingredient) {
                 add(block, ingredientDrops(block, ingredient));
@@ -79,6 +102,8 @@ public class BlockLoot extends BlockLootSubProvider {
                 add(block, LootTable.lootTable().withPool(singleItem(Blocks.CAULDRON)).withPool(singleItem(Blocks.CAMPFIRE)));
             } else if (block instanceof BlockAlchemyMachineCore || block instanceof BlockAlchemyMachineUpgrade) {
                 add(block, LootTable.lootTable().withPool(singleItem(block)));
+            } else if (block instanceof BlockResearchDesk) {
+                dropSelf(block);
             } else if (block instanceof BlockMineralBuddingGeneric) {
                 add(block, noDrop());
             } else if (block instanceof BlockMineralGeneric) {
@@ -112,13 +137,17 @@ public class BlockLoot extends BlockLootSubProvider {
     @Override
     protected Iterable<Block> getKnownBlocks() {
         List<Block> blocks = new ArrayList<>();
-        for (var holder : BlockRegistry.BLOCK_REGISTRY.values()) {
-            Block block = holder.get();
+        for (var entry : BlockRegistry.BLOCK_REGISTRY.entrySet()) {
+            Block block = entry.getValue().get();
+            if (entry.getKey().contains(AncientOak.WOOD_NAME) && !(block instanceof BlockInfectedLog)) {
+                blocks.add(block);
+                continue;
+            }
             if (block instanceof BlockIngredient || block instanceof BlockAlchemyCauldron
                     || block instanceof BlockTangleBranch || block instanceof BlockKelpStalk || block instanceof BlockInfectedLog
                     || block instanceof BlockAlchemyMachineCore || block instanceof BlockAlchemyMachineUpgrade
                     || block instanceof BlockMineralGeneric || block instanceof BlockMineralBuddingGeneric
-                    || block instanceof BlockMineralClusterGeneric) {
+                    || block instanceof BlockMineralClusterGeneric || block instanceof BlockResearchDesk) {
                 blocks.add(block);
             }
         }
@@ -134,6 +163,13 @@ public class BlockLoot extends BlockLootSubProvider {
                     .withPool(singleItem(seed).when(lowerHalf(block)))
                     .withPool(harvestPool(harvest, BlockIngredientBerry.MIN_PICKED, BlockIngredientBerry.MAX_PICKED)
                             .when(lowerHalf(block)).when(fruiting(block)));
+        }
+
+        if (ingredient instanceof BlockIngredientPatch) {
+            return LootTable.lootTable()
+                    .withPool(singleItem(seed).when(mature(block, ingredient, null)))
+                    .withPool(harvestPool(harvest, BlockIngredientPatch.MIN_PICKED, BlockIngredientPatch.MAX_PICKED)
+                            .when(mature(block, ingredient, null)));
         }
 
         if (ingredient instanceof BlockIngredientTall) {

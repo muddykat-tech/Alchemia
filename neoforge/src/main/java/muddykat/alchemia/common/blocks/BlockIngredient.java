@@ -2,12 +2,14 @@ package muddykat.alchemia.common.blocks;
 
 import com.mojang.serialization.MapCodec;
 import muddykat.alchemia.common.items.helper.IngredientAlignment;
+import muddykat.alchemia.common.blocks.AncientOak;
 import muddykat.alchemia.common.items.helper.IngredientType;
 import muddykat.alchemia.common.items.helper.Ingredients;
 import muddykat.alchemia.common.world.IngredientHabitat;
 import muddykat.alchemia.registration.registers.ItemRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.FluidTags;
@@ -38,6 +40,7 @@ public class BlockIngredient extends CropBlock {
 #endif
 
     public static final IntegerProperty AGE = BlockStateProperties.AGE_3;
+    public static final int NURTURE_PARTICLE_CHANCE = 24;
 
     private static final VoxelShape[] ROOT_SHAPE_BY_AGE = new VoxelShape[]{
             Block.box(0.0D, 12.0D, 0.0D, 16.0D, 16.0D, 16.0D),
@@ -144,6 +147,27 @@ public class BlockIngredient extends CropBlock {
 
     @Override
     protected boolean mayPlaceOn(BlockState state, BlockGetter level, BlockPos pos) {
+        return nativeSoil(state, level, pos) || nurturedSoil(state, level, pos);
+    }
+
+    private boolean isLandPlant() {
+        return switch (IngredientHabitat.of(ingredientData)) {
+            case SURFACE, NYLIUM, SAND, UNDERGROUND, MAGMA -> true;
+            default -> false;
+        };
+    }
+
+    private static boolean isAnySoil(BlockState state) {
+        return state.is(BlockTags.SUPPORTS_VEGETATION) || state.is(BlockTags.DIRT) || state.is(BlockTags.SAND)
+                || state.is(BlockTags.NYLIUM) || state.is(BlockTags.BASE_STONE_OVERWORLD)
+                || state.is(BlockTags.BASE_STONE_NETHER) || state.is(Blocks.MAGMA_BLOCK);
+    }
+
+    private boolean nurturedSoil(BlockState soil, BlockGetter level, BlockPos soilPos) {
+        return isLandPlant() && isAnySoil(soil) && AncientOak.nurtures(level, soilPos.above());
+    }
+
+    private boolean nativeSoil(BlockState state, BlockGetter level, BlockPos pos) {
         return switch (IngredientHabitat.of(ingredientData)) {
             case SURFACE -> state.is(BlockTags.SUPPORTS_VEGETATION);
             case NYLIUM -> state.is(BlockTags.SUPPORTS_VEGETATION) || state.is(BlockTags.NYLIUM);
@@ -204,7 +228,7 @@ public class BlockIngredient extends CropBlock {
                 case CEILING -> hasRootSupport(level, pos);
                 case AQUATIC -> isSeabed(soil) && level.getFluidState(pos).is(FluidTags.WATER);
                 case SURFACE -> soil.canSustainPlant(level, below, Direction.UP, state)
-                        .toBoolean(soil.is(BlockTags.SUPPORTS_VEGETATION));
+                        .toBoolean(soil.is(BlockTags.SUPPORTS_VEGETATION)) || nurturedSoil(soil, level, below);
                 default -> this.mayPlaceOn(soil, level, below);
             };
         }
@@ -214,6 +238,13 @@ public class BlockIngredient extends CropBlock {
 
     @Override
     protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        growStep(state, level, pos, random);
+
+        BlockState now = level.getBlockState(pos);
+        if (now.is(this) && AncientOak.nurtures(level, pos)) growStep(now, level, pos, random);
+    }
+
+    private void growStep(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         if (!IngredientHabitat.of(ingredientData).isUnderground()) {
             super.randomTick(state, level, pos, random);
             return;
@@ -235,6 +266,18 @@ public class BlockIngredient extends CropBlock {
         return IngredientHabitat.of(ingredientData) == IngredientHabitat.AQUATIC
                 ? Fluids.WATER.getSource(false)
                 : super.getFluidState(state);
+    }
+
+    @Override
+    public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
+        super.animateTick(state, level, pos, random);
+        if (random.nextInt(NURTURE_PARTICLE_CHANCE) != 0 || !isRandomlyTicking(state) || !AncientOak.nurtures(level, pos)) return;
+
+        level.addParticle(ParticleTypes.HAPPY_VILLAGER,
+                pos.getX() + 0.2 + random.nextDouble() * 0.6,
+                pos.getY() + 0.2 + random.nextDouble() * 0.5,
+                pos.getZ() + 0.2 + random.nextDouble() * 0.6,
+                0.0, 0.02, 0.0);
     }
 
     @Override

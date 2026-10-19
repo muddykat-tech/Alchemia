@@ -8,6 +8,7 @@ import net.minecraft.world.item.Item;
 
 public class AlchemiaItemTags {
 
+    public static final TagKey<Item> ANCIENT_OAK_LOGS = tag("ancient_oak_logs");
     public static final TagKey<Item> INGREDIENTS = tag("ingredients");
 
     private static TagKey<Item> tag(String name) {

@@ -43,6 +43,11 @@ public class AlchemiaBiomeTagsProvider extends BiomeTagsProvider {
                 .addTag(Tags.Biomes.IS_PLAINS)
                 .remove(Tags.Biomes.IS_SPOOKY);
 
+        tag(AlchemiaBiomeTags.HAS_ANCIENT_OAK)
+                .add(Biomes.FOREST)
+                .add(Biomes.FLOWER_FOREST)
+                .add(Biomes.DARK_FOREST);
+
         wildPlantTag(AlchemiaBiomeTags.HAS_SPELLBLOOM)
                 .addTag(Tags.Biomes.IS_PLAINS)
                 .addTag(Tags.Biomes.IS_SPOOKY);
@@ -53,6 +58,7 @@ public class AlchemiaBiomeTagsProvider extends BiomeTagsProvider {
         rootTag(AlchemiaBiomeTags.HAS_LAVA_ROOT, AlchemiaBiomeTags.HAS_FIRE_PLANTS);
         rootTag(AlchemiaBiomeTags.HAS_TERRARIA, AlchemiaBiomeTags.HAS_EARTH_PLANTS);
         rootTag(AlchemiaBiomeTags.HAS_DREAMBEET, AlchemiaBiomeTags.HAS_AIR_PLANTS);
+        rootTag(AlchemiaBiomeTags.HAS_GRASPING_ROOT, AlchemiaBiomeTags.HAS_WATER_PLANTS);
 
         tag(AlchemiaBiomeTags.HAS_SULPHUR_SHELF)
                 .addTag(BiomeTags.IS_FOREST)

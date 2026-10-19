@@ -3,6 +3,7 @@ package muddykat.alchemia.common.blocks.helper;
 import muddykat.alchemia.common.blocks.BlockIngredient;
 import muddykat.alchemia.common.blocks.BlockIngredientBerry;
 import muddykat.alchemia.common.blocks.BlockIngredientKelp;
+import muddykat.alchemia.common.blocks.BlockIngredientPatch;
 import muddykat.alchemia.common.blocks.BlockIngredientShelf;
 import muddykat.alchemia.common.blocks.BlockIngredientTall;
 import muddykat.alchemia.common.blocks.BlockIngredientTangle;
@@ -32,7 +33,9 @@ public enum PlantForm {
     BERRY_BUSH,
     TANGLE,
     SHELF,
-    KELP;
+    KELP,
+    PATCH,
+    BEET;
 
     public static final String BRANCH = "_branch";
     public static final String STALK = "_stalk";
@@ -47,6 +50,8 @@ public enum PlantForm {
         FORMS.put(Ingredients.Tangleweed, TANGLE);
         FORMS.put(Ingredients.Sulphur_Shelf, SHELF);
         FORMS.put(Ingredients.Flameweed, KELP);
+        FORMS.put(Ingredients.Waterbloom, PATCH);
+        FORMS.put(Ingredients.Dreambeet, BEET);
     }
 
     public static PlantForm of(Ingredients ingredient) {
@@ -63,6 +68,8 @@ public enum PlantForm {
             case TANGLE -> new BlockIngredientTangle(ingredient, type, properties);
             case SHELF -> new BlockIngredientShelf(ingredient, type, properties);
             case KELP -> new BlockIngredientKelp(ingredient, type, properties);
+            case PATCH -> new BlockIngredientPatch(ingredient, type, properties);
+            case BEET -> new BlockIngredient(ingredient, type, properties);
         };
     }
 

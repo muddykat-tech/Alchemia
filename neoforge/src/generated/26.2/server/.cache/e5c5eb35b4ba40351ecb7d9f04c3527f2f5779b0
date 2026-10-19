@@ -1,10 +1,15 @@
-// 26.2	2026-09-19T21:04:42.886777717	Advancements
+// 26.2	2026-10-20T06:31:47.923287162	Advancements
 79a71b5266b82b7c15d2163b7bf37739d7fbdf03 data/alchemia/advancement/albedo.json
+b501e3f86e67f5f0f6418dec1864f2168b8ca404 data/alchemia/advancement/all_effects.json
+51888b4c7fc54127ea3431bae1ac7f016eac97ac data/alchemia/advancement/all_ingredients.json
+3474ece9d0bff9efde0752bfc29fe9d7a7a08efe data/alchemia/advancement/all_secrets.json
+872f4e15bfd1c3eeaf5ff93931fee2ed44bd578f data/alchemia/advancement/all_stages.json
 00e3b77ca7e5a5de95adaf84dfa98521a9743787 data/alchemia/advancement/cauldron.json
 e4e14c7330cffeba9765b7c955d83ba0bc8665dc data/alchemia/advancement/citrinitas.json
-f4a8edd8d8b80bddf4693200187c54f74dc98196 data/alchemia/advancement/crystal.json
+9e49042c55dde5ea0f3e7ac26ba50ad5e6b08fdb data/alchemia/advancement/complete_guide.json
+ccc46c66ff3b9c4941557e8af06262296df8105d data/alchemia/advancement/crystal.json
 cc2b3450d2be1b5fe0566e237a43fabb51209568 data/alchemia/advancement/guide.json
-ec08912227cb70d73fa14ad4f7d5f73d9ebcce24 data/alchemia/advancement/herbalist.json
+628fae42030b0394fe019e2ced67c2369606ff53 data/alchemia/advancement/herbalist.json
 8682ab0c1e51eb378572edd4bce937fefaea12f6 data/alchemia/advancement/mortar.json
 6ae60f52704cbda6c3f74af2198c16205f13484d data/alchemia/advancement/nigredo.json
 ccb427a2a1794a07ae15069bf5b4b242eb47de7e data/alchemia/advancement/philosopher_stone.json

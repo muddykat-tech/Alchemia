@@ -1,0 +1,6 @@
+{
+  "type": "forge:add_features",
+  "biomes": "#alchemia:has_grasping_root",
+  "features": "alchemia:roots_grasping_root",
+  "step": "vegetal_decoration"
+}

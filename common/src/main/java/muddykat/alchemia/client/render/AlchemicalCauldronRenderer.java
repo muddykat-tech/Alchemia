@@ -22,6 +22,10 @@ import org.jspecify.annotations.Nullable;
 public class AlchemicalCauldronRenderer implements BlockEntityRenderer<TileEntityAlchemyCauldron, AlchemicalCauldronRenderState> {
 
     private static final float[] FLUID_HEIGHT = {0.337f, 0.5625f, 0.75f, 0.9375f};
+
+    public static float surfaceHeight(int waterLevel) {
+        return FLUID_HEIGHT[Math.max(1, Math.min(waterLevel, FLUID_HEIGHT.length)) - 1];
+    }
     private static final int ALPHA = 190;
 
     private final SpriteGetter sprites;

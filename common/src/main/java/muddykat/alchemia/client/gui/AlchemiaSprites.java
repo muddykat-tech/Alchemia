@@ -14,6 +14,7 @@ public final class AlchemiaSprites {
     public static final Identifier BUTTON_DISABLED = sprite("container/button_disabled");
     public static final Identifier NAME_FIELD = sprite("container/name_field");
     public static final Identifier POTION_SWATCH = sprite("container/potion_swatch");
+    public static final Identifier RADIANT_HALO = sprite("container/radiant_halo");
     public static final Identifier ALCHEMY_MACHINE = sprite("container/alchemy_machine");
     public static final Identifier UPGRADE_PANEL_RIGHT = sprite("container/upgrade_panel_right");
     public static final Identifier UPGRADE_PANEL_LEFT = sprite("container/upgrade_panel_left");

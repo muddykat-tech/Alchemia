@@ -292,6 +292,41 @@ public class PathRenderer {
         }
     }
 
+    public static void line(GuiGraphicsExtractor graphics, double x0, double y0, double x1, double y1,
+                            double thickness, int argb, boolean dotted) {
+        double dx = (x1 - x0) * SUPERSAMPLE;
+        double dy = (y1 - y0) * SUPERSAMPLE;
+        double length = Math.sqrt(dx * dx + dy * dy);
+        if (length < EPSILON) return;
+
+        int weight = Math.max(1, (int) Math.round(thickness * SUPERSAMPLE));
+        int steps = Math.max(1, (int) Math.ceil(length));
+        double gap = DOT_OFF * SUPERSAMPLE;
+
+        Runs runs = new Runs(graphics);
+        pushScaled(graphics);
+
+        for (int step = 0; step <= steps; step++) {
+            double travelled = length * step / steps;
+            if (dotted && (travelled % (gap + weight)) >= weight) continue;
+            runs.stamp(x0 * SUPERSAMPLE + dx * step / steps, y0 * SUPERSAMPLE + dy * step / steps, weight, argb);
+        }
+
+        runs.flush();
+        popScaled(graphics);
+    }
+
+    public static void chevron(GuiGraphicsExtractor graphics, double x, double y, double angle, double size,
+                               double thickness, int argb) {
+        double back = angle + Math.PI;
+        double spread = Math.PI / 4;
+        double tipX = x + Math.cos(angle) * size / 2;
+        double tipY = y + Math.sin(angle) * size / 2;
+
+        line(graphics, tipX, tipY, tipX + Math.cos(back - spread) * size, tipY + Math.sin(back - spread) * size, thickness, argb, false);
+        line(graphics, tipX, tipY, tipX + Math.cos(back + spread) * size, tipY + Math.sin(back + spread) * size, thickness, argb, false);
+    }
+
     public static void ring(GuiGraphicsExtractor graphics, double cx, double cy, double radius, int argb, boolean dashed) {
         double circumference = 2 * Math.PI * radius;
         int steps = Math.max(8, (int) Math.round(circumference / STEP));

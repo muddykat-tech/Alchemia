@@ -1,0 +1,73 @@
+{
+  "variants": {
+    "axis=x": [
+      {
+        "model": "alchemia:block/ancient_oak_log_horizontal",
+        "weight": 4,
+        "x": 90,
+        "y": 90
+      },
+      {
+        "model": "alchemia:block/ancient_oak_log_alt1_horizontal",
+        "x": 90,
+        "y": 90
+      },
+      {
+        "model": "alchemia:block/ancient_oak_log_alt2_horizontal",
+        "x": 90,
+        "y": 90
+      },
+      {
+        "model": "alchemia:block/ancient_oak_log_alt3_horizontal",
+        "x": 90,
+        "y": 90
+      },
+      {
+        "model": "alchemia:block/ancient_oak_log_alt4_horizontal",
+        "x": 90,
+        "y": 90
+      }
+    ],
+    "axis=y": [
+      {
+        "model": "alchemia:block/ancient_oak_log",
+        "weight": 4
+      },
+      {
+        "model": "alchemia:block/ancient_oak_log_alt1"
+      },
+      {
+        "model": "alchemia:block/ancient_oak_log_alt2"
+      },
+      {
+        "model": "alchemia:block/ancient_oak_log_alt3"
+      },
+      {
+        "model": "alchemia:block/ancient_oak_log_alt4"
+      }
+    ],
+    "axis=z": [
+      {
+        "model": "alchemia:block/ancient_oak_log_horizontal",
+        "weight": 4,
+        "x": 90
+      },
+      {
+        "model": "alchemia:block/ancient_oak_log_alt1_horizontal",
+        "x": 90
+      },
+      {
+        "model": "alchemia:block/ancient_oak_log_alt2_horizontal",
+        "x": 90
+      },
+      {
+        "model": "alchemia:block/ancient_oak_log_alt3_horizontal",
+        "x": 90
+      },
+      {
+        "model": "alchemia:block/ancient_oak_log_alt4_horizontal",
+        "x": 90
+      }
+    ]
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "guide.stamp": {
+    "subtitle": "alchemia.subtitle.guide.stamp",
+    "sounds": [
+      {
+        "name": "alchemia:guide/stamp1"
+      },
+      {
+        "name": "alchemia:guide/stamp2"
+      },
+      {
+        "name": "alchemia:guide/stamp3"
+      }
+    ]
+  }
+}

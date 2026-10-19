@@ -80,6 +80,14 @@ public final class AlchemiaSprites {
                     drawWidth, drawHeight, texWidth, texHeight);
         }
 
+        public void blitRegion(GuiGraphics graphics, int u, int v, int x, int y, int drawWidth, int drawHeight, int argb) {
+            RenderSystem.enableBlend();
+            graphics.setColor(red(argb), green(argb), blue(argb), alpha(argb));
+            graphics.blit(texture, x, y, drawWidth, drawHeight, (float) u, (float) v,
+                    drawWidth, drawHeight, width, height);
+            graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
+        }
+
         public void blit(GuiGraphics graphics, int x, int y, int drawWidth, int drawHeight, int argb) {
             RenderSystem.enableBlend();
             graphics.setColor(red(argb), green(argb), blue(argb), alpha(argb));
@@ -104,10 +112,17 @@ public final class AlchemiaSprites {
     public static final Sprite BURN_PROGRESS = sprite("container/burn_progress", 14, 14, 0);
     public static final Sprite COOK_TRACK = sprite("container/cook_track", 38, 8, 0);
     public static final Sprite COOK_PROGRESS = sprite("container/cook_progress", 38, 8, 0);
+    public static final Sprite TOOL_PANEL = sprite("container/tool_panel", 16, 16, 4);
+    public static final Sprite GRIND_TRACK = sprite("container/grind_track", 38, 8, 0);
+    public static final Sprite GRIND_PROGRESS = sprite("container/grind_progress", 38, 8, 0);
     public static final Sprite GRIND_PANEL = sprite("hud/grind_panel", 16, 16, 4);
     public static final Sprite PATH_TOOLTIP_PANEL = sprite("tooltip/path_panel", 48, 48, 8);
     public static final Sprite PATH_ORIGIN = sprite("tooltip/path_origin", 9, 9, 0);
     public static final Sprite PATH_ENDING = sprite("tooltip/path_ending", 9, 9, 0);
+    public static final Sprite PATH_DASH = sprite("path/dash", 24, 12, 0);
+    public static final Sprite PATH_DASH_HOLLOW = sprite("path/dash_hollow", 24, 12, 0);
+    public static final Sprite PATH_DOT = sprite("path/dot", 12, 12, 0);
+    public static final Sprite PATH_DOT_HOLLOW = sprite("path/dot_hollow", 18, 12, 0);
     public static final Sprite DELETE_BUTTON = sprite("guide/delete_button", 16, 16, 3);
     public static final Sprite DELETE_BUTTON_HIGHLIGHTED = sprite("guide/delete_button_highlighted", 16, 16, 3);
     public static final Sprite ROW_HIGHLIGHT = sprite("guide/row_highlight", 16, 16, 4);
@@ -117,6 +132,8 @@ public final class AlchemiaSprites {
     public static final int BURN_H = 14;
     public static final int COOK_W = 38;
     public static final int COOK_H = 8;
+    public static final int GRIND_W = 38;
+    public static final int GRIND_H = 8;
 
     private AlchemiaSprites() {
     }

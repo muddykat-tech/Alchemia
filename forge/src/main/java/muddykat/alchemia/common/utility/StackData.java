@@ -29,6 +29,9 @@ public class StackData {
     public static final StackComponent<Integer> CHARGES =
             StackComponent.of("charges", Codec.intRange(0, 64));
 
+    public static final StackComponent<List<String>> NOTED_EFFECTS =
+            StackComponent.of("noted_effects", Codec.STRING.listOf());
+
     public static final StackComponent<String> SELECTED_RECIPE =
             StackComponent.of("selected_recipe", Codec.STRING);
 

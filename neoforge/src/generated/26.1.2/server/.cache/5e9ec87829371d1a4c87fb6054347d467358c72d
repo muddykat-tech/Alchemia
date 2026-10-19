@@ -1,2 +1,16 @@
-// 26.1.2	2026-09-19T06:30:43.382578163	Tags for minecraft:item mod id alchemia
-b45a9073b8f123d6ee5dc4a82a7afd7057099813 data/alchemia/tags/item/ingredients.json
+// 26.1.2	2026-10-20T00:54:29.527579812	Tags for minecraft:item mod id alchemia
+7df70b2daba51dcfe7fc29a1ded021ee3ced2ee6 data/alchemia/tags/item/ancient_oak_logs.json
+5b1ce1ff1b65253784b24510df814ff9f730309a data/alchemia/tags/item/imbuements.json
+50b7f7c5ecac839336fc1ad4ebf547af3da592ee data/alchemia/tags/item/ingredients.json
+2dc2398aaf41c7d8062e93d6be63043704615166 data/minecraft/tags/item/fence_gates.json
+2e842075d0e4599a59f7a92c2f45e1f18e0256e4 data/minecraft/tags/item/leaves.json
+7df70b2daba51dcfe7fc29a1ded021ee3ced2ee6 data/minecraft/tags/item/logs_that_burn.json
+0ac2898866396e4fb395a2eb186258a4bac197d7 data/minecraft/tags/item/planks.json
+61af0fa5f89a391806d50f09a372fe1ea0c338c8 data/minecraft/tags/item/saplings.json
+df3ff4519174c6db4c93bf7ab90e02275fda599c data/minecraft/tags/item/wooden_buttons.json
+0d36378ddd3e43e38bc8ec9d53d6680ca6d8fcde data/minecraft/tags/item/wooden_doors.json
+841caa1553f3dd64946c568c936f924749ca6c66 data/minecraft/tags/item/wooden_fences.json
+3f0e1e5c832f86d47de9a216b98aafdc463d994a data/minecraft/tags/item/wooden_pressure_plates.json
+1da6c525cfb2e6eada270545b434813d2fa0c76a data/minecraft/tags/item/wooden_slabs.json
+c246eb5743986761f5bedb3b4d2ffe15635db51f data/minecraft/tags/item/wooden_stairs.json
+2487b535c826110f558394a6577281d11c70f294 data/minecraft/tags/item/wooden_trapdoors.json

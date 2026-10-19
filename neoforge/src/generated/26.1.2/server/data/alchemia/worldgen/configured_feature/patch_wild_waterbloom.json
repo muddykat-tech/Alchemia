@@ -3,24 +3,18 @@
   "config": {
     "primary_feature": {
       "feature": {
-        "type": "minecraft:simple_block",
+        "type": "alchemia:wild_plant",
         "config": {
-          "to_place": {
-            "type": "minecraft:randomized_int_state_provider",
-            "property": "age",
-            "source": {
-              "type": "minecraft:simple_state_provider",
-              "state": {
-                "Name": "alchemia:flower_waterbloom_seed",
-                "Properties": {
-                  "age": "0"
-                }
-              }
-            },
-            "values": {
-              "type": "minecraft:uniform",
-              "max_inclusive": 3,
-              "min_inclusive": 0
+          "plant": {
+            "Name": "alchemia:flower_waterbloom_seed",
+            "Properties": {
+              "age": "0",
+              "down": "true",
+              "east": "false",
+              "north": "false",
+              "south": "false",
+              "waterlogged": "false",
+              "west": "false"
             }
           }
         }
@@ -36,13 +30,7 @@
                 "tag": "minecraft:air"
               },
               {
-                "type": "minecraft:matching_block_tag",
-                "offset": [
-                  0,
-                  -1,
-                  0
-                ],
-                "tag": "minecraft:supports_vegetation"
+                "type": "minecraft:true"
               }
             ]
           }
@@ -51,15 +39,18 @@
     },
     "secondary_feature": {
       "feature": {
-        "type": "minecraft:simple_block",
+        "type": "alchemia:wild_plant",
         "config": {
-          "to_place": {
-            "type": "minecraft:simple_state_provider",
-            "state": {
-              "Name": "alchemia:flower_waterbloom_seed",
-              "Properties": {
-                "age": "0"
-              }
+          "plant": {
+            "Name": "alchemia:flower_waterbloom_seed",
+            "Properties": {
+              "age": "0",
+              "down": "true",
+              "east": "false",
+              "north": "false",
+              "south": "false",
+              "waterlogged": "false",
+              "west": "false"
             }
           }
         }
@@ -75,13 +66,7 @@
                 "tag": "minecraft:air"
               },
               {
-                "type": "minecraft:matching_block_tag",
-                "offset": [
-                  0,
-                  -1,
-                  0
-                ],
-                "tag": "minecraft:supports_vegetation"
+                "type": "minecraft:true"
               }
             ]
           }

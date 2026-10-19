@@ -1,16 +1,506 @@
 {
-  "variants": {
-    "age=0": {
-      "model": "alchemia:growth/flower/growth_stage_0"
+  "multipart": [
+    {
+      "apply": [
+        {
+          "model": "alchemia:block/waterbloom_patch_sprouts"
+        },
+        {
+          "model": "alchemia:block/waterbloom_patch_sprouts",
+          "y": 90
+        },
+        {
+          "model": "alchemia:block/waterbloom_patch_sprouts",
+          "y": 180
+        },
+        {
+          "model": "alchemia:block/waterbloom_patch_sprouts",
+          "y": 270
+        }
+      ],
+      "when": {
+        "age": "0",
+        "down": "true"
+      }
     },
-    "age=1": {
-      "model": "alchemia:growth/flower/growth_stage_1"
+    {
+      "apply": [
+        {
+          "model": "alchemia:block/waterbloom_patch_young"
+        },
+        {
+          "model": "alchemia:block/waterbloom_patch_young",
+          "y": 90
+        },
+        {
+          "model": "alchemia:block/waterbloom_patch_young",
+          "y": 180
+        },
+        {
+          "model": "alchemia:block/waterbloom_patch_young",
+          "y": 270
+        }
+      ],
+      "when": {
+        "age": "1",
+        "down": "true"
+      }
     },
-    "age=2": {
-      "model": "alchemia:growth/flower/growth_stage_2"
+    {
+      "apply": [
+        {
+          "model": "alchemia:block/waterbloom_patch"
+        },
+        {
+          "model": "alchemia:block/waterbloom_patch",
+          "y": 90
+        },
+        {
+          "model": "alchemia:block/waterbloom_patch",
+          "y": 180
+        },
+        {
+          "model": "alchemia:block/waterbloom_patch",
+          "y": 270
+        }
+      ],
+      "when": {
+        "age": "2",
+        "down": "true"
+      }
     },
-    "age=3": {
-      "model": "alchemia:block/waterbloom"
+    {
+      "apply": [
+        {
+          "model": "alchemia:block/waterbloom_patch_bloom"
+        },
+        {
+          "model": "alchemia:block/waterbloom_patch_bloom",
+          "y": 90
+        },
+        {
+          "model": "alchemia:block/waterbloom_patch_bloom",
+          "y": 180
+        },
+        {
+          "model": "alchemia:block/waterbloom_patch_bloom",
+          "y": 270
+        }
+      ],
+      "when": {
+        "age": "3",
+        "down": "true"
+      }
+    },
+    {
+      "apply": [
+        {
+          "model": "alchemia:block/waterbloom_patch_sprouts",
+          "x": 270
+        },
+        {
+          "model": "alchemia:block/waterbloom_patch_sprouts",
+          "x": 90,
+          "y": 180
+        }
+      ],
+      "when": {
+        "age": "0",
+        "north": "true"
+      }
+    },
+    {
+      "apply": [
+        {
+          "model": "alchemia:block/waterbloom_patch_young",
+          "x": 270
+        },
+        {
+          "model": "alchemia:block/waterbloom_patch_young",
+          "x": 90,
+          "y": 180
+        }
+      ],
+      "when": {
+        "age": "1",
+        "north": "true"
+      }
+    },
+    {
+      "apply": [
+        {
+          "model": "alchemia:block/waterbloom_patch",
+          "x": 270
+        },
+        {
+          "model": "alchemia:block/waterbloom_patch",
+          "x": 90,
+          "y": 180
+        }
+      ],
+      "when": {
+        "age": "2",
+        "north": "true"
+      }
+    },
+    {
+      "apply": [
+        {
+          "model": "alchemia:block/waterbloom_patch_bloom",
+          "x": 270
+        },
+        {
+          "model": "alchemia:block/waterbloom_patch_bloom",
+          "x": 90,
+          "y": 180
+        }
+      ],
+      "when": {
+        "age": "3",
+        "down": "false",
+        "north": "true"
+      }
+    },
+    {
+      "apply": [
+        {
+          "model": "alchemia:block/waterbloom_patch",
+          "x": 270
+        },
+        {
+          "model": "alchemia:block/waterbloom_patch",
+          "x": 90,
+          "y": 180
+        }
+      ],
+      "when": {
+        "OR": [
+          {
+            "age": "3",
+            "down": "true",
+            "north": "true"
+          }
+        ]
+      }
+    },
+    {
+      "apply": [
+        {
+          "model": "alchemia:block/waterbloom_patch_sprouts",
+          "x": 270,
+          "y": 90
+        },
+        {
+          "model": "alchemia:block/waterbloom_patch_sprouts",
+          "x": 90,
+          "y": 270
+        }
+      ],
+      "when": {
+        "age": "0",
+        "east": "true"
+      }
+    },
+    {
+      "apply": [
+        {
+          "model": "alchemia:block/waterbloom_patch_young",
+          "x": 270,
+          "y": 90
+        },
+        {
+          "model": "alchemia:block/waterbloom_patch_young",
+          "x": 90,
+          "y": 270
+        }
+      ],
+      "when": {
+        "age": "1",
+        "east": "true"
+      }
+    },
+    {
+      "apply": [
+        {
+          "model": "alchemia:block/waterbloom_patch",
+          "x": 270,
+          "y": 90
+        },
+        {
+          "model": "alchemia:block/waterbloom_patch",
+          "x": 90,
+          "y": 270
+        }
+      ],
+      "when": {
+        "age": "2",
+        "east": "true"
+      }
+    },
+    {
+      "apply": [
+        {
+          "model": "alchemia:block/waterbloom_patch_bloom",
+          "x": 270,
+          "y": 90
+        },
+        {
+          "model": "alchemia:block/waterbloom_patch_bloom",
+          "x": 90,
+          "y": 270
+        }
+      ],
+      "when": {
+        "age": "3",
+        "down": "false",
+        "east": "true",
+        "north": "false"
+      }
+    },
+    {
+      "apply": [
+        {
+          "model": "alchemia:block/waterbloom_patch",
+          "x": 270,
+          "y": 90
+        },
+        {
+          "model": "alchemia:block/waterbloom_patch",
+          "x": 90,
+          "y": 270
+        }
+      ],
+      "when": {
+        "OR": [
+          {
+            "age": "3",
+            "down": "true",
+            "east": "true"
+          },
+          {
+            "age": "3",
+            "east": "true",
+            "north": "true"
+          }
+        ]
+      }
+    },
+    {
+      "apply": [
+        {
+          "model": "alchemia:block/waterbloom_patch_sprouts",
+          "x": 270,
+          "y": 180
+        },
+        {
+          "model": "alchemia:block/waterbloom_patch_sprouts",
+          "x": 90
+        }
+      ],
+      "when": {
+        "age": "0",
+        "south": "true"
+      }
+    },
+    {
+      "apply": [
+        {
+          "model": "alchemia:block/waterbloom_patch_young",
+          "x": 270,
+          "y": 180
+        },
+        {
+          "model": "alchemia:block/waterbloom_patch_young",
+          "x": 90
+        }
+      ],
+      "when": {
+        "age": "1",
+        "south": "true"
+      }
+    },
+    {
+      "apply": [
+        {
+          "model": "alchemia:block/waterbloom_patch",
+          "x": 270,
+          "y": 180
+        },
+        {
+          "model": "alchemia:block/waterbloom_patch",
+          "x": 90
+        }
+      ],
+      "when": {
+        "age": "2",
+        "south": "true"
+      }
+    },
+    {
+      "apply": [
+        {
+          "model": "alchemia:block/waterbloom_patch_bloom",
+          "x": 270,
+          "y": 180
+        },
+        {
+          "model": "alchemia:block/waterbloom_patch_bloom",
+          "x": 90
+        }
+      ],
+      "when": {
+        "age": "3",
+        "down": "false",
+        "east": "false",
+        "north": "false",
+        "south": "true"
+      }
+    },
+    {
+      "apply": [
+        {
+          "model": "alchemia:block/waterbloom_patch",
+          "x": 270,
+          "y": 180
+        },
+        {
+          "model": "alchemia:block/waterbloom_patch",
+          "x": 90
+        }
+      ],
+      "when": {
+        "OR": [
+          {
+            "age": "3",
+            "down": "true",
+            "south": "true"
+          },
+          {
+            "age": "3",
+            "north": "true",
+            "south": "true"
+          },
+          {
+            "age": "3",
+            "east": "true",
+            "south": "true"
+          }
+        ]
+      }
+    },
+    {
+      "apply": [
+        {
+          "model": "alchemia:block/waterbloom_patch_sprouts",
+          "x": 270,
+          "y": 270
+        },
+        {
+          "model": "alchemia:block/waterbloom_patch_sprouts",
+          "x": 90,
+          "y": 90
+        }
+      ],
+      "when": {
+        "age": "0",
+        "west": "true"
+      }
+    },
+    {
+      "apply": [
+        {
+          "model": "alchemia:block/waterbloom_patch_young",
+          "x": 270,
+          "y": 270
+        },
+        {
+          "model": "alchemia:block/waterbloom_patch_young",
+          "x": 90,
+          "y": 90
+        }
+      ],
+      "when": {
+        "age": "1",
+        "west": "true"
+      }
+    },
+    {
+      "apply": [
+        {
+          "model": "alchemia:block/waterbloom_patch",
+          "x": 270,
+          "y": 270
+        },
+        {
+          "model": "alchemia:block/waterbloom_patch",
+          "x": 90,
+          "y": 90
+        }
+      ],
+      "when": {
+        "age": "2",
+        "west": "true"
+      }
+    },
+    {
+      "apply": [
+        {
+          "model": "alchemia:block/waterbloom_patch_bloom",
+          "x": 270,
+          "y": 270
+        },
+        {
+          "model": "alchemia:block/waterbloom_patch_bloom",
+          "x": 90,
+          "y": 90
+        }
+      ],
+      "when": {
+        "age": "3",
+        "down": "false",
+        "east": "false",
+        "north": "false",
+        "south": "false",
+        "west": "true"
+      }
+    },
+    {
+      "apply": [
+        {
+          "model": "alchemia:block/waterbloom_patch",
+          "x": 270,
+          "y": 270
+        },
+        {
+          "model": "alchemia:block/waterbloom_patch",
+          "x": 90,
+          "y": 90
+        }
+      ],
+      "when": {
+        "OR": [
+          {
+            "age": "3",
+            "down": "true",
+            "west": "true"
+          },
+          {
+            "age": "3",
+            "north": "true",
+            "west": "true"
+          },
+          {
+            "age": "3",
+            "east": "true",
+            "west": "true"
+          },
+          {
+            "age": "3",
+            "south": "true",
+            "west": "true"
+          }
+        ]
+      }
     }
-  }
+  ]
 }

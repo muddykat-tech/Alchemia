@@ -11,7 +11,7 @@ description='''${mod_description}'''
 authors="${mod_authors}"
 displayURL="https://minecraft.curseforge.com/projects/alchemia/"
 logoFile="logo.png"
-credits="All the great other Git Contributors, and the nerds on IRC!"
+credits="All the great other Git Contributors, and the nerds on IRC! Guide title and potion name lettering uses the Alagard font by Hewett Tsoi (Pix3M)."
 
 [[dependencies.${mod_id}]]
     modId="forge"

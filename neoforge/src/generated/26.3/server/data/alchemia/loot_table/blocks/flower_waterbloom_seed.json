@@ -9,13 +9,10 @@
             "type": "minecraft:survives_explosion"
           },
           {
-            "type": "minecraft:inverted",
-            "term": {
-              "type": "minecraft:match_block",
-              "blocks": "alchemia:flower_waterbloom_seed",
-              "state": {
-                "age": "3"
-              }
+            "type": "minecraft:match_block",
+            "blocks": "alchemia:flower_waterbloom_seed",
+            "state": {
+              "age": "3"
             }
           }
         ]
@@ -51,8 +48,8 @@
             "type": "minecraft:set_count",
             "count": {
               "type": "minecraft:uniform",
-              "max": 4,
-              "min": 2
+              "max": 2,
+              "min": 1
             }
           },
           "name": "alchemia:flower_waterbloom"

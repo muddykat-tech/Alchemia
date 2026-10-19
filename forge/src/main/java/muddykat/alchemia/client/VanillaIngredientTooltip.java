@@ -4,6 +4,8 @@ import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.client.gui.ClientIngredientPathTooltip;
 import com.mojang.datafixers.util.Either;
 import muddykat.alchemia.common.items.helper.GuideAccess;
+import muddykat.alchemia.common.items.ItemIngredient;
+import muddykat.alchemia.common.items.helper.Ingredients;
 import muddykat.alchemia.common.items.helper.IngredientPathTooltip;
 import muddykat.alchemia.common.items.helper.PathGeometry;
 import muddykat.alchemia.common.items.helper.PathPoint;
@@ -38,8 +40,19 @@ public class VanillaIngredientTooltip {
                 drift.lure() ? "alchemia.tooltip.lure" : "alchemia.tooltip.bearing",
                 drift.target().getEffect().getDisplayName()).withStyle(ChatFormatting.DARK_GRAY));
 
+        int crush = ItemIngredient.crushOf(event.getItemStack());
+        if (crush < Ingredients.MAX_CRUSH_UNITS) {
+            event.getToolTip().add(Component.translatable("alchemia.tooltip.grind", crush, Ingredients.MAX_CRUSH_UNITS).withStyle(ChatFormatting.DARK_GRAY));
+        } else {
+            event.getToolTip().add(Component.translatable("alchemia.tooltip.ground").withStyle(ChatFormatting.DARK_GRAY));
+        }
+
         if (drift.lure()) {
             event.getToolTip().add(Component.translatable("alchemia.tooltip.lure.hint").withStyle(ChatFormatting.DARK_GRAY));
+            if (crush > 0) {
+                event.getToolTip().add(Component.translatable("alchemia.tooltip.lure.strength",
+                        String.format(java.util.Locale.ROOT, "%.1f", VanillaIngredients.grindScale(crush))).withStyle(ChatFormatting.DARK_GRAY));
+            }
         } else {
             event.getToolTip().add(Component.translatable("alchemia.tooltip.path").withStyle(ChatFormatting.DARK_GRAY));
         }
@@ -67,11 +80,13 @@ public class VanillaIngredientTooltip {
         VanillaIngredients.Drift drift = VanillaIngredients.driftOf(event.getItemStack());
         if (drift == null || drift.lure() || !PotionMap.isReady()) return;
 
-        List<PathPoint> offsets = PotionMap.get(BrewBases.defaultBase()).fixedDriftOffsets(drift.target());
+        PotionMap map = PotionMap.get(BrewBases.defaultBase());
+        List<PathPoint> offsets = map.fixedDriftOffsets(drift.target(), Ingredients.MAX_CRUSH_UNITS);
         if (offsets.size() < 2) return;
 
+        double reached = PathGeometry.length(map.fixedDriftOffsets(drift.target(), ItemIngredient.crushOf(event.getItemStack())));
         event.getTooltipElements().add(Either.right(new IngredientPathTooltip(
-                offsets, PathGeometry.length(offsets), false, Component.translatable("alchemia.tooltip.label.path"))));
+                offsets, reached, false, Component.translatable("alchemia.tooltip.label.path"))));
     }
 
     @SubscribeEvent

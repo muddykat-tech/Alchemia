@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "alchemia:block/elder_oak/log_side_alt4",
+    "side": "alchemia:block/elder_oak/log_side_alt4"
+  }
+}

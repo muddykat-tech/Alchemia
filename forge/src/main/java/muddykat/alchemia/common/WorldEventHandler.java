@@ -1,5 +1,8 @@
 package muddykat.alchemia.common;
 
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.sounds.SoundEvents;
+import muddykat.alchemia.common.items.ItemIngredientSeed;
 import muddykat.alchemia.Alchemia;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.resources.ResourceLocation;
@@ -78,6 +81,13 @@ public class WorldEventHandler {
     }
 
     @SubscribeEvent
+    public static void drinkPhial(LivingEntityUseItemEvent.Start event) {
+        if (!event.getItem().is(Items.POTION)) return;
+        PotionGlass glass = PotionGlasses.of(event.getItem());
+        if (glass.hasEmptyItem()) event.setDuration(Math.max(1, Math.round(glass.drinkSeconds() * 20.0F)));
+    }
+
+    @SubscribeEvent
     public static void returnPhial(LivingEntityUseItemEvent.Finish event) {
         PotionGlass glass = PotionGlasses.of(event.getItem());
         if (!glass.hasEmptyItem() || !event.getResultStack().is(Items.GLASS_BOTTLE)) return;
@@ -86,20 +96,23 @@ public class WorldEventHandler {
 
     @SubscribeEvent
     public static void onRecipeUpdate(PlayerEvent.ItemCraftedEvent event) {
-        boolean shouldReturnShears = false;
-        ItemStack shears = new ItemStack(Items.SHEARS);
+        Player player = event.getEntity();
+        if (player.level().isClientSide()) return;
+        if (!(event.getCrafting().getItem() instanceof ItemIngredientSeed)) return;
+
         Container items = event.getInventory();
         for (int i = 0; i < items.getContainerSize(); i++) {
-            ItemStack foundItem = items.getItem(i);
-            if (foundItem.getItem().equals(Items.SHEARS)) {
-                shears = foundItem;
-                shouldReturnShears = true;
-            }
-        }
+            ItemStack found = items.getItem(i);
+            if (!found.is(Items.SHEARS)) continue;
 
-        if (shouldReturnShears) {
-            shears.setDamageValue(shears.getDamageValue() + 1);
-            event.getEntity().getInventory().add(shears);
+            ItemStack returned = found.copyWithCount(1);
+            returned.setDamageValue(returned.getDamageValue() + 1);
+            if (returned.getDamageValue() >= returned.getMaxDamage()) {
+                player.level().playSound(null, player.blockPosition(), SoundEvents.ITEM_BREAK, SoundSource.PLAYERS, 0.8F, 1.0F);
+            } else if (!player.getInventory().add(returned)) {
+                player.drop(returned, false);
+            }
+            return;
         }
     }
 }

@@ -1,5 +1,7 @@
 package muddykat.alchemia.registration.registers;
 
+import muddykat.alchemia.common.blocks.AncientOak;
+
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.items.ItemAlchemiaGuide;
 import muddykat.alchemia.common.items.ItemGeneric;
@@ -46,6 +48,8 @@ public class ItemRegistry {
     }
 
     public static void initialize() {
+        AncientOak.register();
+
         for (Ingredients ingredient : Ingredients.values()) {
             ingredient.register();
         }

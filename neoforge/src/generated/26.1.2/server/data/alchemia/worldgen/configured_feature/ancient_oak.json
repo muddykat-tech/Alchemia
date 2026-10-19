@@ -1,0 +1,7 @@
+{
+  "type": "alchemia:ancient_oak",
+  "config": {
+    "height_spread": 7,
+    "min_height": 13
+  }
+}

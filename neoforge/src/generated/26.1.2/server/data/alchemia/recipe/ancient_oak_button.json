@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "redstone",
+  "group": "wooden_button",
+  "ingredients": [
+    "alchemia:ancient_oak_planks"
+  ],
+  "result": {
+    "id": "alchemia:ancient_oak_button"
+  }
+}

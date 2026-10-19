@@ -3,11 +3,14 @@ package muddykat.alchemia.common.utility;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ColorParticleOption;
+import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.particles.SpellParticleOption;
 import net.minecraft.server.level.ParticleStatus;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+
+import org.jspecify.annotations.Nullable;
 
 import java.util.Random;
 
@@ -44,6 +47,37 @@ public class ParticleUtils {
                     1.3,
                     0.7);
         }
+    }
+
+    public static void generateStirredUpParticles(Level level, BlockPos pos, double surface,
+                                                  @Nullable ParticleOptions accent, boolean rising, int ticksLeft) {
+        if (!level.isClientSide()) return;
+        if (level.getBlockState(pos.above()).canOcclude()) return;
+
+        Random random = new Random();
+        int bubbles = ticksLeft > 30 ? 2 : random.nextInt(2);
+        for (int i = 0; i < bubbles; i++) {
+            level.addParticle(ParticleTypes.BUBBLE_POP,
+                    pos.getX() + 0.2 + random.nextDouble() * 0.6,
+                    pos.getY() + surface + 0.02,
+                    pos.getZ() + 0.2 + random.nextDouble() * 0.6,
+                    0.0, 0.02 + random.nextDouble() * 0.03, 0.0);
+        }
+
+        if (!rising && ticksLeft % 6 == 0) {
+            level.addParticle(ParticleTypes.SMOKE,
+                    pos.getX() + 0.3 + random.nextDouble() * 0.4,
+                    pos.getY() + surface + 0.05,
+                    pos.getZ() + 0.3 + random.nextDouble() * 0.4,
+                    0.0, 0.03, 0.0);
+        }
+
+        if (accent == null || ticksLeft % 4 != 0) return;
+        level.addParticle(accent,
+                pos.getX() + 0.25 + random.nextDouble() * 0.5,
+                pos.getY() + surface + 0.1,
+                pos.getZ() + 0.25 + random.nextDouble() * 0.5,
+                (random.nextDouble() - 0.5) * 0.02, rising ? 0.04 : 0.01, (random.nextDouble() - 0.5) * 0.02);
     }
 
     public static void generateEvaporationParticles(Level level, BlockPos pos, int color) {

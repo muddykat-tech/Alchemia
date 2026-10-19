@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:archaeology",
+  "pools": [
+    {
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "alchemia:alchemy_tablet"
+        }
+      ],
+      "rolls": 1
+    }
+  ],
+  "random_sequence": "alchemia:archaeology/forgotten_alchemy_shack_tablet"
+}

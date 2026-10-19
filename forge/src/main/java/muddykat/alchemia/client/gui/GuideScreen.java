@@ -2,7 +2,10 @@ package muddykat.alchemia.client.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import muddykat.alchemia.Alchemia;
+import muddykat.alchemia.common.items.ItemAlbedo;
+import muddykat.alchemia.common.items.ItemCitrinitas;
 import muddykat.alchemia.common.items.ItemMortarPestle;
+import muddykat.alchemia.common.items.ItemNigredo;
 import muddykat.alchemia.common.network.packets.PacketForgetRecipe;
 import muddykat.alchemia.common.network.packets.PacketSelectRecipe;
 import muddykat.alchemia.common.potion.BrewRecipe;
@@ -24,7 +27,11 @@ import muddykat.alchemia.common.potion.IngredientDiscovery;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.locale.Language;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvents;
+import muddykat.alchemia.common.potion.WorldEffects;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
@@ -100,12 +107,10 @@ public class GuideScreen extends Screen {
     private static final int DELETE_W = 62;
     private static final int DELETE_H = 16;
 
-    private static final int PREVIEW_W = 96;
-    private static final int PREVIEW_H = 64;
-    private static final int PREVIEW_THICKNESS = 2;
-    private static final int PATH_TAKEN = PathPalette.TAKEN;
-    private static final int PATH_POTENTIAL = PathPalette.POTENTIAL;
-    private static final int PATH_ORIGIN = PathPalette.ORIGIN;
+    private static final int PANEL_BOX_W = 96;
+    private static final int PANEL_BOX_H = 44;
+    private static final int SECTION_GAP = 5;
+    private static final String DESCRIPTION_KEY = "alchemia.guide.description.";
 
     public enum Section {
         RECIPES("recipes"),
@@ -142,6 +147,7 @@ public class GuideScreen extends Screen {
 
     private List<BrewRecipe> recipes = List.of();
     private Set<PotionEnum> discovered = Set.of();
+    private Set<String> notes = Set.of();
     private String selected;
     private int scroll;
     private int left;
@@ -165,7 +171,11 @@ public class GuideScreen extends Screen {
         discovered = RecipeDiscovery.knownTo(guide);
         selected = BrewRecipeBook.selected(guide);
 
-        effects = new ArrayList<>(discovered);
+        notes = WorldEffects.notesIn(guide);
+        effects = new ArrayList<>();
+        for (PotionEnum recipe : PotionEnum.values()) {
+            if (discovered.contains(recipe) || WorldEffects.anyVisible(notes, recipe)) effects.add(recipe);
+        }
         effects.sort(Comparator.comparing(Enum::name));
 
         ingredients = new ArrayList<>(IngredientDiscovery.knownTo(guide));
@@ -187,7 +197,7 @@ public class GuideScreen extends Screen {
             case RECIPES -> Component.translatable("alchemia.guide.recipe.entry",
                     recipes.get(index).displayName(),
                     recipes.get(index).brewBase().displayName());
-            case EFFECTS -> effects.get(index).getEffect().getDisplayName();
+            case EFFECTS -> effectName(effects.get(index));
             case INGREDIENTS -> ingredientStack(ingredients.get(index)).getHoverName();
         };
     }
@@ -206,8 +216,22 @@ public class GuideScreen extends Screen {
     }
 
     private void setSection(Section next) {
+        boolean turned = next != section || scroll != 0;
         section = next;
         scroll = 0;
+        if (turned) turnPage();
+    }
+
+    private void scrollTo(int target) {
+        int next = Mth.clamp(target, 0, maxScroll());
+        if (next == scroll) return;
+
+        scroll = next;
+    }
+
+    private void turnPage() {
+        if (this.minecraft == null) return;
+        this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_LOOM_SELECT_PATTERN, 1.0F));
     }
 
     private void follow(Link link) {
@@ -374,7 +398,7 @@ public class GuideScreen extends Screen {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollY) {
-        scroll = Mth.clamp(scroll - (int) Math.signum(scrollY), 0, maxScroll());
+        scrollTo(scroll - (int) Math.signum(scrollY));
         return true;
     }
 
@@ -408,11 +432,11 @@ public class GuideScreen extends Screen {
 
         if (maxScroll() > 0) {
             if (overArrow(mouseX, mouseY, upArrowX())) {
-                scroll = Math.max(0, scroll - 1);
+                scrollTo(scroll - 1);
                 return true;
             }
             if (overArrow(mouseX, mouseY, downArrowX())) {
-                scroll = Math.min(maxScroll(), scroll + 1);
+                scrollTo(scroll + 1);
                 return true;
             }
         }
@@ -484,7 +508,7 @@ public class GuideScreen extends Screen {
         int x = listX();
         Component header = switch (section) {
             case RECIPES -> Component.translatable("alchemia.guide.recipes.header", recipes.size());
-            case EFFECTS -> Component.translatable("alchemia.guide.effects.header", effects.size(), RecipeDiscovery.total());
+            case EFFECTS -> Component.translatable("alchemia.guide.effects.header", discovered.size(), RecipeDiscovery.total());
             case INGREDIENTS -> Component.translatable("alchemia.guide.ingredients.header", ingredients.size(), IngredientDiscovery.total());
         };
         graphics.drawString(this.font, header, listTextX(), pageTop(), INK_HEAD, false);
@@ -557,18 +581,38 @@ public class GuideScreen extends Screen {
             return;
         }
 
-        AlchemiaSprites.blitMobEffect(graphics, selectedEffect.getEffect(), x, y - 2, 16, 16);
-        drawWrapped(graphics, selectedEffect.getEffect().getDisplayName(), x + 20, y + 2, RIGHT_PAGE_W - 20, INK_HEAD);
+        boolean known = discovered.contains(selectedEffect);
+        if (known) AlchemiaSprites.blitMobEffect(graphics, selectedEffect.getEffect(), x, y - 2, 16, 16);
+        drawWrapped(graphics, effectName(selectedEffect), known ? x + 20 : x, y + 2, RIGHT_PAGE_W - 20, INK_HEAD);
         y += 22;
 
-        y = drawWrapped(graphics, Component.translatable("alchemia.guide.effect.strength", selectedEffect.getMaxStrength() + 1),
-                x, y, RIGHT_PAGE_W, INK);
-        y = drawWrapped(graphics, Component.translatable("alchemia.guide.effect.rarity",
-                Component.literal(selectedEffect.getRarity().name())), x, y, RIGHT_PAGE_W, INK_FAINT);
+        if (known) {
+            y = drawWrapped(graphics, Component.translatable("alchemia.guide.effect.rarity",
+                    Component.literal(selectedEffect.getRarity().name())), x, y, RIGHT_PAGE_W, INK_FAINT);
 
-        drawWrapped(graphics, Component.translatable("alchemia.guide.effect.alignment",
-                        alignmentName(selectedEffect.getPrimaryAlignment()), alignmentName(selectedEffect.getSecondaryAlignment())),
-                x, y + 2, RIGHT_PAGE_W, INK_FAINT);
+            y = drawWrapped(graphics, Component.translatable("alchemia.guide.effect.alignment",
+                            alignmentName(selectedEffect.getPrimaryAlignment()), alignmentName(selectedEffect.getSecondaryAlignment())),
+                    x, y + 2, RIGHT_PAGE_W, INK_FAINT);
+            y += 4;
+        }
+
+        for (Component line : WorldEffects.guideLines(notes, selectedEffect)) {
+            y = drawWrapped(graphics, line, x, y, RIGHT_PAGE_W, INK) + 2;
+        }
+    }
+
+    private Component effectName(PotionEnum recipe) {
+        return discovered.contains(recipe)
+                ? recipe.getEffect().getDisplayName()
+                : Component.translatable("alchemia.guide.effect.unknown");
+    }
+
+    private int requirement(GuiGraphics graphics, boolean needed, String key, int x, int y, int bottom,
+                            java.util.function.Predicate<ItemStack> tool) {
+        if (!needed || y + LINE_HEIGHT > bottom) return y;
+        boolean carried = this.minecraft != null && this.minecraft.player != null
+                && this.minecraft.player.getInventory().items.stream().anyMatch(tool);
+        return drawWrapped(graphics, Component.translatable(key), x, y, RIGHT_PAGE_W, carried ? INK_FAINT : INK_SHORT);
     }
 
     private static Component alignmentName(IngredientAlignment alignment) {
@@ -585,66 +629,55 @@ public class GuideScreen extends Screen {
         }
 
         ItemStack icon = ingredientStack(selectedIngredient);
-        graphics.renderItem(icon, x, y - 2);
-        drawWrapped(graphics, icon.getHoverName(), x + 20, y + 2, RIGHT_PAGE_W - 20, INK_HEAD);
-        y += 22;
+        graphics.renderItem(icon, x, y + 2);
+        graphics.drawString(this.font, icon.getHoverName(), x + 20, y, INK_HEAD, false);
+        graphics.drawString(this.font, Component.translatable("alchemia.guide.ingredient.alignment",
+                alignmentName(selectedIngredient.getPrimaryAlignment()),
+                alignmentName(selectedIngredient.getSecondaryAlignment())), x + 20, y + LINE_HEIGHT, INK_FAINT, false);
+        y += LINE_HEIGHT * 2 + 1;
 
         IngredientPath shape = IngredientPath.of(selectedIngredient);
-        y = drawWrapped(graphics, Component.translatable("alchemia.guide.ingredient.alignment",
-                alignmentName(selectedIngredient.getPrimaryAlignment()),
-                alignmentName(selectedIngredient.getSecondaryAlignment())), x, y, RIGHT_PAGE_W, INK_FAINT);
-
-        int dx = Integer.signum(selectedIngredient.getPrimaryAlignment().getX() + selectedIngredient.getSecondaryAlignment().getX());
-        int dy = Integer.signum(selectedIngredient.getPrimaryAlignment().getY() + selectedIngredient.getSecondaryAlignment().getY());
-
-        if (shape.teleports()) {
-            y = drawWrapped(graphics, Component.translatable("alchemia.tooltip.teleport",
-                    IngredientPath.teleportDistance(selectedIngredient.getPotency(Ingredients.MAX_CRUSH))), x, y, RIGHT_PAGE_W, INK);
+        PathPanel panel = pathPanel(selectedIngredient, shape);
+        if (panel != null && panel.drawable()) {
+            y += SECTION_GAP;
+            panel.draw(graphics, this.font, x + (RIGHT_PAGE_W - panel.width(this.font)) / 2, y);
+            y += panel.height();
         }
 
-        if (shape.needsDirection() && dx == 0 && dy == 0) return;
+        y += SECTION_GAP;
+        graphics.drawString(this.font, Component.translatable("alchemia.guide.description"), x, y, INK_HEAD, false);
+        y += LINE_HEIGHT + 2;
 
-        double ceiling = IngredientPath.teleportCeiling(selectedIngredient);
+        String key = DESCRIPTION_KEY + selectedIngredient.getRegistryName();
+        Component description = Language.getInstance().has(key)
+                ? Component.translatable(key)
+                : Component.translatable(DESCRIPTION_KEY + "none");
+        int colour = Language.getInstance().has(key) ? INK : INK_FAINT;
+
+        for (FormattedCharSequence line : this.font.split(description, RIGHT_PAGE_W - TURN_W - 4)) {
+            if (y + LINE_HEIGHT > pageBottom()) break;
+            graphics.drawString(this.font, line, x, y, colour, false);
+            y += LINE_HEIGHT;
+        }
+    }
+
+    private static PathPanel pathPanel(Ingredients ingredient, IngredientPath shape) {
+        int dx = Integer.signum(ingredient.getPrimaryAlignment().getX() + ingredient.getSecondaryAlignment().getX());
+        int dy = Integer.signum(ingredient.getPrimaryAlignment().getY() + ingredient.getSecondaryAlignment().getY());
+        if (shape.needsDirection() && dx == 0 && dy == 0) return null;
+
+        double ceiling = IngredientPath.teleportCeiling(ingredient);
 
         List<PathPoint> full = shape.teleports()
                 ? shape.teleportPreview(dx, dy, ceiling, ceiling)
-                : IngredientPath.pathFor(selectedIngredient, dx, dy, selectedIngredient.getPotency(Ingredients.MAX_CRUSH));
+                : IngredientPath.pathFor(ingredient, dx, dy, ingredient.getPotency(Ingredients.MAX_CRUSH));
         List<PathPoint> base = shape.teleports()
-                ? shape.teleportPreview(dx, dy, ceiling, IngredientPath.reachFor(selectedIngredient.getPotency(0), 0))
-                : IngredientPath.pathFor(selectedIngredient, dx, dy, selectedIngredient.getPotency(0));
+                ? shape.teleportPreview(dx, dy, ceiling, IngredientPath.reachFor(ingredient.getPotency(0), 0))
+                : IngredientPath.pathFor(ingredient, dx, dy, ingredient.getPotency(0));
 
-        drawPathPreview(graphics, full, PathGeometry.length(base), x, y + 4, shape.teleports());
-    }
-
-    private void drawPathPreview(GuiGraphics graphics, List<PathPoint> points, double taken, int x, int y, boolean teleport) {
-        if (points.size() < 2) return;
-
-        int boxWidth = Math.min(PREVIEW_W, RIGHT_PAGE_W);
-        int boxHeight = Math.min(PREVIEW_H, Math.max(8, pageBottom() - y - PREVIEW_THICKNESS * 2));
-
-        PathGeometry.Fit fit = PathGeometry.fit(points, boxWidth, boxHeight, true);
-        double originX = x + (RIGHT_PAGE_W - fit.width()) / 2.0;
-        double originY = y + PREVIEW_THICKNESS;
-
-        List<PathPoint> potential = PathGeometry.translate(fit.apply(points), originX, originY);
-        List<PathPoint> reached = PathGeometry.translate(
-                fit.apply(PathGeometry.truncate(points, taken)), originX, originY);
-
-        double walked = PathGeometry.length(reached);
-        PathRenderer.outline(graphics, PathGeometry.tail(potential, walked),
-                PREVIEW_THICKNESS, PATH_POTENTIAL, teleport, walked);
-        PathRenderer.dashes(graphics, reached, PREVIEW_THICKNESS, PATH_TAKEN, teleport);
-
-        PathPoint ending = potential.get(potential.size() - 1);
-        PathRenderer.marker(graphics, ending.x(), ending.y(), 3, PathPalette.ENDING);
-
-        if (reached.size() > 1) {
-            PathPoint landing = reached.get(reached.size() - 1);
-            PathRenderer.ending(graphics, landing.x(), landing.y(), 3, 1, PathPalette.LANDING, teleport);
-        }
-
-        PathPoint start = fit.apply(PathPoint.ORIGIN).plus(originX, originY);
-        PathRenderer.dot(graphics, start.x(), start.y(), 2, PATH_ORIGIN);
+        Component label = Component.translatable(shape.teleports()
+                ? "alchemia.tooltip.label.teleport" : "alchemia.tooltip.label.path");
+        return new PathPanel(label, full, PathGeometry.length(base), shape.teleports(), PANEL_BOX_W, PANEL_BOX_H);
     }
 
     private static boolean hovering(int mouseX, int mouseY, int x, int y, int w, int h) {
@@ -733,9 +766,14 @@ public class GuideScreen extends Screen {
             boolean hasMortar = this.minecraft != null && this.minecraft.player != null
                     && this.minecraft.player.getInventory().items.stream()
                             .anyMatch(held -> held.getItem() instanceof ItemMortarPestle);
-            drawWrapped(graphics, Component.translatable("alchemia.guide.needs_mortar"), x, y, RIGHT_PAGE_W,
+            y = drawWrapped(graphics, Component.translatable("alchemia.guide.needs_mortar"), x, y, RIGHT_PAGE_W,
                     hasMortar ? INK_FAINT : INK_SHORT);
         }
+
+        y = requirement(graphics, recipe.requiresTrimming(), "alchemia.guide.needs_nigredo", x, y, contentBottom,
+                held -> held.getItem() instanceof ItemNigredo);
+        y = requirement(graphics, recipe.requiresTurning(), "alchemia.guide.needs_turning", x, y, contentBottom,
+                held -> held.getItem() instanceof ItemAlbedo || held.getItem() instanceof ItemCitrinitas);
 
         for (FormattedCharSequence line : hint) {
             graphics.drawString(this.font, line, x, hintY, INK_FAINT, false);

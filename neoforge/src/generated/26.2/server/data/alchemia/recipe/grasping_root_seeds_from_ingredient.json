@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "alchemia:root_grasping_root",
+    "minecraft:shears"
+  ],
+  "result": {
+    "id": "alchemia:root_grasping_root_seed"
+  },
+  "show_notification": false
+}

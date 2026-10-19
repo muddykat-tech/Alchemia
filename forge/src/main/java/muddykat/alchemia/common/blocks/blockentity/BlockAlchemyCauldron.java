@@ -105,6 +105,14 @@ public class BlockAlchemyCauldron extends EntityBlockGeneric {
     }
 
     @Override
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
+        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof TileEntityAlchemyCauldron cauldron) {
+            cauldron.dropContents(pos);
+        }
+        super.onRemove(state, level, pos, newState, isMoving);
+    }
+
+    @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
     }

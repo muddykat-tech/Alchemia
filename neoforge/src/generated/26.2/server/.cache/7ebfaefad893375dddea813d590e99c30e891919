@@ -1,6 +1,18 @@
-// 26.2	2026-09-30T06:15:25.082220463	Tags for minecraft:block mod id alchemia
-1c15a90bddefb905a5c4515119b98c92ea9d5c0c data/minecraft/tags/block/logs.json
-1c15a90bddefb905a5c4515119b98c92ea9d5c0c data/minecraft/tags/block/mineable/axe.json
+// 26.2	2026-10-19T14:34:35.540584354	Tags for minecraft:block mod id alchemia
+2dc2398aaf41c7d8062e93d6be63043704615166 data/minecraft/tags/block/fence_gates.json
+2e842075d0e4599a59f7a92c2f45e1f18e0256e4 data/minecraft/tags/block/leaves.json
+f00e3b0828f6013246a3251fab582f76ac976a46 data/minecraft/tags/block/logs.json
+7c318b4e12a2924e36d0392fd97b20946493a7c3 data/minecraft/tags/block/mineable/axe.json
+2e842075d0e4599a59f7a92c2f45e1f18e0256e4 data/minecraft/tags/block/mineable/hoe.json
 4a7cf28700c5101f668e32f33d423ef0bd0fdeab data/minecraft/tags/block/mineable/pickaxe.json
 edba68045464d3e2dbd692072b160956119671c3 data/minecraft/tags/block/needs_iron_tool.json
-8790768e7c72f01b67ccb19c521983291d7199d3 data/minecraft/tags/block/sword_efficient.json
+ae5d00b0abfba749a3f0f7c333a8eeaa3ce8c649 data/minecraft/tags/block/overworld_natural_logs.json
+0ac2898866396e4fb395a2eb186258a4bac197d7 data/minecraft/tags/block/planks.json
+87742119af4ac4ff1375a453f80cd8eb8fde551d data/minecraft/tags/block/sword_efficient.json
+df3ff4519174c6db4c93bf7ab90e02275fda599c data/minecraft/tags/block/wooden_buttons.json
+0d36378ddd3e43e38bc8ec9d53d6680ca6d8fcde data/minecraft/tags/block/wooden_doors.json
+841caa1553f3dd64946c568c936f924749ca6c66 data/minecraft/tags/block/wooden_fences.json
+3f0e1e5c832f86d47de9a216b98aafdc463d994a data/minecraft/tags/block/wooden_pressure_plates.json
+1da6c525cfb2e6eada270545b434813d2fa0c76a data/minecraft/tags/block/wooden_slabs.json
+c246eb5743986761f5bedb3b4d2ffe15635db51f data/minecraft/tags/block/wooden_stairs.json
+2487b535c826110f558394a6577281d11c70f294 data/minecraft/tags/block/wooden_trapdoors.json

@@ -1,0 +1,6 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "#alchemia:has_ancient_oak",
+  "features": "alchemia:ancient_oak",
+  "step": "vegetal_decoration"
+}

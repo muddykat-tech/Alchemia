@@ -1,6 +1,7 @@
 package muddykat.alchemia.data.generators;
 
 import muddykat.alchemia.Alchemia;
+import muddykat.alchemia.common.blocks.AncientOak;
 import muddykat.alchemia.client.render.CrushProperty;
 import muddykat.alchemia.common.blocks.BlockMineralClusterGeneric;
 import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyCauldron;
@@ -43,6 +44,8 @@ public class AlchemiaItemModelProvider extends ItemModelProvider {
 
     @Override
     protected void registerModels() {
+        flatItem(AncientOak.DOOR, mcLoc("item/oak_door"));
+
         for (var holder : ItemRegistry.ITEM_REGISTRY.values()) {
             Item item = holder.get();
 
@@ -81,8 +84,17 @@ public class AlchemiaItemModelProvider extends ItemModelProvider {
             return;
         }
 
+        String name = itemName(item);
         if (block instanceof BlockMineralClusterGeneric cluster) {
-            flatItem(itemName(item), clusterTexture(cluster));
+            flatItem(name, clusterTexture(cluster));
+        } else if (name.equals(AncientOak.SAPLING)) {
+            flatItem(name, new ResourceLocation(AncientOak.TEXTURE_ROOT + "sapling"));
+        } else if (name.equals(AncientOak.FENCE)) {
+            fenceInventory(name, new ResourceLocation(AncientOak.TEXTURE_ROOT + "planks"));
+        } else if (name.equals(AncientOak.BUTTON)) {
+            buttonInventory(name, new ResourceLocation(AncientOak.TEXTURE_ROOT + "planks"));
+        } else if (name.equals(AncientOak.TRAPDOOR)) {
+            withExistingParent(name, modLoc("block/" + name + "_bottom"));
         } else {
             withExistingParent(itemName(item), modLoc("block/" + itemName(item)));
         }

@@ -1,10 +1,19 @@
 package muddykat.alchemia.data.generators;
 
+import muddykat.alchemia.common.items.ItemRecipePage;
+import muddykat.alchemia.common.items.ItemAlchemyTablet;
+import muddykat.alchemia.common.items.ItemAlchemistNotes;
+import muddykat.alchemia.common.items.ItemBark;
+import muddykat.alchemia.common.blocks.blockentity.BlockPlacedGuide;
+import muddykat.alchemia.common.blocks.blockentity.BlockResearchDesk;
 import muddykat.alchemia.Alchemia;
+import muddykat.alchemia.common.blocks.AncientOak;
 import muddykat.alchemia.common.blocks.BlockGeneric;
+import muddykat.alchemia.common.blocks.helper.PlantForm;
 import muddykat.alchemia.common.blocks.BlockInfectedLog;
 import muddykat.alchemia.common.blocks.BlockIngredient;
 import muddykat.alchemia.common.blocks.BlockIngredientBerry;
+import muddykat.alchemia.common.blocks.BlockIngredientPatch;
 import muddykat.alchemia.common.blocks.BlockIngredientShelf;
 import muddykat.alchemia.common.blocks.BlockIngredientTall;
 import muddykat.alchemia.common.blocks.BlockIngredientWild;
@@ -33,7 +42,14 @@ import net.minecraft.client.data.models.BlockModelGenerators;
 import net.minecraft.client.data.models.ItemModelGenerators;
 import net.minecraft.client.data.models.ModelProvider;
 import net.minecraft.client.data.models.MultiVariant;
+import net.minecraft.client.renderer.block.dispatch.Variant;
+import net.minecraft.util.random.WeightedList;
+import net.minecraft.client.data.models.blockstates.ConditionBuilder;
+import net.minecraft.client.data.models.blockstates.MultiPartGenerator;
 import net.minecraft.client.data.models.blockstates.MultiVariantGenerator;
+import net.minecraft.client.renderer.block.dispatch.VariantMutator;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.client.data.models.blockstates.PropertyDispatch;
 import net.minecraft.client.data.models.model.ItemModelUtils;
 import net.minecraft.client.data.models.model.ModelTemplate;
@@ -47,6 +63,9 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.FoliageColor;
+
+import java.util.List;
 
 public class AlchemiaModelProvider extends ModelProvider {
 
@@ -58,11 +77,15 @@ public class AlchemiaModelProvider extends ModelProvider {
 
     @Override
     protected void registerModels(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
+        generateAncientOak(blockModels, itemModels);
+
         for (var holder : BlockRegistry.BLOCK_REGISTRY.values()) {
             Block block = holder.get();
 
             if (block instanceof BlockIngredientShelf shelf) {
                 generateShelf(blockModels, shelf);
+            } else if (block instanceof BlockIngredientPatch patch) {
+                generatePatch(blockModels, patch);
             } else if (block instanceof BlockIngredient ingredient) {
                 generateIngredientCrop(blockModels, ingredient);
             } else if (block instanceof BlockTangleBranch branch) {
@@ -79,7 +102,8 @@ public class AlchemiaModelProvider extends ModelProvider {
                 generateMineralCube(blockModels, block, mineral.getIngredient());
             } else if (block instanceof BlockAlchemyCauldron) {
                 blockModels.registerSimpleItemModel(block, itemModel("alchemical_cauldron"));
-            } else if (block instanceof BlockAlchemyMachineCore || block instanceof BlockAlchemyMachineUpgrade) {
+            } else if (block instanceof BlockAlchemyMachineCore || block instanceof BlockAlchemyMachineUpgrade
+                    || block instanceof BlockResearchDesk) {
                 blockModels.registerSimpleItemModel(block, itemModel(blockName(block)));
             } else if (block instanceof BlockGeneric) {
                 generateAlchemyCube(blockModels, block);
@@ -97,6 +121,14 @@ public class AlchemiaModelProvider extends ModelProvider {
                 flatItem(itemModels, item, Identifier.fromNamespaceAndPath(Alchemia.MODID, "item/mortar_and_pestle"));
             } else if (item instanceof ItemAlchemiaGuide) {
                 flatItem(itemModels, item, Identifier.fromNamespaceAndPath(Alchemia.MODID, "item/book/guide"));
+            } else if (item instanceof ItemBark) {
+                flatItem(itemModels, item, Identifier.fromNamespaceAndPath(Alchemia.MODID, "item/bark"));
+            } else if (item instanceof ItemAlchemistNotes) {
+                flatItem(itemModels, item, Identifier.fromNamespaceAndPath(Alchemia.MODID, "item/" + ItemAlchemistNotes.ID));
+            } else if (item instanceof ItemAlchemyTablet) {
+                flatItem(itemModels, item, Identifier.fromNamespaceAndPath(Alchemia.MODID, "item/" + ItemAlchemyTablet.ID));
+            } else if (item instanceof ItemRecipePage) {
+                flatItem(itemModels, item, Identifier.fromNamespaceAndPath(Alchemia.MODID, "item/book/recipe_page"));
             } else if (item instanceof BlockItemGeneric blockItem && blockItem.getBlock() instanceof BlockMineralClusterGeneric cluster) {
                 flatItem(itemModels, item, clusterTexture(cluster));
             } else if (item instanceof ItemPathTool) {
@@ -119,10 +151,19 @@ public class AlchemiaModelProvider extends ModelProvider {
                 && !(holder.value() instanceof BlockPlacedPotions)
                 && !(holder.value() instanceof BlockAlchemyMachineCore)
                 && !(holder.value() instanceof BlockAlchemyMachineUpgrade)
-                && !(holder.value() instanceof BlockAlchemyMachinePart));
+                && !(holder.value() instanceof BlockAlchemyMachinePart)
+                && !(holder.value() instanceof BlockResearchDesk)
+                && !(holder.value() instanceof BlockPlacedGuide));
     }
 
     private void generateIngredientCrop(BlockModelGenerators blockModels, BlockIngredient block) {
+        if (PlantForm.of(block.getIngredient()) == PlantForm.BEET) {
+            blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block)
+                    .with(PropertyDispatch.initial(block.getAgeProperty())
+                            .generate(age -> BlockModelGenerators.plainVariant(beetModel(blockModels, block, age)))));
+            return;
+        }
+
         if (block instanceof BlockIngredientBerry) {
             blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block)
                     .with(PropertyDispatch.initial(block.getAgeProperty(), BlockIngredientTall.HALF, BlockIngredientBerry.FRUITING)
@@ -150,6 +191,18 @@ public class AlchemiaModelProvider extends ModelProvider {
                         .generate(age -> cropVariant(blockModels, block, age, false))));
     }
 
+    private Identifier beetModel(BlockModelGenerators blockModels, BlockIngredient block, int age) {
+        Ingredients ingredient = block.getIngredient();
+        Identifier texture = PlantGrowthTextures.hasOwnStage(ingredient, age)
+                ? blockTexture(PlantGrowthTextures.ownStage(ingredient, age))
+                : Identifier.withDefaultNamespace("block/beetroots_stage" + age);
+        Identifier model = blockModel(ingredient.name().toLowerCase() + "_beet_stage" + age);
+        if (emittedModels.add(model)) {
+            ModelTemplates.CROP.create(model, TextureMapping.crop(new Material(texture)), blockModels.modelOutput);
+        }
+        return model;
+    }
+
     private MultiVariant cropVariant(BlockModelGenerators blockModels, BlockIngredient block, int age, boolean wild) {
         PlantGrowthTextures.Sprite sprite = PlantGrowthTextures.sprite(block.getIngredient(), age, block.getMaxAge(), wild);
         return BlockModelGenerators.plainVariant(
@@ -175,10 +228,202 @@ public class AlchemiaModelProvider extends ModelProvider {
                 .with(BlockModelGenerators.ROTATION_HORIZONTAL_FACING));
     }
 
+    private static final TextureSlot PATCH_BASE = TextureSlot.create("base");
+    private static final TextureSlot PATCH_TOP = TextureSlot.create("top");
+    private static final TextureSlot PATCH_DETAIL = TextureSlot.create("detail");
+    private static final TextureSlot PATCH_FLOWER = TextureSlot.create("flower");
+    private static final TextureSlot PATCH_CENTRE = TextureSlot.create("centre");
+    private static final TextureSlot PATCH_PETAL = TextureSlot.create("petal");
+    private static final String[] PATCH_STAGES = {"_sprouts", "_young", "", "_bloom"};
+    private static final ModelTemplate[] PATCH_TEMPLATES = {
+            patchTemplate(PATCH_STAGES[0], PATCH_BASE),
+            patchTemplate(PATCH_STAGES[1], PATCH_BASE, PATCH_TOP),
+            patchTemplate(PATCH_STAGES[2], PATCH_BASE, PATCH_TOP, PATCH_DETAIL),
+            patchTemplate(PATCH_STAGES[3], PATCH_BASE, PATCH_TOP, PATCH_FLOWER, PATCH_CENTRE, PATCH_PETAL)};
+
+    private static ModelTemplate patchTemplate(String stage, TextureSlot... slots) {
+        return new ModelTemplate(java.util.Optional.of(Identifier.fromNamespaceAndPath(Alchemia.MODID, "block/template_patch" + stage)),
+                java.util.Optional.empty(), slots);
+    }
+
+    private void generatePatch(BlockModelGenerators blockModels, BlockIngredientPatch block) {
+        Ingredients ingredient = block.getIngredient();
+        TextureMapping textures = new TextureMapping()
+                .put(PATCH_BASE, patchTexture(ingredient, "base"))
+                .put(PATCH_TOP, patchTexture(ingredient, "top"))
+                .put(PATCH_DETAIL, patchTexture(ingredient, "detail"))
+                .put(PATCH_FLOWER, patchTexture(ingredient, "flower_overlay"))
+                .put(PATCH_CENTRE, patchTexture(ingredient, "flower_centre"))
+                .put(PATCH_PETAL, patchTexture(ingredient, "petal"));
+
+        Identifier[] models = new Identifier[PATCH_STAGES.length];
+        for (int age = 0; age < models.length; age++) {
+            models[age] = blockModel(ingredient.name().toLowerCase() + "_patch" + PATCH_STAGES[age]);
+            if (emittedModels.add(models[age])) PATCH_TEMPLATES[age].create(models[age], textures, blockModels.modelOutput);
+        }
+
+        int bloomAge = block.getMaxAge();
+        Direction[] faces = BlockIngredientPatch.FACES;
+        MultiPartGenerator parts = MultiPartGenerator.multiPart(block);
+
+        for (int index = 0; index < faces.length; index++) {
+            Direction face = faces[index];
+            BooleanProperty present = BlockIngredientPatch.faceProperty(face);
+
+            for (int age = 0; age < bloomAge; age++) {
+                parts.with(BlockModelGenerators.condition().term(present, true).term(block.getAgeProperty(), age),
+                        patchOnFace(models[age], face));
+            }
+
+            ConditionBuilder blooms = BlockModelGenerators.condition().term(present, true).term(block.getAgeProperty(), bloomAge);
+            ConditionBuilder[] outranked = new ConditionBuilder[index];
+            for (int earlier = 0; earlier < index; earlier++) {
+                BooleanProperty preferred = BlockIngredientPatch.faceProperty(faces[earlier]);
+                blooms.term(preferred, false);
+                outranked[earlier] = BlockModelGenerators.condition().term(present, true)
+                        .term(block.getAgeProperty(), bloomAge).term(preferred, true);
+            }
+
+            parts.with(blooms, patchOnFace(models[bloomAge], face));
+            if (index > 0) parts.with(BlockModelGenerators.or(outranked), patchOnFace(models[GREENERY_STAGE], face));
+        }
+
+        blockModels.blockStateOutput.accept(parts);
+    }
+
+    private static final int GREENERY_STAGE = 2;
+
+    private static MultiVariant patchOnFace(Identifier model, Direction face) {
+        Variant flat = BlockModelGenerators.plainModel(model);
+        if (face == Direction.DOWN) {
+            return BlockModelGenerators.variants(flat, flat.with(BlockModelGenerators.Y_ROT_90),
+                    flat.with(BlockModelGenerators.Y_ROT_180), flat.with(BlockModelGenerators.Y_ROT_270));
+        }
+
+        VariantMutator turn = switch (face) {
+            case EAST -> BlockModelGenerators.Y_ROT_90;
+            case SOUTH -> BlockModelGenerators.Y_ROT_180;
+            case WEST -> BlockModelGenerators.Y_ROT_270;
+            default -> BlockModelGenerators.NOP;
+        };
+        VariantMutator flipped = switch (face) {
+            case EAST -> BlockModelGenerators.Y_ROT_270;
+            case SOUTH -> BlockModelGenerators.NOP;
+            case WEST -> BlockModelGenerators.Y_ROT_90;
+            default -> BlockModelGenerators.Y_ROT_180;
+        };
+        return BlockModelGenerators.variants(flat.with(BlockModelGenerators.X_ROT_270).with(turn),
+                flat.with(BlockModelGenerators.X_ROT_90).with(flipped));
+    }
+
+    private static Material patchTexture(Ingredients ingredient, String part) {
+        return new Material(blockTexture(PlantGrowthTextures.part(ingredient, part).texture()));
+    }
+
     private void generatePart(BlockModelGenerators blockModels, Block block, Ingredients ingredient, String part) {
         PlantGrowthTextures.Sprite sprite = PlantGrowthTextures.part(ingredient, part);
         Identifier model = crossModelOnce(blockModels, blockModel(sprite.model()), blockTexture(sprite.texture()));
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block, BlockModelGenerators.plainVariant(model)));
+    }
+
+    private static Material elderOak(String texture) {
+        return new Material(Identifier.parse(AncientOak.TEXTURE_ROOT + texture));
+    }
+
+    private static String altSuffix(int index) {
+        return index == 0 ? "" : "_alt" + index;
+    }
+
+    private static int variantWeight(List<String> sides, int index) {
+        return index == 0 ? sides.size() - 1 : 1;
+    }
+
+    private void variedLog(BlockModelGenerators blockModels, Block block, List<String> sides, String top) {
+        WeightedList.Builder<Variant> vertical = WeightedList.builder();
+        WeightedList.Builder<Variant> horizontal = WeightedList.builder();
+        Identifier item = null;
+
+        for (int index = 0; index < sides.size(); index++) {
+            TextureMapping mapping = TextureMapping.column(elderOak(sides.get(index)), elderOak(top));
+            String suffix = altSuffix(index);
+            Identifier upright = ModelTemplates.CUBE_COLUMN.createWithSuffix(block, suffix, mapping, blockModels.modelOutput);
+            Identifier lying = ModelTemplates.CUBE_COLUMN_HORIZONTAL.createWithSuffix(block, suffix, mapping, blockModels.modelOutput);
+            vertical.add(BlockModelGenerators.plainModel(upright), variantWeight(sides, index));
+            horizontal.add(BlockModelGenerators.plainModel(lying), variantWeight(sides, index));
+            if (index == 0) item = upright;
+        }
+
+        blockModels.blockStateOutput.accept(BlockModelGenerators.createRotatedPillarWithHorizontalVariant(block,
+                new MultiVariant(vertical.build()), new MultiVariant(horizontal.build())));
+        blockModels.registerSimpleItemModel(block, item);
+    }
+
+    private void variedWood(BlockModelGenerators blockModels, Block block, List<String> sides) {
+        WeightedList.Builder<Variant> models = WeightedList.builder();
+        Identifier item = null;
+
+        for (int index = 0; index < sides.size(); index++) {
+            Material side = elderOak(sides.get(index));
+            Identifier model = ModelTemplates.CUBE_COLUMN.createWithSuffix(block, altSuffix(index),
+                    TextureMapping.column(side, side), blockModels.modelOutput);
+            models.add(BlockModelGenerators.plainModel(model), variantWeight(sides, index));
+            if (index == 0) item = model;
+        }
+
+        blockModels.blockStateOutput.accept(BlockModelGenerators.createAxisAlignedPillarBlock(block, new MultiVariant(models.build())));
+        blockModels.registerSimpleItemModel(block, item);
+    }
+
+    private void generateAncientOak(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
+        Material planks = elderOak("planks");
+
+        List<String> bark = AncientOak.sideVariants(AncientOak.LOG_SIDE, AncientOak.LOG_SIDE_ALTS);
+        variedLog(blockModels, AncientOak.block(AncientOak.LOG), bark, AncientOak.LOG_TOP);
+        variedWood(blockModels, AncientOak.block(AncientOak.WOOD), bark);
+
+        List<String> stripped = AncientOak.sideVariants(AncientOak.STRIPPED_LOG_SIDE, AncientOak.STRIPPED_LOG_SIDE_ALTS);
+        variedLog(blockModels, AncientOak.block(AncientOak.STRIPPED_LOG), stripped, AncientOak.STRIPPED_LOG_TOP);
+        variedWood(blockModels, AncientOak.block(AncientOak.STRIPPED_WOOD), stripped);
+
+        blockModels.new BlockFamilyProvider(TextureMapping.cube(planks))
+                .fullBlock(AncientOak.block(AncientOak.PLANKS), ModelTemplates.CUBE_ALL)
+                .stairs(AncientOak.block(AncientOak.STAIRS))
+                .slab(AncientOak.block(AncientOak.SLAB))
+                .fence(AncientOak.block(AncientOak.FENCE))
+                .fenceGate(AncientOak.block(AncientOak.FENCE_GATE))
+                .button(AncientOak.block(AncientOak.BUTTON))
+                .pressurePlate(AncientOak.block(AncientOak.PRESSURE_PLATE));
+
+        Block door = AncientOak.block(AncientOak.DOOR);
+        TextureMapping doorMapping = TextureMapping.door(planks, planks);
+        blockModels.blockStateOutput.accept(BlockModelGenerators.createDoor(door,
+                BlockModelGenerators.plainVariant(ModelTemplates.DOOR_BOTTOM_LEFT.create(door, doorMapping, blockModels.modelOutput)),
+                BlockModelGenerators.plainVariant(ModelTemplates.DOOR_BOTTOM_LEFT_OPEN.create(door, doorMapping, blockModels.modelOutput)),
+                BlockModelGenerators.plainVariant(ModelTemplates.DOOR_BOTTOM_RIGHT.create(door, doorMapping, blockModels.modelOutput)),
+                BlockModelGenerators.plainVariant(ModelTemplates.DOOR_BOTTOM_RIGHT_OPEN.create(door, doorMapping, blockModels.modelOutput)),
+                BlockModelGenerators.plainVariant(ModelTemplates.DOOR_TOP_LEFT.create(door, doorMapping, blockModels.modelOutput)),
+                BlockModelGenerators.plainVariant(ModelTemplates.DOOR_TOP_LEFT_OPEN.create(door, doorMapping, blockModels.modelOutput)),
+                BlockModelGenerators.plainVariant(ModelTemplates.DOOR_TOP_RIGHT.create(door, doorMapping, blockModels.modelOutput)),
+                BlockModelGenerators.plainVariant(ModelTemplates.DOOR_TOP_RIGHT_OPEN.create(door, doorMapping, blockModels.modelOutput))));
+        flatItem(itemModels, door.asItem(), Identifier.withDefaultNamespace("item/oak_door"));
+
+        Block trapdoor = AncientOak.block(AncientOak.TRAPDOOR);
+        TextureMapping trapdoorMapping = TextureMapping.defaultTexture(planks);
+        Identifier trapdoorBottom = ModelTemplates.ORIENTABLE_TRAPDOOR_BOTTOM.create(trapdoor, trapdoorMapping, blockModels.modelOutput);
+        blockModels.blockStateOutput.accept(BlockModelGenerators.createOrientableTrapdoor(trapdoor,
+                BlockModelGenerators.plainVariant(ModelTemplates.ORIENTABLE_TRAPDOOR_TOP.create(trapdoor, trapdoorMapping, blockModels.modelOutput)),
+                BlockModelGenerators.plainVariant(trapdoorBottom),
+                BlockModelGenerators.plainVariant(ModelTemplates.ORIENTABLE_TRAPDOOR_OPEN.create(trapdoor, trapdoorMapping, blockModels.modelOutput))));
+        blockModels.registerSimpleItemModel(trapdoor, trapdoorBottom);
+
+        Block leaves = AncientOak.block(AncientOak.LEAVES);
+        Identifier leavesModel = ModelTemplates.LEAVES.create(leaves, TextureMapping.cube(elderOak("leaves")), blockModels.modelOutput);
+        blockModels.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(leaves, BlockModelGenerators.plainVariant(leavesModel)));
+        blockModels.registerSimpleTintedItemModel(leaves, leavesModel, ItemModelUtils.constantTint(FoliageColor.FOLIAGE_DEFAULT));
+
+        Block sapling = AncientOak.block(AncientOak.SAPLING);
+        blockModels.createCrossBlock(sapling, BlockModelGenerators.PlantType.NOT_TINTED, TextureMapping.cross(elderOak("sapling")));
+        flatItem(itemModels, sapling.asItem(), Identifier.parse(AncientOak.TEXTURE_ROOT + "sapling"));
     }
 
     private void generateInfectedLog(BlockModelGenerators blockModels, BlockInfectedLog block) {
@@ -186,8 +431,8 @@ public class AlchemiaModelProvider extends ModelProvider {
         String own = PlantGrowthTextures.ownTexture(block.getFungus(), "infected_" + wood + "_log");
         String ownTop = PlantGrowthTextures.ownTexture(block.getFungus(), "infected_" + wood + "_log_top");
 
-        Identifier side = own != null ? blockTexture(own) : Identifier.withDefaultNamespace("block/" + wood + "_log");
-        Identifier end = ownTop != null ? blockTexture(ownTop) : Identifier.withDefaultNamespace("block/" + wood + "_log_top");
+        Identifier side = own != null ? blockTexture(own) : Identifier.parse(block.getWood().sideTexture());
+        Identifier end = ownTop != null ? blockTexture(ownTop) : Identifier.parse(block.getWood().endTexture());
 
         Identifier model = ModelTemplates.CUBE_COLUMN.create(blockModel(blockName(block)),
                 TextureMapping.column(new Material(side), new Material(end)), blockModels.modelOutput);

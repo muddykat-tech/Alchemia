@@ -1,0 +1,1059 @@
+{
+  "multipart": [
+    {
+      "when": {
+        "facing": "north",
+        "thickness": "0"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_t0"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "thickness": "0",
+        "tabs": "1"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t0_n1"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "thickness": "0",
+        "tabs": "2"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t0_n2"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "thickness": "0",
+        "tabs": "3"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t0_n3"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "thickness": "0",
+        "tabs": "4"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t0_n4"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "thickness": "1"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_t1"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "thickness": "1",
+        "tabs": "1"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t1_n1"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "thickness": "1",
+        "tabs": "2"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t1_n2"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "thickness": "1",
+        "tabs": "3"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t1_n3"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "thickness": "1",
+        "tabs": "4"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t1_n4"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "thickness": "2"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_t2"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "thickness": "2",
+        "tabs": "1"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t2_n1"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "thickness": "2",
+        "tabs": "2"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t2_n2"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "thickness": "2",
+        "tabs": "3"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t2_n3"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "thickness": "2",
+        "tabs": "4"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t2_n4"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "thickness": "3"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_t3"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "thickness": "3",
+        "tabs": "1"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t3_n1"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "thickness": "3",
+        "tabs": "2"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t3_n2"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "thickness": "3",
+        "tabs": "3"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t3_n3"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "thickness": "3",
+        "tabs": "4"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t3_n4"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "thickness": "4"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_t4"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "thickness": "4",
+        "tabs": "1"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t4_n1"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "thickness": "4",
+        "tabs": "2"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t4_n2"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "thickness": "4",
+        "tabs": "3"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t4_n3"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "thickness": "4",
+        "tabs": "4"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t4_n4"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "thickness": "0"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_t0",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "thickness": "0",
+        "tabs": "1"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t0_n1",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "thickness": "0",
+        "tabs": "2"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t0_n2",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "thickness": "0",
+        "tabs": "3"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t0_n3",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "thickness": "0",
+        "tabs": "4"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t0_n4",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "thickness": "1"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_t1",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "thickness": "1",
+        "tabs": "1"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t1_n1",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "thickness": "1",
+        "tabs": "2"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t1_n2",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "thickness": "1",
+        "tabs": "3"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t1_n3",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "thickness": "1",
+        "tabs": "4"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t1_n4",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "thickness": "2"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_t2",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "thickness": "2",
+        "tabs": "1"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t2_n1",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "thickness": "2",
+        "tabs": "2"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t2_n2",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "thickness": "2",
+        "tabs": "3"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t2_n3",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "thickness": "2",
+        "tabs": "4"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t2_n4",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "thickness": "3"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_t3",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "thickness": "3",
+        "tabs": "1"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t3_n1",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "thickness": "3",
+        "tabs": "2"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t3_n2",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "thickness": "3",
+        "tabs": "3"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t3_n3",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "thickness": "3",
+        "tabs": "4"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t3_n4",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "thickness": "4"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_t4",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "thickness": "4",
+        "tabs": "1"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t4_n1",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "thickness": "4",
+        "tabs": "2"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t4_n2",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "thickness": "4",
+        "tabs": "3"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t4_n3",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "thickness": "4",
+        "tabs": "4"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t4_n4",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "thickness": "0"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_t0",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "thickness": "0",
+        "tabs": "1"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t0_n1",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "thickness": "0",
+        "tabs": "2"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t0_n2",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "thickness": "0",
+        "tabs": "3"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t0_n3",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "thickness": "0",
+        "tabs": "4"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t0_n4",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "thickness": "1"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_t1",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "thickness": "1",
+        "tabs": "1"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t1_n1",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "thickness": "1",
+        "tabs": "2"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t1_n2",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "thickness": "1",
+        "tabs": "3"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t1_n3",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "thickness": "1",
+        "tabs": "4"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t1_n4",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "thickness": "2"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_t2",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "thickness": "2",
+        "tabs": "1"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t2_n1",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "thickness": "2",
+        "tabs": "2"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t2_n2",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "thickness": "2",
+        "tabs": "3"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t2_n3",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "thickness": "2",
+        "tabs": "4"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t2_n4",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "thickness": "3"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_t3",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "thickness": "3",
+        "tabs": "1"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t3_n1",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "thickness": "3",
+        "tabs": "2"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t3_n2",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "thickness": "3",
+        "tabs": "3"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t3_n3",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "thickness": "3",
+        "tabs": "4"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t3_n4",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "thickness": "4"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_t4",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "thickness": "4",
+        "tabs": "1"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t4_n1",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "thickness": "4",
+        "tabs": "2"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t4_n2",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "thickness": "4",
+        "tabs": "3"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t4_n3",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "thickness": "4",
+        "tabs": "4"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t4_n4",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "thickness": "0"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_t0",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "thickness": "0",
+        "tabs": "1"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t0_n1",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "thickness": "0",
+        "tabs": "2"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t0_n2",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "thickness": "0",
+        "tabs": "3"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t0_n3",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "thickness": "0",
+        "tabs": "4"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t0_n4",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "thickness": "1"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_t1",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "thickness": "1",
+        "tabs": "1"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t1_n1",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "thickness": "1",
+        "tabs": "2"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t1_n2",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "thickness": "1",
+        "tabs": "3"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t1_n3",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "thickness": "1",
+        "tabs": "4"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t1_n4",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "thickness": "2"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_t2",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "thickness": "2",
+        "tabs": "1"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t2_n1",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "thickness": "2",
+        "tabs": "2"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t2_n2",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "thickness": "2",
+        "tabs": "3"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t2_n3",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "thickness": "2",
+        "tabs": "4"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t2_n4",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "thickness": "3"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_t3",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "thickness": "3",
+        "tabs": "1"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t3_n1",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "thickness": "3",
+        "tabs": "2"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t3_n2",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "thickness": "3",
+        "tabs": "3"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t3_n3",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "thickness": "3",
+        "tabs": "4"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t3_n4",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "thickness": "4"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_t4",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "thickness": "4",
+        "tabs": "1"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t4_n1",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "thickness": "4",
+        "tabs": "2"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t4_n2",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "thickness": "4",
+        "tabs": "3"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t4_n3",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "thickness": "4",
+        "tabs": "4"
+      },
+      "apply": {
+        "model": "alchemia:block/placed_guide_tabs_t4_n4",
+        "y": 270
+      }
+    }
+  ]
+}

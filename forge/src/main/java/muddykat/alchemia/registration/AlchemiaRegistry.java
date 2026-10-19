@@ -21,6 +21,7 @@ public class AlchemiaRegistry {
         PlacementModifierRegistry.PLACEMENT_MODIFIERS.register(modEventBus);
         BlockEntityTypeRegistry.TILES.register(modEventBus);
         MenuTypeRegistry.MENU_TYPES.register(modEventBus);
+        ParticleTypeRegistry.PARTICLE_TYPES.register(modEventBus);
         CreativeTabRegistry.CREATIVE_MODE_TABS.register(modEventBus);
         PotionRegistry.POTIONS.register(modEventBus);
         Alchemia.LOGGER.info(MOD_NAME + " Registration Complete");

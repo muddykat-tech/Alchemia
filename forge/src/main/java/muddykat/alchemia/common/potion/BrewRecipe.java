@@ -11,6 +11,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -18,7 +19,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public record BrewRecipe(String id, String name, String base, List<BrewRecipe.BrewEffect> effects, List<String> ingredients) {
+public record BrewRecipe(String id, String name, String base, List<BrewRecipe.BrewEffect> effects,
+                         List<String> ingredients, List<String> steps) {
+
+    public static final char STEP_ADD = '+';
+    public static final char STEP_STIR = '~';
+    public static final char STEP_FINE = '-';
+    public static final char STEP_BREW = '!';
+    public static final char STEP_REDSTONE = '*';
+    public static final char STEP_SPLASH = '^';
+    public static final char STEP_FINISH = '=';
 
     public BrewRecipe {
         if (id == null || id.isBlank()) {
@@ -26,10 +36,34 @@ public record BrewRecipe(String id, String name, String base, List<BrewRecipe.Br
         }
         if (name == null) name = "";
         if (base == null || base.isBlank()) base = BrewBases.DEFAULT_ID;
+        if (steps == null) steps = List.of();
     }
 
-    public static BrewRecipe create(String name, BrewBase base, List<BrewEffect> effects, List<String> ingredients) {
-        return new BrewRecipe(java.util.UUID.randomUUID().toString(), name, base.id(), effects, ingredients);
+    public static BrewRecipe create(String name, BrewBase base, List<BrewEffect> effects,
+                                    List<String> ingredients, List<String> steps) {
+        return new BrewRecipe(java.util.UUID.randomUUID().toString(), name, base.id(), effects, ingredients, steps);
+    }
+
+    private static BrewRecipe stored(String id, String name, String base, List<BrewEffect> effects,
+                                     List<String> ingredients, List<String> steps) {
+        if (!steps.isEmpty()) return new BrewRecipe(id, name, base, effects, ingredients, steps);
+        return new BrewRecipe(id, name, base, effects, ingredients, legacySteps(ingredients));
+    }
+
+    public static List<String> legacySteps(List<String> entries) {
+        String redstone = BuiltInRegistries.ITEM.getKey(Items.REDSTONE).toString();
+        List<String> script = new ArrayList<>(entries.size() * 3);
+
+        for (String entry : entries) {
+            if (nameOf(entry).equals(redstone)) {
+                script.add(String.valueOf(STEP_REDSTONE));
+                continue;
+            }
+            script.add(STEP_ADD + entry);
+            script.add(String.valueOf(STEP_FINISH));
+            script.add(String.valueOf(STEP_BREW));
+        }
+        return List.copyOf(script);
     }
 
     public BrewBase brewBase() {
@@ -72,15 +106,16 @@ public record BrewRecipe(String id, String name, String base, List<BrewRecipe.Br
             Codec.STRING.optionalFieldOf("name", "").forGetter(BrewRecipe::name),
             Codec.STRING.optionalFieldOf("base", BrewBases.DEFAULT_ID).forGetter(BrewRecipe::base),
             BrewEffect.CODEC.listOf().fieldOf("effects").forGetter(BrewRecipe::effects),
-            Codec.STRING.listOf().fieldOf("ingredients").forGetter(BrewRecipe::ingredients)
-    ).apply(instance, BrewRecipe::new));
+            Codec.STRING.listOf().fieldOf("ingredients").forGetter(BrewRecipe::ingredients),
+            Codec.STRING.listOf().optionalFieldOf("steps", List.of()).forGetter(BrewRecipe::steps)
+    ).apply(instance, BrewRecipe::stored));
 
     private static final Codec<BrewRecipe> LEGACY = RecordCodecBuilder.create(instance -> instance.group(
             Codec.STRING.fieldOf("recipe").forGetter(brew -> brew.effects().get(0).recipe()),
             Codec.STRING.listOf().fieldOf("ingredients").forGetter(BrewRecipe::ingredients),
             Codec.INT.fieldOf("potency").forGetter(brew -> brew.effects().get(0).potency())
-    ).apply(instance, (recipe, ingredients, potency) -> new BrewRecipe("", "",
-            BrewBases.DEFAULT_ID, List.of(new BrewEffect(recipe, potency)), ingredients)));
+    ).apply(instance, (recipe, ingredients, potency) -> stored("", "",
+            BrewBases.DEFAULT_ID, List.of(new BrewEffect(recipe, potency)), ingredients, List.of())));
 
     public static final Codec<BrewRecipe> CODEC = Codec.either(MODERN, LEGACY).xmap(either -> either.map(left -> left, right -> right), Either::left);
 
@@ -96,7 +131,12 @@ public record BrewRecipe(String id, String name, String base, List<BrewRecipe.Br
     }
 
     public static String encode(String registryName, int crush) {
-        return crush <= 0 ? registryName : registryName + "|" + crush;
+        return encode(registryName, crush, 0, 0);
+    }
+
+    public static String encode(String registryName, int crush, int trim, int rotation) {
+        if (trim <= 0 && rotation <= 0) return crush <= 0 ? registryName : registryName + "|" + crush;
+        return registryName + "|" + Math.max(0, crush) + "|" + Math.max(0, trim) + "|" + Math.max(0, rotation);
     }
 
     private static String nameOf(String entry) {
@@ -104,19 +144,45 @@ public record BrewRecipe(String id, String name, String base, List<BrewRecipe.Br
         return split < 0 ? entry : entry.substring(0, split);
     }
 
-    private static int crushOf(String entry) {
-        int split = entry.indexOf('|');
-        if (split < 0) return 0;
+    private static int field(String entry, int index) {
+        String[] parts = entry.split("\\|");
+        if (index >= parts.length) return 0;
         try {
-            return Integer.parseInt(entry.substring(split + 1));
+            return Math.max(0, Integer.parseInt(parts[index]));
         } catch (NumberFormatException error) {
             return 0;
         }
     }
 
+    private static int crushOf(String entry) {
+        return field(entry, 1);
+    }
+
+    private static int trimOf(String entry) {
+        return field(entry, 2);
+    }
+
+    private static int rotationOf(String entry) {
+        return field(entry, 3);
+    }
+
     public boolean requiresGrinding() {
         for (String entry : ingredients) {
             if (crushOf(entry) > 0) return true;
+        }
+        return false;
+    }
+
+    public boolean requiresTrimming() {
+        for (String entry : ingredients) {
+            if (trimOf(entry) > 0) return true;
+        }
+        return false;
+    }
+
+    public boolean requiresTurning() {
+        for (String entry : ingredients) {
+            if (rotationOf(entry) > 0) return true;
         }
         return false;
     }
@@ -151,9 +217,13 @@ public record BrewRecipe(String id, String name, String base, List<BrewRecipe.Br
         if (item == null) return ItemStack.EMPTY;
 
         ItemStack stack = new ItemStack(item);
-        if (!(item instanceof ItemIngredient)) return stack;
         int crush = crushOf(entry);
         if (crush > 0) StackData.CRUSH.set(stack, crush);
+        if (!(item instanceof ItemIngredient)) return stack;
+        int trim = trimOf(entry);
+        int rotation = rotationOf(entry);
+        if (trim > 0) StackData.PATH_TRIM.set(stack, trim);
+        if (rotation > 0) StackData.PATH_ROTATION.set(stack, rotation);
         return stack;
     }
 

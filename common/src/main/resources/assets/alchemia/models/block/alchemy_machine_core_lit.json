@@ -3,8 +3,13 @@
   "model": "alchemia:models/alchemy_machine_core.obj",
   "flip_v": true,
   "automatic_culling": false,
+  "emissive_ambient": false,
   "transform": {
-    "translation": [0.5, 0.0, 0.5]
+    "translation": [
+      0.5,
+      0.0,
+      0.5
+    ]
   },
   "textures": {
     "alchemy_machine": "alchemia:block/alchemy/alchemy_machine_lit",

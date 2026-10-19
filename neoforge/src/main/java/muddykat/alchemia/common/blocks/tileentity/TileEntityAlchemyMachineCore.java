@@ -146,7 +146,7 @@ public class TileEntityAlchemyMachineCore extends SyncedBlockEntity implements M
 
         ItemStack input = getStack(INPUT_SLOT);
 
-        for (MagnumOpus.Stage stage : MagnumOpus.STAGES) {
+        for (MagnumOpus.Stage stage : MagnumOpus.stages()) {
             if (stage.potionCount() != available.size()) continue;
             if (!inputMatches(stage, input)) continue;
 

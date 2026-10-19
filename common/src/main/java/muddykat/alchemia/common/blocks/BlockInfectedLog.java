@@ -15,6 +15,7 @@ public class BlockInfectedLog extends RotatedPillarBlock {
 
     public static final int LEAF_REACH = 4;
     public static final int SHELF_CHANCE = 4;
+    public static final int TRUNK_CLIMB = 32;
 
     private final Ingredients fungus;
     private final InfectableWood.Wood wood;
@@ -34,7 +35,15 @@ public class BlockInfectedLog extends RotatedPillarBlock {
     }
 
     public boolean isLivingTree(BlockGetter level, BlockPos pos) {
-        return wood.hasLeavesNear(level, pos, LEAF_REACH);
+        if (wood.hasLeavesNear(level, pos, LEAF_REACH)) return true;
+
+        BlockPos.MutableBlockPos cursor = pos.mutable();
+        for (int step = 0; step < TRUNK_CLIMB; step++) {
+            cursor.move(Direction.UP);
+            if (!wood.isTrunk(level.getBlockState(cursor))) break;
+        }
+        cursor.move(Direction.DOWN);
+        return cursor.getY() != pos.getY() && wood.hasLeavesNear(level, cursor, LEAF_REACH);
     }
 
     public BlockState infect(BlockState log) {

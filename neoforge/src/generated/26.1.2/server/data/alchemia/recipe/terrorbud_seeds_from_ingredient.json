@@ -7,5 +7,6 @@
   ],
   "result": {
     "id": "alchemia:herb_terrorbud_seed"
-  }
+  },
+  "show_notification": false
 }

@@ -433,6 +433,18 @@
       },
       "trigger": "minecraft:inventory_changed"
     },
+    "root_grasping_root": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "alchemia:root_grasping_root"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
     "root_lava_root": {
       "conditions": {
         "items": [
@@ -554,6 +566,9 @@
     ],
     [
       "root_dreambeet"
+    ],
+    [
+      "root_grasping_root"
     ],
     [
       "mushroom_marshroom"

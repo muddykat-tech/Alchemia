@@ -1,5 +1,6 @@
 package muddykat.alchemia.common.blocks.helper;
 
+import muddykat.alchemia.common.blocks.AncientOak;
 import muddykat.alchemia.common.blocks.BlockInfectedLog;
 import muddykat.alchemia.common.items.helper.Ingredients;
 import muddykat.alchemia.registration.registers.BlockRegistry;
@@ -12,13 +13,31 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Supplier;
 
 public final class InfectableWood {
 
-    public record Wood(String name, Block log, List<Block> leaves) {
+    public record Wood(String name, Supplier<Block> logSupplier, Supplier<List<Block>> leavesSupplier,
+                       String sideTexture, String endTexture) {
+
+        public Wood(String name, Block log, List<Block> leaves) {
+            this(name, () -> log, () -> leaves, "minecraft:block/" + name + "_log", "minecraft:block/" + name + "_log_top");
+        }
+
+        public Block log() {
+            return logSupplier.get();
+        }
+
+        public List<Block> leaves() {
+            return leavesSupplier.get();
+        }
 
         public String infectedName(Ingredients fungus) {
             return fungus.name().toLowerCase(Locale.ROOT) + "_infected_" + name + "_log";
+        }
+
+        public boolean isTrunk(net.minecraft.world.level.block.state.BlockState state) {
+            return state.is(log()) || (state.getBlock() instanceof BlockInfectedLog infected && infected.getWood() == this);
         }
 
         public BlockInfectedLog infected(Ingredients fungus) {
@@ -32,7 +51,7 @@ public final class InfectableWood {
                 for (int dy = -reach; dy <= reach; dy++) {
                     for (int dz = -reach; dz <= reach; dz++) {
                         cursor.setWithOffset(pos, dx, dy, dz);
-                        if (leaves.contains(level.getBlockState(cursor).getBlock())) return true;
+                        if (leaves().contains(level.getBlockState(cursor).getBlock())) return true;
                     }
                 }
             }
@@ -58,6 +77,9 @@ public final class InfectableWood {
 #if MC_VER >= 26300
         woods.add(new Wood("poplar", Blocks.POPLAR_LOG, List.of(Blocks.RED_POPLAR_LEAVES, Blocks.ORANGE_POPLAR_LEAVES, Blocks.YELLOW_POPLAR_LEAVES)));
 #endif
+        woods.add(new Wood(AncientOak.WOOD_NAME, () -> AncientOak.block(AncientOak.LOG),
+                () -> List.of(AncientOak.block(AncientOak.LEAVES)),
+                AncientOak.TEXTURE_ROOT + "log_side", AncientOak.TEXTURE_ROOT + "log_top"));
         WOODS = Collections.unmodifiableList(woods);
     }
 

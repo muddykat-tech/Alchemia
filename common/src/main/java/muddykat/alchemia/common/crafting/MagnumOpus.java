@@ -1,19 +1,37 @@
 package muddykat.alchemia.common.crafting;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.effect.MobEffects;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
+import java.util.Optional;
 
 public final class MagnumOpus {
 
     public record Stage(String result, @Nullable String previous, List<PotionEffectIngredient> potions) {
+        public static final Codec<Stage> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                Codec.STRING.fieldOf("result").forGetter(Stage::result),
+                Codec.STRING.optionalFieldOf("previous").forGetter(stage -> Optional.ofNullable(stage.previous())),
+                PotionEffectIngredient.CODEC.codec().listOf().fieldOf("potions").forGetter(Stage::potions)
+        ).apply(instance, (result, previous, potions) -> new Stage(result, previous.orElse(null), List.copyOf(potions))));
+
+        public static final StreamCodec<RegistryFriendlyByteBuf, Stage> STREAM_CODEC = StreamCodec.composite(
+                ByteBufCodecs.STRING_UTF8, Stage::result,
+                ByteBufCodecs.optional(ByteBufCodecs.STRING_UTF8), stage -> Optional.ofNullable(stage.previous()),
+                PotionEffectIngredient.STREAM_CODEC.apply(ByteBufCodecs.list()), Stage::potions,
+                (result, previous, potions) -> new Stage(result, previous.orElse(null), List.copyOf(potions)));
+
         public int potionCount() {
             return potions.size();
         }
     }
 
-    public static final List<Stage> STAGES = List.of(
+    public static final List<Stage> CLASSIC = List.of(
             new Stage("nigredo", null, List.of(
                     PotionEffectIngredient.of(MobEffects.SLOWNESS, 3),
                     PotionEffectIngredient.of(MobEffects.RESISTANCE, 3),
@@ -27,25 +45,57 @@ public final class MagnumOpus {
                     PotionEffectIngredient.of(MobEffects.NIGHT_VISION, 3),
                     PotionEffectIngredient.of(MobEffects.HASTE, 3),
                     PotionEffectIngredient.of(MobEffects.LEVITATION, 3),
-                    PotionEffectIngredient.of(MobEffects.DOLPHINS_GRACE, 3))),
+                    PotionEffectIngredient.of(MobEffects.DOLPHINS_GRACE, 3),
+                    PotionEffectIngredient.of(MobEffects.JUMP_BOOST, 3))),
 
             new Stage("citrinitas", "albedo", List.of(
                     PotionEffectIngredient.of(MobEffects.GLOWING, 3),
                     PotionEffectIngredient.of(MobEffects.FIRE_RESISTANCE, 3),
                     PotionEffectIngredient.of(MobEffects.CONDUIT_POWER, 3),
                     PotionEffectIngredient.of(MobEffects.BAD_OMEN, 3),
-                    PotionEffectIngredient.of(MobEffects.INSTANT_DAMAGE, 3))),
+                    PotionEffectIngredient.of(MobEffects.INSTANT_DAMAGE, 3),
+                    PotionEffectIngredient.of(MobEffects.STRENGTH, 3),
+                    PotionEffectIngredient.of(MobEffects.HASTE, 3),
+                    PotionEffectIngredient.ofAll(
+                            PotionEffectIngredient.need(MobEffects.FIRE_RESISTANCE, 2),
+                            PotionEffectIngredient.need(MobEffects.WATER_BREATHING, 2)),
+                    PotionEffectIngredient.ofAll(
+                            PotionEffectIngredient.need(MobEffects.GLOWING, 1),
+                            PotionEffectIngredient.need(MobEffects.NIGHT_VISION, 2),
+                            PotionEffectIngredient.need(MobEffects.SPEED, 2)))),
 
             new Stage("rubedo", "citrinitas", List.of(
                     PotionEffectIngredient.of(MobEffects.SATURATION, 3),
                     PotionEffectIngredient.of(MobEffects.REGENERATION, 3),
                     PotionEffectIngredient.of(MobEffects.ABSORPTION, 3),
                     PotionEffectIngredient.of(MobEffects.WITHER, 3),
-                    PotionEffectIngredient.of(MobEffects.HEALTH_BOOST, 3))),
+                    PotionEffectIngredient.of(MobEffects.HEALTH_BOOST, 3),
+                    PotionEffectIngredient.of(MobEffects.INSTANT_HEALTH, 3),
+                    PotionEffectIngredient.of(MobEffects.RESISTANCE, 3),
+                    PotionEffectIngredient.ofAll(
+                            PotionEffectIngredient.need(MobEffects.REGENERATION, 2),
+                            PotionEffectIngredient.need(MobEffects.POISON, 2)),
+                    PotionEffectIngredient.ofAll(
+                            PotionEffectIngredient.need(MobEffects.HEALTH_BOOST, 1),
+                            PotionEffectIngredient.need(MobEffects.WITHER, 2),
+                            PotionEffectIngredient.need(MobEffects.INSTANT_HEALTH, 2)),
+                    PotionEffectIngredient.ofAll(
+                            PotionEffectIngredient.need(MobEffects.ABSORPTION, 2),
+                            PotionEffectIngredient.need(MobEffects.HUNGER, 1),
+                            PotionEffectIngredient.need(MobEffects.SATURATION, 2)),
+                    PotionEffectIngredient.ofAll(
+                            PotionEffectIngredient.need(MobEffects.STRENGTH, 2),
+                            PotionEffectIngredient.need(MobEffects.WEAKNESS, 2)))),
 
             new Stage("philosopher_stone", "rubedo", List.of(
                     PotionEffectIngredient.of(MobEffects.LUCK, 3),
                     PotionEffectIngredient.of(MobEffects.NAUSEA, 3),
+                    PotionEffectIngredient.of(MobEffects.INVISIBILITY, 3),
+                    PotionEffectIngredient.of(MobEffects.HEALTH_BOOST, 3),
+                    PotionEffectIngredient.of(MobEffects.FIRE_RESISTANCE, 3),
+                    PotionEffectIngredient.of(MobEffects.SLOW_FALLING, 3),
+                    PotionEffectIngredient.of(MobEffects.RESISTANCE, 3),
+                    PotionEffectIngredient.of(MobEffects.REGENERATION, 3),
                     PotionEffectIngredient.ofAll(
                             PotionEffectIngredient.need(MobEffects.POISON, 1),
                             PotionEffectIngredient.need(MobEffects.FIRE_RESISTANCE, 1),
@@ -69,8 +119,26 @@ public final class MagnumOpus {
                             PotionEffectIngredient.need(MobEffects.FIRE_RESISTANCE, 1),
                             PotionEffectIngredient.need(MobEffects.RESISTANCE, 2)))));
 
+    private static volatile List<Stage> active = CLASSIC;
+    private static volatile int generation;
+
+    public static List<Stage> stages() {
+        return active;
+    }
+
+    public static int generation() {
+        return generation;
+    }
+
+    public static synchronized void install(List<Stage> stages) {
+        List<Stage> next = stages.size() == CLASSIC.size() ? List.copyOf(stages) : CLASSIC;
+        if (next.equals(active)) return;
+        active = next;
+        generation++;
+    }
+
     public static int maxPotionCount() {
-        return STAGES.stream().mapToInt(Stage::potionCount).max().orElse(0);
+        return active.stream().mapToInt(Stage::potionCount).max().orElse(0);
     }
 
     private MagnumOpus() {}

@@ -1,0 +1,10 @@
+{
+  "values": {
+    "alchemia:ancient_oak_log": {
+      "stripped_block": "alchemia:stripped_ancient_oak_log"
+    },
+    "alchemia:ancient_oak_wood": {
+      "stripped_block": "alchemia:stripped_ancient_oak_wood"
+    }
+  }
+}

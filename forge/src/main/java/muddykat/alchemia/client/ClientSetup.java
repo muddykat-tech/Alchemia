@@ -1,5 +1,14 @@
 package muddykat.alchemia.client;
 
+import muddykat.alchemia.client.particle.AncientOakLeafParticle;
+import muddykat.alchemia.client.particle.BrewBubbleParticle;
+import muddykat.alchemia.common.blocks.AncientOak;
+import net.minecraft.client.renderer.BiomeColors;
+import net.minecraft.world.level.FoliageColor;
+import net.minecraftforge.client.event.RegisterColorHandlersEvent;
+import muddykat.alchemia.registration.registers.ParticleTypeRegistry;
+import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
+
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.client.gui.AlchemicalScreen;
 import muddykat.alchemia.client.gui.AlchemyMachineScreen;
@@ -25,6 +34,13 @@ import net.minecraft.world.item.Items;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
+import net.minecraftforge.client.event.RegisterItemDecorationsEvent;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import muddykat.alchemia.common.items.ItemIngredient;
+import muddykat.alchemia.common.potion.VanillaIngredients;
 import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -56,6 +72,21 @@ public class ClientSetup {
     }
 
     @SubscribeEvent
+    public static void onRegisterItemDecorations(RegisterItemDecorationsEvent event) {
+        for (Item item : VanillaIngredients.drifts().keySet()) event.register(item, ClientSetup::grindBar);
+    }
+
+    private static boolean grindBar(GuiGraphics graphics, Font font, ItemStack stack, int x, int y) {
+        int crush = ItemIngredient.crushOf(stack);
+        if (crush <= 0) return false;
+
+        graphics.fill(x + 2, y + 13, x + 15, y + 15, 0xFF000000);
+        graphics.fill(x + 2, y + 13, x + 2 + ItemIngredient.crushBarWidth(crush), y + 14,
+                0xFF000000 | ItemIngredient.crushBarColor(crush));
+        return false;
+    }
+
+    @SubscribeEvent
     public static void onRegisterTooltipComponents(RegisterClientTooltipComponentFactoriesEvent event) {
         event.register(IngredientPathTooltip.class, ClientIngredientPathTooltip::new);
         GuideAccess.bindReader(() -> GuideAccess.carriedBy(Minecraft.getInstance().player));
@@ -64,6 +95,24 @@ public class ClientSetup {
     @SubscribeEvent
     public static void onRegisterGuiOverlays(RegisterGuiOverlaysEvent event) {
         event.registerAboveAll("grind_path", GrindOverlay::render);
+    }
+
+    @SubscribeEvent
+    public static void onRegisterParticles(RegisterParticleProvidersEvent event) {
+        event.registerSpriteSet(ParticleTypeRegistry.BREW_BUBBLE.get(), BrewBubbleParticle.Provider::new);
+        event.registerSpriteSet(ParticleTypeRegistry.ANCIENT_OAK_LEAF.get(), AncientOakLeafParticle.Provider::new);
+    }
+
+    @SubscribeEvent
+    public static void onRegisterBlockColors(RegisterColorHandlersEvent.Block event) {
+        event.register((state, level, pos, tintIndex) -> level != null && pos != null
+                ? BiomeColors.getAverageFoliageColor(level, pos)
+                : FoliageColor.getDefaultColor(), AncientOak.block(AncientOak.LEAVES));
+    }
+
+    @SubscribeEvent
+    public static void onRegisterItemColors(RegisterColorHandlersEvent.Item event) {
+        event.register((stack, tintIndex) -> FoliageColor.getDefaultColor(), AncientOak.block(AncientOak.LEAVES));
     }
 
     @SubscribeEvent

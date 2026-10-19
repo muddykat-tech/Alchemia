@@ -2,6 +2,6 @@
   "parent": "minecraft:block/cross",
   "render_type": "minecraft:cutout",
   "textures": {
-    "cross": "alchemia:block/flowers/firebell"
+    "cross": "alchemia:block/flowers/firebell/firebell_growth_5"
   }
 }

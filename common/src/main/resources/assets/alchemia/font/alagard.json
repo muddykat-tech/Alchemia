@@ -1,0 +1,29 @@
+{
+  "providers": [
+    {
+      "type": "space",
+      "advances": {
+        " ": 5
+      }
+    },
+    {
+      "type": "bitmap",
+      "file": "alchemia:font/alagard.png",
+      "height": 16,
+      "ascent": 12,
+      "chars": [
+        "!\"#$%&'()*+,-./0",
+        "123456789:;<=>?@",
+        "ABCDEFGHIJKLMNOP",
+        "QRSTUVWXYZ[\\]^_`",
+        "abcdefghijklmnop",
+        "qrstuvwxyz{|}~\u00a2\u00a3",
+        "\u00a5\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"
+      ]
+    },
+    {
+      "type": "reference",
+      "id": "minecraft:default"
+    }
+  ]
+}
