@@ -34,6 +34,7 @@ public record BrewRecipe(String id, String name, String base, List<BrewRecipe.Br
     public static final char STEP_FINISH = '=';
     public static final char STEP_BARK = '%';
     public static final char STEP_GLOW = '#';
+    public static final char STEP_BOTTLE = '&';
 
     private static final int LEGACY_CRUSH_SCALE = 2;
 
@@ -106,6 +107,17 @@ public record BrewRecipe(String id, String name, String base, List<BrewRecipe.Br
                 && sortedEffects().equals(other.sortedEffects());
     }
 
+    public PotionGlass glass() {
+        for (String step : steps) {
+            if (!step.isEmpty() && step.charAt(0) == STEP_BOTTLE) return PotionGlass.byName(step.substring(1));
+        }
+        return PotionGlass.NORMAL_POTION;
+    }
+
+    public static String bottleStep(PotionGlass glass) {
+        return STEP_BOTTLE + glass.getSerializedName();
+    }
+
     private List<BrewEffect> sortedEffects() {
         List<BrewEffect> copy = new ArrayList<>(effects);
         copy.sort(java.util.Comparator.comparing(BrewEffect::recipe).thenComparingInt(BrewEffect::potency));
@@ -124,13 +136,13 @@ public record BrewRecipe(String id, String name, String base, List<BrewRecipe.Br
                 ByteBufCodecs.VAR_INT, BrewEffect::potency,
                 BrewEffect::new);
 
-        public PotionEnum asPotion() {
+        public AlchemiaEffect asPotion() {
             return RecipeDiscovery.byName(recipe);
         }
 
         public Component displayName() {
-            PotionEnum potion = asPotion();
-            return potion != null ? potion.getEffect().value().getDisplayName() : Component.literal(recipe);
+            AlchemiaEffect potion = asPotion();
+            return potion != null ? potion.displayName() : Component.literal(recipe);
         }
     }
 

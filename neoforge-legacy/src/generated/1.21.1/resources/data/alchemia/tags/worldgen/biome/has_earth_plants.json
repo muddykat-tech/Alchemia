@@ -1,0 +1,11 @@
+{
+  "remove": [
+    "#c:is_mushroom",
+    "#c:is_mountain",
+    "#c:is_spooky"
+  ],
+  "values": [
+    "#minecraft:is_forest",
+    "#c:is_plains"
+  ]
+}

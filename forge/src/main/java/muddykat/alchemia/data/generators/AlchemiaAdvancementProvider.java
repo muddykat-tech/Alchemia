@@ -50,8 +50,13 @@ public class AlchemiaAdvancementProvider implements ForgeAdvancementProvider.Adv
 
         Item[] crystals = crystals();
 
-        Advancement crystal = child(output, pot, crystals[0], "crystal", FrameType.TASK,
-                InventoryChangeTrigger.TriggerInstance.hasItems(crystals));
+        Advancement.Builder anyCrystal = Advancement.Builder.advancement()
+                .parent(pot)
+                .display(crystals[0], title("crystal"), description("crystal"), null, FrameType.TASK, true, true, false);
+        for (Item item : crystals) {
+            anyCrystal.addCriterion(key(item), InventoryChangeTrigger.TriggerInstance.hasItems(item));
+        }
+        Advancement crystal = anyCrystal.requirements(RequirementsStrategy.OR).save(output, id("crystal"));
 
         Advancement.Builder spectrum = Advancement.Builder.advancement()
                 .parent(crystal)
@@ -87,6 +92,19 @@ public class AlchemiaAdvancementProvider implements ForgeAdvancementProvider.Adv
             herbalist.addCriterion(key(item), InventoryChangeTrigger.TriggerInstance.hasItems(item));
         }
         herbalist.requirements(RequirementsStrategy.AND).save(output, id("herbalist"));
+
+        Item tablet = ItemRegistry.getItemFromRegistry("alchemy_tablet").asItem();
+        Item notes = ItemRegistry.getItemFromRegistry("alchemist_notes").asItem();
+        Item rosemary = ItemRegistry.getItemFromRegistry(Ingredients.Druids_Rosemary.getRegistryName()).asItem();
+        awarded(output, book, net.minecraft.world.item.Items.GLOWSTONE_DUST, "all_effects", FrameType.GOAL);
+        awarded(output, book, notes, "all_secrets", FrameType.GOAL);
+        awarded(output, book, rosemary, "all_ingredients", FrameType.GOAL);
+        Advancement work = awarded(output, book, tablet, "all_stages", FrameType.GOAL);
+        awarded(output, work, guide, "complete_guide", FrameType.CHALLENGE);
+    }
+
+    private Advancement awarded(Consumer<Advancement> output, Advancement parent, ItemLike icon, String name, FrameType type) {
+        return child(output, parent, icon, name, type, new net.minecraft.advancements.critereon.ImpossibleTrigger.TriggerInstance());
     }
 
     private Advancement child(Consumer<Advancement> output, Advancement parent, ItemLike icon,

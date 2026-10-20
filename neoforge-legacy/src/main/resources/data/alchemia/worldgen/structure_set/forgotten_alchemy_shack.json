@@ -1,0 +1,14 @@
+{
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 1744036921,
+    "separation": 24,
+    "spacing": 72
+  },
+  "structures": [
+    {
+      "structure": "alchemia:forgotten_alchemy_shack",
+      "weight": 1
+    }
+  ]
+}

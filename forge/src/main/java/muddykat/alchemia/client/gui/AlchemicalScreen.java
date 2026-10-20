@@ -5,6 +5,12 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import muddykat.alchemia.Alchemia;
+import muddykat.alchemia.common.guide.GuideShelf;
+import muddykat.alchemia.common.potion.Imbuements;
+import muddykat.alchemia.common.potion.IngredientDiscovery;
+import muddykat.alchemia.registration.registers.ItemRegistry;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.world.item.Item;
 import muddykat.alchemia.common.blocks.tileentity.TileEntityAlchemyCauldron;
 import muddykat.alchemia.common.blocks.tileentity.container.AlchemicalCauldronMenu;
 import muddykat.alchemia.common.items.ItemIngredient;
@@ -65,6 +71,16 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
     private static final int VIEW_WIDTH = 265;
     private static final int VIEW_HEIGHT = 160;
 
+    private static final ResourceLocation GUIDE_WIDGETS = new ResourceLocation(Alchemia.MODID, "textures/gui/guide/widgets.png");
+    private static final int GUIDE_SHEET = 256;
+    private static final int CLOSED_EYE_U = 208;
+    private static final int CLOSED_EYE_V = 3;
+    private static final int CLOSED_EYE_W = 12;
+    private static final int CLOSED_EYE_H = 5;
+    private static final int OPEN_EYE_U = 130;
+    private static final int OPEN_EYE_V = 2;
+    private static final int OPEN_EYE_W = 12;
+    private static final int OPEN_EYE_H = 8;
     private static final ResourceLocation SYMBOLS_TEXTURE = new ResourceLocation(Alchemia.MODID, "textures/book/images/symbols.png");
     private static final int SYMBOLS_W = 21;
     private static final int SYMBOLS_H = 45;
@@ -169,6 +185,7 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
     private static final int NAME_Y = 2;
     private static final int NAME_W = 132;
     private static final int NAME_H = 14;
+    private static final int NAME_TEXT_Y = 3;
 
     private static final int MAX_PENDING_STIRS = 40;
     private static final double HOP_DISTANCE = PotionMap.CELL;
@@ -205,6 +222,7 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
     private static final double POINTER_SIZE = 5.0;
 
     private EditBox nameField;
+    private int nameScroll;
     private boolean panning;
     private boolean applying;
     private int applyTicks;
@@ -306,6 +324,8 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
 
     private void releaseNameFocus() {
         if (this.nameField == null) return;
+        this.nameField.setCursorPosition(0);
+        this.nameField.setHighlightPos(0);
         this.nameField.setFocused(false);
         this.setFocused(null);
     }
@@ -399,7 +419,9 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
             return true;
         }
         if (this.nameField != null && this.nameField.isFocused() && button == InputConstants.MOUSE_BUTTON_LEFT) {
-            return this.nameField.mouseDragged(toGui(mouseX), toGui(mouseY), button, toGui(dx), toGui(dy));
+            this.nameField.mouseDragged(toGui(mouseX), toGui(mouseY), button, toGui(dx), toGui(dy));
+            this.nameField.setCursorPosition(nameIndexAt(toGui(mouseX)));
+            return true;
         }
         return super.mouseDragged(toGui(mouseX), toGui(mouseY), button, toGui(dx), toGui(dy));
     }
@@ -415,6 +437,9 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
             this.setFocused(this.nameField);
             this.nameField.setFocused(true);
             this.nameField.mouseClicked(guiX, guiY, button);
+            int index = nameIndexAt(guiX);
+            this.nameField.setCursorPosition(index);
+            if (!Screen.hasShiftDown()) this.nameField.setHighlightPos(index);
             return true;
         }
 
@@ -542,12 +567,10 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
         trackMarker();
         tickZoom();
 
-        known = this.minecraft != null && this.minecraft.player != null
-                ? RecipeDiscovery.knownTo(this.minecraft.player)
-                : Set.of();
-        notes = this.minecraft != null ? WorldEffects.notesOf(this.minecraft.player) : Set.of();
+        refreshKnowledge();
         watchNotes();
         watchKnown();
+        watchIngredients();
         hoverName = null;
         hoverDetail = null;
 
@@ -564,6 +587,43 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
         extractBrewButton(graphics, guiMouseX, guiMouseY);
         extractAddButton(graphics, guiMouseX, guiMouseY);
         drawNameField(graphics);
+    }
+
+    private static boolean deskInReach;
+
+    public static boolean readingAtDesk() {
+        return deskInReach;
+    }
+
+    @Override
+    public void removed() {
+        super.removed();
+        deskInReach = false;
+    }
+
+    private void refreshKnowledge() {
+        TileEntityAlchemyCauldron cauldron = this.getMenu().getCauldron();
+        if (this.minecraft == null || this.minecraft.player == null || cauldron.getLevel() == null) {
+            known = Set.of();
+            notes = Set.of();
+            ingredientKeys = Set.of();
+            deskInReach = false;
+            return;
+        }
+
+        Set<PotionEnum> learned = java.util.EnumSet.noneOf(PotionEnum.class);
+        Set<String> noted = new java.util.HashSet<>();
+        Set<String> handled = new java.util.HashSet<>();
+        List<ItemStack> guides = GuideShelf.readable(this.minecraft.player, cauldron.getLevel(), cauldron.getBlockPos());
+        for (ItemStack guide : guides) {
+            learned.addAll(RecipeDiscovery.knownTo(guide));
+            noted.addAll(WorldEffects.notesIn(guide));
+            handled.addAll(IngredientDiscovery.stored(guide));
+        }
+        known = learned;
+        notes = noted;
+        ingredientKeys = handled;
+        deskInReach = guides.size() > RecipeDiscovery.guidesOf(this.minecraft.player).size();
     }
 
     private void sendStir() {
@@ -804,7 +864,7 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
         return cauldron.brewedWith(cauldron.effectAt(brewAt));
     }
 
-    private record PotencySlot(Component name, MobEffect effect, boolean redstone, boolean incoming) {}
+    private record PotencySlot(Component name, MobEffect effect, boolean redstone, boolean incoming, boolean unknown) {}
 
     private List<PotencySlot> potencySlots(TileEntityAlchemyCauldron cauldron) {
         List<PotencySlot> slots = new ArrayList<>();
@@ -817,19 +877,21 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
 
         for (String token : plan.order()) {
             if (token.equals(TileEntityAlchemyCauldron.REDSTONE_TOKEN)) {
-                slots.add(new PotencySlot(Component.translatable("alchemia.gui.redstone", bonus / 20), null, true, false));
+                slots.add(new PotencySlot(Component.translatable("alchemia.gui.redstone", bonus / 20), null, true, false, false));
                 continue;
             }
 
             for (MobEffectInstance instance : plan.effects()) {
                 if (!TileEntityAlchemyCauldron.tokenOf(instance.getEffect()).equals(token)) continue;
 
+                PotionEnum slotRecipe = RecipeDiscovery.byEffect(instance.getEffect());
+                boolean unknown = slotRecipe == null || !known.contains(slotRecipe);
                 Component name = Component.translatable("alchemia.gui.effect.entry",
-                        instance.getEffect().getDisplayName(), instance.getAmplifier() + 1,
+                        unknown ? Component.translatable("alchemia.gui.unknown") : instance.getEffect().getDisplayName(), instance.getAmplifier() + 1,
                         (instance.getDuration() + bonus) / 20);
                 boolean fresh = instance.getEffect().equals(brewing);
                 for (int i = 0; i <= instance.getAmplifier(); i++) {
-                    slots.add(new PotencySlot(name, instance.getEffect(), false, fresh && i >= held));
+                    slots.add(new PotencySlot(name, instance.getEffect(), false, fresh && i >= held, unknown));
                 }
             }
         }
@@ -877,7 +939,12 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
             PathRenderer.ring(graphics, cx, cy, reach, ARGB.color(edgeAlpha, edgeRgb), false);
             if (lit > 0.0) PathRenderer.ring(graphics, cx, cy, reach - 1.0, ARGB.color(edgeAlpha / 2, edgeRgb), false);
         }
-        drawSymbol(graphics, cx, cy, node, DORMANT_TINT);
+        PotionEnum recipe = entry.effect().getRecipe();
+        if (recipe != null && !known.contains(recipe) && WorldEffects.anyVisible(notes, recipe)) {
+            drawClosedEye(graphics, cx, cy, node);
+        } else {
+            drawSymbol(graphics, cx, cy, node, DORMANT_TINT);
+        }
     }
 
     private void trackGlow(double elapsedMs) {
@@ -913,6 +980,35 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
         } else {
             notices.addLast(text);
         }
+    }
+
+    private Set<String> ingredientKeys = Set.of();
+    private Set<String> ingredientsSeen;
+
+    private void watchIngredients() {
+        if (ingredientsSeen == null) {
+            ingredientsSeen = new java.util.HashSet<>(ingredientKeys);
+            return;
+        }
+
+        Component added = null;
+        for (String key : ingredientKeys) {
+            if (ingredientsSeen.contains(key)) continue;
+            Component name = ingredientName(key);
+            if (name == null) continue;
+            added = added == null ? name : Component.empty().append(added).append(", ").append(name);
+        }
+        if (added != null) queueNotice(Component.translatable("alchemia.gui.recorded", added));
+        ingredientsSeen = new java.util.HashSet<>(ingredientKeys);
+    }
+
+    private static @Nullable Component ingredientName(String key) {
+        Ingredients ingredient = IngredientDiscovery.byName(key);
+        if (ingredient != null) {
+            return new ItemStack(ItemRegistry.getItemFromRegistry(ingredient.getRegistryName())).getHoverName();
+        }
+        Item reagent = IngredientDiscovery.reagentByKey(key);
+        return reagent == null ? null : new ItemStack(reagent).getHoverName();
     }
 
     private void watchKnown() {
@@ -984,6 +1080,22 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
         drawSymbol(graphics, cx, cy, node, UNKNOWN_TINT);
     }
 
+    private void drawClosedEye(GuiGraphics graphics, int cx, int cy, int node) {
+        int w = Math.max(1, Math.round(node * (float) CLOSED_EYE_W / UNKNOWN_CELL));
+        int h = Math.max(1, Math.round(w * (float) CLOSED_EYE_H / CLOSED_EYE_W));
+        RenderSystem.enableBlend();
+        graphics.blit(GUIDE_WIDGETS, cx - w / 2, cy - h / 2, w, h,
+                CLOSED_EYE_U, CLOSED_EYE_V, CLOSED_EYE_W, CLOSED_EYE_H, GUIDE_SHEET, GUIDE_SHEET);
+    }
+
+    private void drawOpenEye(GuiGraphics graphics, int cx, int cy, int node) {
+        int w = Math.max(1, Math.round(node * (float) OPEN_EYE_W / UNKNOWN_CELL));
+        int h = Math.max(1, Math.round(w * (float) OPEN_EYE_H / OPEN_EYE_W));
+        RenderSystem.enableBlend();
+        graphics.blit(GUIDE_WIDGETS, cx - w / 2, cy - h / 2, w, h,
+                OPEN_EYE_U, OPEN_EYE_V, OPEN_EYE_W, OPEN_EYE_H, GUIDE_SHEET, GUIDE_SHEET);
+    }
+
     private void drawSymbol(GuiGraphics graphics, int cx, int cy, int node, int tint) {
         int w = Math.max(1, Math.round(node * (float) UNKNOWN_W / UNKNOWN_CELL));
         int h = Math.max(1, Math.round(node * (float) UNKNOWN_H / UNKNOWN_CELL));
@@ -1053,7 +1165,12 @@ public class AlchemicalScreen extends AbstractContainerScreen<AlchemicalCauldron
             } else {
                 double beat = (Math.sin(Util.getMillis() / 300.0) + 1.0) * 0.5;
                 int tint = slot.incoming() ? ARGB.color((int) Math.round(70 + beat * 110), 0xFFFFFF) : 0xFFFFFFFF;
-AlchemiaSprites.blitMobEffect(graphics, slot.effect(), x + 1, y + 1, 16, 16, tint);
+                if (slot.unknown()) {
+                    int alpha = slot.incoming() ? (int) Math.round(70 + beat * 110) : 255;
+                    drawSymbol(graphics, x + 9, y + 9, 16, ARGB.color(alpha * (UNKNOWN_TINT >>> 24) / 255, UNKNOWN_TINT & 0xFFFFFF));
+                } else {
+                    AlchemiaSprites.blitMobEffect(graphics, slot.effect(), x + 1, y + 1, 16, 16, tint);
+                }
             }
 
             if (mouseX >= x && mouseX < x + POTENCY_CELL && mouseY >= y && mouseY < y + POTENCY_CELL) {
@@ -1260,8 +1377,13 @@ AlchemiaSprites.blitMobEffect(graphics, slot.effect(), x + 1, y + 1, 16, 16, tin
         Component hint;
         if (modifier != null) {
             String refusal = cauldron.modifierRefusal(modifier);
-            hint = Component.translatable(refusal != null ? refusal
-                    : "alchemia.gui.add." + modifier.name().toLowerCase(java.util.Locale.ROOT));
+            Imbuements.Attuner attuner = Imbuements.of(activeIngredient());
+            if (refusal == null && attuner != null) {
+                hint = Component.translatable("alchemia.gui.add.attuner", attuner.region());
+            } else {
+                hint = Component.translatable(refusal != null ? refusal
+                        : "alchemia.gui.add." + modifier.name().toLowerCase(java.util.Locale.ROOT));
+            }
         } else {
             hint = cauldron.queueFull()
                     ? Component.translatable("alchemia.gui.queue.full", TileEntityAlchemyCauldron.MAX_QUEUE)
@@ -1454,15 +1576,17 @@ AlchemiaSprites.blitMobEffect(graphics, slot.effect(), x + 1, y + 1, 16, 16, tin
     private void drawNameText(GuiGraphics graphics) {
         if (this.nameField == null) return;
 
-        int textX = viewLeft() + NAME_X + 2;
-        int textY = viewTop() + NAME_Y + 2 + (NAME_H - 4 - this.font.lineHeight) / 2 + 1;
+        int textX = nameTextX();
+        int fieldY = viewTop() + NAME_Y;
+        int textY = fieldY + NAME_TEXT_Y;
+        int top = textY - 1;
+        int bottom = textY + 9;
 
         String value = this.nameField.getValue();
         boolean focused = this.nameField.isFocused();
 
         if (value.isEmpty() && !focused) {
-            Component hint = Component.translatable("alchemia.gui.name.hint");
-            graphics.drawString(this.font, hint, textX, textY, INK_FAINT, false);
+            graphics.drawString(this.font, Component.translatable("alchemia.gui.name.hint"), textX, textY, INK_FAINT, false);
             return;
         }
 
@@ -1477,20 +1601,67 @@ AlchemiaSprites.blitMobEffect(graphics, slot.effect(), x + 1, y + 1, 16, 16, tin
                     : Math.min(value.length(), cursor + highlighted.length());
         }
 
+        int inner = NAME_W - 4;
+        int start = focused ? scrollName(value, cursor, inner) : 0;
+        int end = fitting(value, start, inner);
+        String shown = value.substring(start, end);
+        if (!focused && end < value.length()) {
+            String ellipsis = "...";
+            shown = value.substring(0, fitting(value, 0, inner - nameWidth(ellipsis))) + ellipsis;
+        }
+
         if (focused && selection != cursor) {
-            int from = Math.min(cursor, selection);
-            int to = Math.max(cursor, selection);
-            int selStart = textX + this.font.width(value.substring(0, from));
-            int selEnd = textX + this.font.width(value.substring(0, to));
-            graphics.fill(selStart, textY - 1, selEnd, textY + this.font.lineHeight, NAME_SELECTION);
+            int from = Mth.clamp(Math.min(cursor, selection), start, end);
+            int to = Mth.clamp(Math.max(cursor, selection), start, end);
+            int selStart = textX + nameWidth(value.substring(start, from));
+            int selEnd = textX + nameWidth(value.substring(start, to));
+            graphics.fill(selStart, top, selEnd, bottom, NAME_SELECTION);
         }
 
-        graphics.drawString(this.font, value, textX, textY, INK, false);
+        graphics.drawString(this.font, shown, textX, textY, INK, false);
 
-        if (focused && (System.currentTimeMillis() / 400L) % 2L == 0L) {
-            int caret = textX + this.font.width(value.substring(0, cursor));
-            graphics.fill(caret, textY - 1, caret + 1, textY + this.font.lineHeight, INK);
+        if (focused && cursor >= start && cursor <= end && (System.currentTimeMillis() / 400L) % 2L == 0L) {
+            int caret = textX + nameWidth(value.substring(start, cursor));
+            graphics.fill(caret, top, caret + 1, bottom, INK);
         }
+    }
+
+    private int nameTextX() {
+        return viewLeft() + NAME_X + 3;
+    }
+
+    private int nameWidth(String text) {
+        return this.font.width(text);
+    }
+
+    private int fitting(String value, int start, int width) {
+        int end = start;
+        while (end < value.length() && nameWidth(value.substring(start, end + 1)) <= width) end++;
+        return end;
+    }
+
+    private int scrollName(String value, int cursor, int inner) {
+        nameScroll = Mth.clamp(nameScroll, 0, value.length());
+        if (cursor < nameScroll) nameScroll = cursor;
+        while (nameScroll < cursor && nameWidth(value.substring(nameScroll, cursor)) > inner - 1) nameScroll++;
+        while (nameScroll > 0 && nameWidth(value.substring(nameScroll - 1)) <= inner - 1) nameScroll--;
+        return nameScroll;
+    }
+
+    private int nameIndexAt(double guiX) {
+        String value = this.nameField.getValue();
+        int start = Mth.clamp(nameScroll, 0, value.length());
+        double offset = guiX - nameTextX();
+        int best = start;
+        double nearest = Double.MAX_VALUE;
+        for (int index = start; index <= value.length(); index++) {
+            double distance = Math.abs(nameWidth(value.substring(start, index)) - offset);
+            if (distance < nearest) {
+                nearest = distance;
+                best = index;
+            }
+        }
+        return best;
     }
 
     private void extractOverlayText(GuiGraphics graphics) {
@@ -1560,7 +1731,9 @@ AlchemiaSprites.blitMobEffect(graphics, slot.effect(), x + 1, y + 1, 16, 16, tin
             drawThread(graphics, centre.roundedX(), centre.roundedY(), nx, ny, thickness);
 
             if (discovered) {
-AlchemiaSprites.blitMobEffect(graphics, entry.effect().getEffect(), nx - half, ny - half, node, node, -1);
+                AlchemiaSprites.blitMobEffect(graphics, entry.effect().getEffect(), nx - half, ny - half, node, node, -1);
+            } else if (recipe != null && WorldEffects.anyVisible(notes, recipe)) {
+                drawOpenEye(graphics, nx, ny, node);
             } else {
                 drawUnknownSymbol(graphics, nx, ny, node);
             }
@@ -2252,6 +2425,11 @@ AlchemiaSprites.blitMobEffect(graphics, entry.effect().getEffect(), nx - half, n
         graphics.renderOutline(-radius - 1, -radius - 1, radius * 2 + 2, radius * 2 + 2, ARGB.color(alpha / 3, 0x2A1F14));
         ItemStack marker = new ItemStack(cauldron.isSplash() || splashPending(cauldron) ? Items.SPLASH_POTION : Items.POTION);
         PotionStacks.apply(marker, Potions.WATER, List.of(), cauldron.getPotionColor());
+        if (cauldron.isPrimed()) {
+            PotionStacks.glint(marker);
+            int glow = (int) Math.round(170 + 55 * Math.sin(Util.getMillis() / 260.0));
+            AlchemiaSprites.RADIANT_HALO.blit(graphics, -16, -16, 32, 32, ARGB.color(glow, 0xFFFFFF));
+        }
         graphics.renderItem(marker, -8, -8);
 
         pose.popPose();

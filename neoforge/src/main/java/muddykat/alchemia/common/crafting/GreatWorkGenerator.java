@@ -3,13 +3,13 @@ package muddykat.alchemia.common.crafting;
 import muddykat.alchemia.common.config.Configuration;
 import muddykat.alchemia.common.potion.BrewBase;
 import muddykat.alchemia.common.potion.BrewBases;
-import muddykat.alchemia.common.potion.PotionEnum;
+import muddykat.alchemia.common.potion.AlchemiaEffect;
+import muddykat.alchemia.common.potion.AlchemiaEffects;
 import muddykat.alchemia.common.potion.WorldEffects;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -17,8 +17,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeMap;
-
-import static muddykat.alchemia.common.potion.PotionEnum.*;
 
 public final class GreatWorkGenerator {
 
@@ -40,7 +38,7 @@ public final class GreatWorkGenerator {
                            double floor, double ceiling) {
     }
 
-    public record Flask(Map<PotionEnum, Integer> levels) {
+    public record Flask(Map<AlchemiaEffect, Integer> levels) {
 
         public int potency() {
             return levels.values().stream().mapToInt(Integer::intValue).sum();
@@ -48,27 +46,27 @@ public final class GreatWorkGenerator {
 
         public PotionEffectIngredient ingredient() {
             List<PotionEffectIngredient.Requirement> required = new ArrayList<>();
-            levels.forEach((potion, level) -> required.add(PotionEffectIngredient.need(potion.getEffect(), level)));
+            levels.forEach((potion, level) -> required.add(PotionEffectIngredient.need(potion.effect(), level)));
             return new PotionEffectIngredient(List.copyOf(required));
         }
     }
 
-    private static final List<PotionEnum> EVERYTHING = List.of(PotionEnum.values());
+    private static final List<String> EVERYTHING = List.of();
 
-    private static final List<List<PotionEnum>> THEMES = List.of(
-            List.of(Slow, Poison, Weakness, Blindness, Dig_Slowdown, Hunger, Damage_Resistance, Damage_Boost),
-            List.of(Invisibility, Speed, Night_Vision, Dig_Speed, Levitation, Slow_Falling, Dolphins_Grace, Jump, Water_Breathing),
-            List.of(Glowing, Fire_Protection, Harm, Damage_Boost, Dig_Speed, Conduit_Power, Bad_Omen, Saturation, Speed, Night_Vision,
-                    Luck),
-            List.of(Regeneration, Health_Boost, Absorption, Saturation, Healing, Damage_Boost, Wither, Damage_Resistance, Fire_Protection,
-                    Speed, Jump, Night_Vision, Luck),
+    private static final List<List<String>> THEMES = List.of(
+            List.of("Slow", "Poison", "Weakness", "Blindness", "Dig_Slowdown", "Hunger", "Damage_Resistance", "Damage_Boost"),
+            List.of("Invisibility", "Speed", "Night_Vision", "Dig_Speed", "Levitation", "Slow_Falling", "Dolphins_Grace", "Jump", "Water_Breathing"),
+            List.of("Glowing", "Fire_Protection", "Harm", "Damage_Boost", "Dig_Speed", "Conduit_Power", "Bad_Omen", "Saturation", "Speed", "Night_Vision",
+                    "Luck"),
+            List.of("Regeneration", "Health_Boost", "Absorption", "Saturation", "Healing", "Damage_Boost", "Wither", "Damage_Resistance", "Fire_Protection",
+                    "Speed", "Jump", "Night_Vision", "Luck"),
             EVERYTHING);
 
-    private static final List<List<PotionEnum>> FOILS = List.of(
-            List.of(Speed, Healing, Night_Vision, Dig_Speed),
-            List.of(Slow, Darkness, Weakness, Dig_Slowdown, Fire_Protection),
-            List.of(Water_Breathing, Slow, Dolphins_Grace, Absorption, Slow_Falling, Weakness, Dig_Slowdown, Hunger, Darkness),
-            List.of(Poison, Hunger, Weakness, Harm, Blindness, Darkness, Slow, Dig_Slowdown, Confusion, Glowing),
+    private static final List<List<String>> FOILS = List.of(
+            List.of("Speed", "Healing", "Night_Vision", "Dig_Speed"),
+            List.of("Slow", "Darkness", "Weakness", "Dig_Slowdown", "Fire_Protection"),
+            List.of("Water_Breathing", "Slow", "Dolphins_Grace", "Absorption", "Slow_Falling", "Weakness", "Dig_Slowdown", "Hunger", "Darkness"),
+            List.of("Poison", "Hunger", "Weakness", "Harm", "Blindness", "Darkness", "Slow", "Dig_Slowdown", "Confusion", "Glowing"),
             EVERYTHING);
 
     public static final List<Template> TEMPLATES = List.of(
@@ -124,14 +122,14 @@ public final class GreatWorkGenerator {
         Template template = TEMPLATES.get(index);
         int budget = Math.min(template.potency(), Configuration.maxPotency());
         int composites = Math.min(template.composites(), count);
-        List<PotionEnum> theme = usable(THEMES.get(index), 1);
-        List<PotionEnum> pool = new ArrayList<>(theme);
-        for (PotionEnum foil : usable(FOILS.get(index), 1)) {
+        List<AlchemiaEffect> theme = usable(pool(THEMES, index), 1);
+        List<AlchemiaEffect> pool = new ArrayList<>(theme);
+        for (AlchemiaEffect foil : usable(pool(FOILS, index), 1)) {
             if (!pool.contains(foil)) pool.add(foil);
         }
 
         List<Flask> flasks = new ArrayList<>();
-        Set<PotionEnum> taken = EnumSet.noneOf(PotionEnum.class);
+        Set<AlchemiaEffect> taken = new HashSet<>();
         boolean opposedSomewhere = false;
         for (int made = 0; made < composites; made++) {
             int effects = template.minEffects() + random.nextInt(template.maxEffects() - template.minEffects() + 1);
@@ -160,16 +158,16 @@ public final class GreatWorkGenerator {
         }
         if (template.opposition() == Opposition.ONE_OPPOSED && !opposedSomewhere) return null;
 
-        List<PotionEnum> singles = free(usable(theme, TOP_LEVEL), taken);
+        List<AlchemiaEffect> singles = free(usable(theme, TOP_LEVEL), taken);
         java.util.Collections.shuffle(singles, random);
-        List<PotionEnum> spare = free(usable(FOILS.get(index), TOP_LEVEL), taken);
+        List<AlchemiaEffect> spare = free(usable(pool(FOILS, index), TOP_LEVEL), taken);
         spare.removeAll(singles);
         java.util.Collections.shuffle(spare, random);
         singles.addAll(spare);
-        for (PotionEnum potion : singles) {
+        for (AlchemiaEffect potion : singles) {
             if (flasks.size() >= count) break;
-            int level = Math.min(TOP_LEVEL, Math.min(potion.getMaxStrength() + 1, Configuration.maxPotency()));
-            Map<PotionEnum, Integer> levels = new TreeMap<>();
+            int level = Math.min(TOP_LEVEL, Math.min(potion.maxLevel(), Configuration.maxPotency()));
+            Map<AlchemiaEffect, Integer> levels = new TreeMap<>(AlchemiaEffects.ORDER);
             levels.put(potion, level);
             Flask flask = new Flask(levels);
             if (!taken.add(potion) || !valid(flask)) continue;
@@ -180,26 +178,26 @@ public final class GreatWorkGenerator {
         return flasks;
     }
 
-    private static @Nullable Flask composite(List<PotionEnum> theme, List<PotionEnum> pool, int effects, int budget, Random random) {
+    private static @Nullable Flask composite(List<AlchemiaEffect> theme, List<AlchemiaEffect> pool, int effects, int budget, Random random) {
         if (theme.isEmpty()) return null;
-        Set<PotionEnum> chosen = new LinkedHashSet<>();
+        Set<AlchemiaEffect> chosen = new LinkedHashSet<>();
         chosen.add(theme.get(random.nextInt(theme.size())));
-        List<PotionEnum> open = new ArrayList<>(pool);
+        List<AlchemiaEffect> open = new ArrayList<>(pool);
         open.removeAll(chosen);
         while (chosen.size() < effects && !open.isEmpty()) chosen.add(open.remove(random.nextInt(open.size())));
         if (chosen.size() < effects) return null;
 
-        Map<PotionEnum, Integer> levels = new TreeMap<>();
-        for (PotionEnum potion : chosen) levels.put(potion, 1);
+        Map<AlchemiaEffect, Integer> levels = new TreeMap<>(AlchemiaEffects.ORDER);
+        for (AlchemiaEffect potion : chosen) levels.put(potion, 1);
         int spare = budget - effects;
-        List<PotionEnum> order = new ArrayList<>(chosen);
+        List<AlchemiaEffect> order = new ArrayList<>(chosen);
         while (spare > 0) {
-            List<PotionEnum> room = new ArrayList<>();
-            for (PotionEnum potion : order) {
-                if (levels.get(potion) < Math.min(TOP_LEVEL, potion.getMaxStrength() + 1)) room.add(potion);
+            List<AlchemiaEffect> room = new ArrayList<>();
+            for (AlchemiaEffect potion : order) {
+                if (levels.get(potion) < Math.min(TOP_LEVEL, potion.maxLevel())) room.add(potion);
             }
             if (room.isEmpty()) break;
-            PotionEnum raised = room.get(random.nextInt(room.size()));
+            AlchemiaEffect raised = room.get(random.nextInt(room.size()));
             levels.put(raised, levels.get(raised) + 1);
             spare--;
         }
@@ -207,16 +205,27 @@ public final class GreatWorkGenerator {
         return valid(flask) ? flask : null;
     }
 
-    private static List<PotionEnum> free(List<PotionEnum> potions, Set<PotionEnum> taken) {
-        List<PotionEnum> free = new ArrayList<>(potions);
+    private static List<AlchemiaEffect> pool(List<List<String>> pools, int index) {
+        List<String> names = pools.get(index);
+        if (names == EVERYTHING) return AlchemiaEffects.values();
+        List<AlchemiaEffect> pool = new ArrayList<>();
+        for (String name : names) {
+            AlchemiaEffect effect = AlchemiaEffects.byId(name);
+            if (effect != null) pool.add(effect);
+        }
+        return pool;
+    }
+
+    private static List<AlchemiaEffect> free(List<AlchemiaEffect> potions, Set<AlchemiaEffect> taken) {
+        List<AlchemiaEffect> free = new ArrayList<>(potions);
         free.removeAll(taken);
         return free;
     }
 
-    private static List<PotionEnum> usable(List<PotionEnum> potions, int level) {
-        List<PotionEnum> usable = new ArrayList<>();
-        for (PotionEnum potion : potions) {
-            if (potion.getEffect() == null || potion.getMaxStrength() + 1 < level) continue;
+    private static List<AlchemiaEffect> usable(List<AlchemiaEffect> potions, int level) {
+        List<AlchemiaEffect> usable = new ArrayList<>();
+        for (AlchemiaEffect potion : potions) {
+            if (potion.maxLevel() < level) continue;
             if (!brewable(List.of(potion))) continue;
             usable.add(potion);
         }
@@ -225,15 +234,15 @@ public final class GreatWorkGenerator {
 
     public static boolean valid(Flask flask) {
         if (flask.levels().isEmpty() || flask.potency() > Configuration.maxPotency()) return false;
-        for (Map.Entry<PotionEnum, Integer> entry : flask.levels().entrySet()) {
-            if (entry.getValue() < 1 || entry.getValue() > entry.getKey().getMaxStrength() + 1) return false;
+        for (Map.Entry<AlchemiaEffect, Integer> entry : flask.levels().entrySet()) {
+            if (entry.getValue() < 1 || entry.getValue() > entry.getKey().maxLevel()) return false;
         }
         if (!brewable(flask.levels().keySet())) return false;
 
         Set<List<?>> places = new HashSet<>();
         boolean high = false;
         boolean low = false;
-        for (Map.Entry<PotionEnum, Integer> entry : flask.levels().entrySet()) {
+        for (Map.Entry<AlchemiaEffect, Integer> entry : flask.levels().entrySet()) {
             for (WorldEffects.Condition condition : conditions(entry.getKey(), entry.getValue())) {
                 switch (condition.rule()) {
                     case BIOME -> places.add(List.of(condition.biomes(), condition.tags()));
@@ -247,10 +256,10 @@ public final class GreatWorkGenerator {
         return places.size() <= 1 && !(high && low);
     }
 
-    private static boolean brewable(Collection<PotionEnum> potions) {
+    private static boolean brewable(Collection<AlchemiaEffect> potions) {
         for (BrewBase base : BrewBases.values()) {
             boolean all = true;
-            for (PotionEnum potion : potions) {
+            for (AlchemiaEffect potion : potions) {
                 if (!base.allows(potion)) {
                     all = false;
                     break;
@@ -261,7 +270,7 @@ public final class GreatWorkGenerator {
         return false;
     }
 
-    public static List<WorldEffects.Condition> conditions(PotionEnum potion, int level) {
+    public static List<WorldEffects.Condition> conditions(AlchemiaEffect potion, int level) {
         List<WorldEffects.Condition> conditions = new ArrayList<>();
         WorldEffects.Rules rules = WorldEffects.rules(potion);
         if (rules == null) return conditions;
@@ -281,7 +290,7 @@ public final class GreatWorkGenerator {
 
     private static boolean waits(List<Flask> flasks) {
         for (Flask flask : flasks) {
-            for (Map.Entry<PotionEnum, Integer> entry : flask.levels().entrySet()) {
+            for (Map.Entry<AlchemiaEffect, Integer> entry : flask.levels().entrySet()) {
                 for (WorldEffects.Condition condition : conditions(entry.getKey(), entry.getValue())) {
                     if (waited(condition)) return true;
                 }
@@ -290,18 +299,18 @@ public final class GreatWorkGenerator {
         return false;
     }
 
-    public static double opposition(PotionEnum a, PotionEnum b) {
-        int ax = a.getPrimaryAlignment().getX() + a.getSecondaryAlignment().getX();
-        int ay = a.getPrimaryAlignment().getY() + a.getSecondaryAlignment().getY();
-        int bx = b.getPrimaryAlignment().getX() + b.getSecondaryAlignment().getX();
-        int by = b.getPrimaryAlignment().getY() + b.getSecondaryAlignment().getY();
+    public static double opposition(AlchemiaEffect a, AlchemiaEffect b) {
+        int ax = a.alignmentX();
+        int ay = a.alignmentY();
+        int bx = b.alignmentX();
+        int by = b.alignmentY();
         double lengths = Math.sqrt((double) ax * ax + ay * ay) * Math.sqrt((double) bx * bx + by * by);
         if (lengths == 0) return 0;
         return -(ax * bx + ay * by) / lengths;
     }
 
-    private static double strongestOpposition(Collection<PotionEnum> potions) {
-        List<PotionEnum> list = new ArrayList<>(potions);
+    private static double strongestOpposition(Collection<AlchemiaEffect> potions) {
+        List<AlchemiaEffect> list = new ArrayList<>(potions);
         double strongest = -1;
         for (int i = 0; i < list.size(); i++) {
             for (int j = i + 1; j < list.size(); j++) strongest = Math.max(strongest, opposition(list.get(i), list.get(j)));
@@ -310,13 +319,13 @@ public final class GreatWorkGenerator {
     }
 
     public static double score(Flask flask) {
-        List<PotionEnum> potions = new ArrayList<>(flask.levels().keySet());
+        List<AlchemiaEffect> potions = new ArrayList<>(flask.levels().keySet());
         double score = flask.potency() + 2.0 * (potions.size() - 1);
         for (int i = 0; i < potions.size(); i++) {
             for (int j = i + 1; j < potions.size(); j++) score += 3.0 * Math.max(0, opposition(potions.get(i), potions.get(j)));
         }
-        for (Map.Entry<PotionEnum, Integer> entry : flask.levels().entrySet()) {
-            score += 0.5 * entry.getKey().getRarity().ordinal();
+        for (Map.Entry<AlchemiaEffect, Integer> entry : flask.levels().entrySet()) {
+            score += 0.5 * entry.getKey().rarity().ordinal();
             for (WorldEffects.Condition condition : conditions(entry.getKey(), entry.getValue())) score += waited(condition) ? 3 : 1;
         }
         return score;
@@ -331,9 +340,9 @@ public final class GreatWorkGenerator {
     public static List<Flask> flasks(MagnumOpus.Stage stage) {
         List<Flask> flasks = new ArrayList<>();
         for (PotionEffectIngredient potion : stage.potions()) {
-            Map<PotionEnum, Integer> levels = new TreeMap<>();
+            Map<AlchemiaEffect, Integer> levels = new TreeMap<>(AlchemiaEffects.ORDER);
             for (PotionEffectIngredient.Requirement requirement : potion.required()) {
-                PotionEnum recipe = muddykat.alchemia.common.potion.RecipeDiscovery.byEffect(requirement.effect());
+                AlchemiaEffect recipe = AlchemiaEffects.byEffect(requirement.effect());
                 if (recipe != null) levels.put(recipe, requirement.amplifier() + 1);
             }
             flasks.add(new Flask(levels));

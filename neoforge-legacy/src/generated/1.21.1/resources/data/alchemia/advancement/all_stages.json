@@ -1,0 +1,27 @@
+{
+  "parent": "alchemia:guide",
+  "criteria": {
+    "unlocked": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.alchemia.all_stages.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "alchemia:alchemy_tablet"
+    },
+    "title": {
+      "translate": "advancements.alchemia.all_stages.title"
+    }
+  },
+  "requirements": [
+    [
+      "unlocked"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

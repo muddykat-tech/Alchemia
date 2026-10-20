@@ -1,0 +1,8 @@
+{
+  "parent": "alchemia:block/template_shelf",
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "particle": "alchemia:block/growth/mushroom/growth_stage_1",
+    "shelf": "alchemia:block/growth/mushroom/growth_stage_1"
+  }
+}

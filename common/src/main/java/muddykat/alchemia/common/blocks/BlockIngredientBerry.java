@@ -19,7 +19,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.BlockHitResult;
-#if MC_VER < 26102
+#if MC_VER < 12100
 import net.minecraft.world.InteractionHand;
 #endif
 
@@ -89,7 +89,7 @@ public class BlockIngredientBerry extends BlockIngredientTall {
 #endif
     }
 
-#if MC_VER >= 26102
+#if MC_VER >= 12100
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         InteractionResult result = pick(state, level, pos, player);
@@ -122,7 +122,7 @@ public class BlockIngredientBerry extends BlockIngredientTall {
         if (isMaxAge(state)) ripen(level, pos, state);
         else super.performBonemeal(level, random, pos, state, source);
     }
-#elif MC_VER >= 26102
+#elif MC_VER >= 12100
     @Override
     public boolean isValidBonemealTarget(LevelReader level, BlockPos pos, BlockState state) {
         return canRipen(state) || super.isValidBonemealTarget(level, pos, state);

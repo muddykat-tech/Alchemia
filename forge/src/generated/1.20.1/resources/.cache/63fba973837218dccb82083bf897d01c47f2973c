@@ -1,9 +1,11 @@
-// 1.20.1	2026-10-03T07:18:21.957812177	Item Models: alchemia
+// 1.20.1	2026-10-20T07:28:27.52033853	Item Models: alchemia
 28b9b4e2f92789a9f60e6521ec2f8f9757076f3f assets/alchemia/models/item/albedo.json
 7b518fef33f758f8eeac1489e030a0702de496eb assets/alchemia/models/item/albedo_worn_1.json
 8583ae84ba0c1eff5a288b4b8a684817609492cb assets/alchemia/models/item/albedo_worn_2.json
 104a2c44921d77ab922a92bb014207575e75e4e2 assets/alchemia/models/item/albedo_worn_3.json
 119db84192e4c6284ab12b8abd564b9205bff335 assets/alchemia/models/item/alchemia_guide.json
+f6915317caef1db3d02e330081ffc093ed7847a5 assets/alchemia/models/item/alchemist_notes.json
+97202b2aeb85985080dc04b49fe37c25b7f9530c assets/alchemia/models/item/alchemy_tablet.json
 84830012666beb0cbe75fbabb6e996d7d9e145a3 assets/alchemia/models/item/ancient_oak_button.json
 3b370e9eba91d401f02afa1454e51f711cb9117c assets/alchemia/models/item/ancient_oak_door.json
 6b506fb10e023ce1988899a174284c8ea1a03c95 assets/alchemia/models/item/ancient_oak_fence.json
@@ -23,6 +25,7 @@ db6c81c80849762a83d4eb82a5f9a1dfab37108a assets/alchemia/models/item/ancient_oak
 3d62bfdcf5e51e148920f36d3cca8f4c0780d252 assets/alchemia/models/item/arcane_crystal_budding_geode.json
 9d1bd111d657d2dbb76d32b74e96358c55234235 assets/alchemia/models/item/arcane_crystal_cluster.json
 7e99589a5ea58e94322b12bc8a414340b5379b3b assets/alchemia/models/item/arcane_crystal_geode.json
+443d5136b415cf7dedd241992145495b668542ff assets/alchemia/models/item/bark.json
 139f5ab33be1f60d177a4099eaba25990619193f assets/alchemia/models/item/citrinitas.json
 a87844222a037d1ee522e4900335982625ba9877 assets/alchemia/models/item/citrinitas_worn_1.json
 5e7d6f560af22859aa794c4fae50e7d29baf1bd0 assets/alchemia/models/item/citrinitas_worn_2.json
@@ -165,6 +168,7 @@ de3b828fade7a5d4e151208e027e08bac0603e49 assets/alchemia/models/item/nigredo_wor
 30d459edaa2896b5b4ab51c0d61c7f8fea7d6b9e assets/alchemia/models/item/philosopher_stone.json
 f57755115e30b97fcd8bd40a6d1aac48b1068f34 assets/alchemia/models/item/potion_phial.json
 413a66a1f46bd07ea0af10e6dd0577ccff951825 assets/alchemia/models/item/potion_phial_potion.json
+4da9d50b7b7922ef9080cf8b34ac922f47a41513 assets/alchemia/models/item/recipe_page.json
 9dcfd000764ffef33a08f0efc5c4d9f96b35f27d assets/alchemia/models/item/root_dreambeet.json
 3dbbaff6f15732862eafbac7a6311ad728fff102 assets/alchemia/models/item/root_dreambeet_crushed.json
 5d189e18c12dfaee68c1843767cadda8b8bf6a41 assets/alchemia/models/item/root_dreambeet_seed.json

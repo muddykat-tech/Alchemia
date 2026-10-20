@@ -123,7 +123,7 @@ public class BlockIngredientTall extends BlockIngredient implements WildGrowth {
         }
     }
 
-#if MC_VER >= 26102
+#if MC_VER >= 12100
     @Override
     public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
         keepLowerFromDropping(level, pos, state, player);

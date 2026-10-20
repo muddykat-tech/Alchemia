@@ -10,6 +10,9 @@ import java.util.List;
 public class Configuration {
     public static final ModConfigSpec COMMON_CONFIG;
     public static final ModConfigSpec SERVER_CONFIG;
+    public static final ModConfigSpec CLIENT_CONFIG;
+    public static final ModConfigSpec.BooleanValue TREASURE_HIGHLIGHTS;
+    public static final ModConfigSpec.BooleanValue DANGER_HIGHLIGHTS;
 
     public static final int DEFAULT_MAX_POTENCY = 5;
 
@@ -34,6 +37,38 @@ public class Configuration {
             "Harm@3 = thunder",
             "Health_Boost@3 = day, clear",
             "Darkness = biome:minecraft:deep_dark");
+
+    public static final ModConfigSpec.ConfigValue<List<? extends String>> DANGER_BLOCKS;
+    public static final ModConfigSpec.ConfigValue<List<? extends String>> DANGER_ENTITIES;
+    public static final ModConfigSpec.ConfigValue<List<? extends String>> TREASURE_BLOCKS;
+    public static final ModConfigSpec.ConfigValue<List<? extends String>> TREASURE_ENTITIES;
+    public static final List<String> DEFAULT_DANGER_BLOCKS = List.of(
+            "#alchemia:dangers",
+            "minecraft:spawner",
+            "minecraft:trial_spawner",
+            "minecraft:sculk_shrieker",
+            "minecraft:sculk_sensor",
+            "minecraft:calibrated_sculk_sensor");
+    public static final List<String> DEFAULT_DANGER_ENTITIES = List.of("hostile", "aggressive");
+    public static final List<String> DEFAULT_TREASURE_BLOCKS = List.of(
+            "#c:ores/diamond = #6FF2F0",
+            "#c:ores/emerald = #3CF07A",
+            "#c:ores/gold = #FFD84A",
+            "#c:ores/redstone = #FF3A2E",
+            "#c:ores/lapis = #3D6BFF",
+            "#c:ores/iron = #E8B48A",
+            "#c:ores/copper = #F08A4B",
+            "#c:ores/coal = #8C8C8C",
+            "#c:ores/quartz = #F4EEE4",
+            "#c:ores/netherite_scrap = #B06A4A",
+            "#c:ores = #FFD23A",
+            "#c:chests/wooden = #FFF4B0",
+            "#c:chests/trapped = #FFF4B0",
+            "#c:barrels = #FFF4B0",
+            "minecraft:vault = #FFF4B0",
+            "minecraft:suspicious_sand = #F2E3A0",
+            "minecraft:suspicious_gravel = #B8B0A8");
+    public static final List<String> DEFAULT_TREASURE_ENTITIES = List.of();
 
     public static final ModConfigSpec.DoubleValue NOISE_SCALE;
     public static final ModConfigSpec.DoubleValue MIN_THRESHOLD;
@@ -61,6 +96,19 @@ public class Configuration {
 
         COMMON_CONFIG = builder.build();
 
+        ModConfigSpec.Builder clientBuilder = new ModConfigSpec.Builder();
+        clientBuilder.comment("Sense potions").push("senses");
+        TREASURE_HIGHLIGHTS = clientBuilder
+                .comment("Draw coloured outlines over treasure found by Treasure Vision.",
+                        "Off leaves only the tinted firefly glints.")
+                .define("treasure_highlights", false);
+        DANGER_HIGHLIGHTS = clientBuilder
+                .comment("Draw red outlines over dangerous blocks found by Dangersense.",
+                        "Off leaves only the red glints.")
+                .define("danger_highlights", false);
+        clientBuilder.pop();
+        CLIENT_CONFIG = clientBuilder.build();
+
         ModConfigSpec.Builder serverBuilder = new ModConfigSpec.Builder();
         serverBuilder.comment("Brewing rules").push("brewing");
         MAX_POTENCY = serverBuilder
@@ -82,7 +130,7 @@ public class Configuration {
         serverBuilder.comment("Effects that only wake under certain conditions in the world around the cauldron.",
                         "Until then they show on the potion map as a grey, dormant mark and cannot be brewed.",
                         "Each entry is 'Effect = condition, condition, ...' and every condition must hold.",
-                        "The effect is a name from the potion list (Dolphins_Grace) or an effect id (minecraft:dolphins_grace).",
+                        "The effect is an id from " + EffectConfig.FILE_NAME + " (Dolphins_Grace) or its mob effect id (minecraft:dolphins_grace).",
                         "Adding '@level' after the effect (Levitation@2) leaves the effect brewable at all times but holds",
                         "that level and every level above it back until the conditions hold. Levels stack: level 3 also",
                         "needs whatever level 2 needs.",
@@ -156,7 +204,51 @@ public class Configuration {
                 .defineInRange("field_centre_calm", 0.25D, 0.0D, 2.0D);
         serverBuilder.pop();
 
+        serverBuilder.comment("What the sense potions reveal. Each entry is a block or entity id (minecraft:tnt) or a tag (#c:ores).",
+                        "Entity lists also accept 'hostile' (every monster) and 'aggressive' (any mob currently attacking).",
+                        "These lists are sent to players when they join, so the server's choice applies to everyone.")
+                .push("senses");
+        DANGER_BLOCKS = serverBuilder
+                .comment("Blocks Dangersense outlines.")
+                .defineListAllowEmpty("danger_blocks", DEFAULT_DANGER_BLOCKS, () -> "", value -> value instanceof String);
+        DANGER_ENTITIES = serverBuilder
+                .comment("Creatures Dangersense marks.")
+                .defineListAllowEmpty("danger_entities", DEFAULT_DANGER_ENTITIES, () -> "", value -> value instanceof String);
+        TREASURE_BLOCKS = serverBuilder
+                .comment("Blocks Treasure Vision reveals. Add ' = #RRGGBB' to an entry to colour its highlight;",
+                        "the first entry a block matches decides its colour, so list specific ores before broad tags.",
+                        "Containers and suspicious blocks only show while they still hold their generated loot.")
+                .defineListAllowEmpty("treasure_blocks", DEFAULT_TREASURE_BLOCKS, () -> "", value -> value instanceof String);
+        TREASURE_ENTITIES = serverBuilder
+                .comment("Creatures Treasure Vision reveals, for example minecraft:allay or #minecraft:axolotl_hunt_targets.")
+                .defineListAllowEmpty("treasure_entities", DEFAULT_TREASURE_ENTITIES, () -> "", value -> value instanceof String);
+        serverBuilder.pop();
+
         SERVER_CONFIG = serverBuilder.build();
+    }
+
+    public static boolean treasureHighlights() {
+        return CLIENT_CONFIG.isLoaded() && TREASURE_HIGHLIGHTS.get();
+    }
+
+    public static boolean dangerHighlights() {
+        return CLIENT_CONFIG.isLoaded() && DANGER_HIGHLIGHTS.get();
+    }
+
+    public static List<? extends String> dangerBlocks() {
+        return SERVER_CONFIG.isLoaded() ? DANGER_BLOCKS.get() : DEFAULT_DANGER_BLOCKS;
+    }
+
+    public static List<? extends String> dangerEntities() {
+        return SERVER_CONFIG.isLoaded() ? DANGER_ENTITIES.get() : DEFAULT_DANGER_ENTITIES;
+    }
+
+    public static List<? extends String> treasureBlocks() {
+        return SERVER_CONFIG.isLoaded() ? TREASURE_BLOCKS.get() : DEFAULT_TREASURE_BLOCKS;
+    }
+
+    public static List<? extends String> treasureEntities() {
+        return SERVER_CONFIG.isLoaded() ? TREASURE_ENTITIES.get() : DEFAULT_TREASURE_ENTITIES;
     }
 
     public static List<? extends String> worldEffects() {

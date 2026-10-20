@@ -1,0 +1,52 @@
+{
+  "variants": {
+    "age=0,fruiting=false,half=lower": {
+      "model": "alchemia:growth/herb/growth_stage_0"
+    },
+    "age=0,fruiting=false,half=upper": {
+      "model": "alchemia:growth/herb/growth_stage_0"
+    },
+    "age=0,fruiting=true,half=lower": {
+      "model": "alchemia:growth/herb/growth_stage_0"
+    },
+    "age=0,fruiting=true,half=upper": {
+      "model": "alchemia:growth/herb/growth_stage_0"
+    },
+    "age=1,fruiting=false,half=lower": {
+      "model": "alchemia:growth/herb/growth_stage_1"
+    },
+    "age=1,fruiting=false,half=upper": {
+      "model": "alchemia:growth/herb/growth_stage_1"
+    },
+    "age=1,fruiting=true,half=lower": {
+      "model": "alchemia:growth/herb/growth_stage_1"
+    },
+    "age=1,fruiting=true,half=upper": {
+      "model": "alchemia:growth/herb/growth_stage_1"
+    },
+    "age=2,fruiting=false,half=lower": {
+      "model": "alchemia:growth/herb/growth_stage_2"
+    },
+    "age=2,fruiting=false,half=upper": {
+      "model": "alchemia:growth/herb/growth_stage_2"
+    },
+    "age=2,fruiting=true,half=lower": {
+      "model": "alchemia:growth/herb/growth_stage_2"
+    },
+    "age=2,fruiting=true,half=upper": {
+      "model": "alchemia:growth/herb/growth_stage_2"
+    },
+    "age=3,fruiting=false,half=lower": {
+      "model": "alchemia:growth/herb/growth_stage_2"
+    },
+    "age=3,fruiting=false,half=upper": {
+      "model": "alchemia:growth/herb/growth_stage_2"
+    },
+    "age=3,fruiting=true,half=lower": {
+      "model": "alchemia:block/mageberry"
+    },
+    "age=3,fruiting=true,half=upper": {
+      "model": "alchemia:block/mageberry"
+    }
+  }
+}

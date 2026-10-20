@@ -3,7 +3,6 @@ package muddykat.alchemia.common.potion;
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.config.Configuration;
 import muddykat.alchemia.common.items.ItemIngredient;
-import muddykat.alchemia.common.items.helper.IngredientAlignment;
 import muddykat.alchemia.common.items.helper.IngredientPath;
 import muddykat.alchemia.common.items.helper.IngredientType;
 import muddykat.alchemia.common.items.helper.Ingredients;
@@ -13,8 +12,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.core.Holder;
 import muddykat.alchemia.common.potion.noise.OctaveSimplexNoise;
 import net.minecraft.world.effect.MobEffect;
-import net.minecraft.world.item.alchemy.Potion;
-import net.minecraft.world.item.alchemy.Potions;
 
 import java.util.*;
 
@@ -23,6 +20,7 @@ public class PotionMap {
     private static volatile long currentSeed;
     private static volatile boolean seeded;
     private static int builtGeneration = -1;
+    private static int builtEffects = -1;
     private static long builtSeed;
 
     public static final double CELL = PathGeometry.CELL;
@@ -35,6 +33,15 @@ public class PotionMap {
     private static final double BASE_RADIUS_FRACTION = 15.0 / 68.0;
     private static final double SPACING_RELIEF = CELL;
     private static final double STALL_THRESHOLD = 1.0;
+    private static final int WALL_SAMPLES = 720;
+    private static final double WALL_FILL = 0.9;
+    private static final double WALL_CLEARANCE = EFFECT_RADIUS + 2 * CELL;
+    private static final int[] WALL_HARMONICS = {2, 3, 5, 7, 11};
+    private static final double[] WALL_WOBBLE = {0.035, 0.03, 0.022, 0.014, 0.009};
+    private static final int WALL_SMOOTHING = 3;
+    private static final int WALL_WINDOW = 6;
+    private static final int WALL_GROWTH_STEPS = 16;
+    private static final long WALL_SALT = 0x2545F4914F6CDD1DL;
 
     private final BrewBase base;
     private final int size;
@@ -50,7 +57,7 @@ public class PotionMap {
         Random rand = new Random(seed);
         this.base = base;
 
-        softSize = (int) (PotionEnum.values().length * 2 * CELL);
+        softSize = (int) (AlchemiaEffects.count() * 2 * CELL);
         tiles = (softSize + HARD_MARGIN * 2 + DEADZONE_RESOLUTION - 1) / DEADZONE_RESOLUTION;
         size = tiles * DEADZONE_RESOLUTION;
         middlePosition = size / 2;
@@ -58,10 +65,10 @@ public class PotionMap {
 
         double minDistance = Configuration.effectSpacing();
 
-        for (PotionEnum e : PotionEnum.values()) {
+        for (AlchemiaEffect e : AlchemiaEffects.values()) {
             if (!base.allows(e)) continue;
-            Holder<MobEffect> effect = e.getEffect();
-            int strength = e.maxStrength;
+            Holder<MobEffect> effect = e.effect();
+            int strength = e.maxAmplifier();
             boolean placed = false;
             double spacing = minDistance;
             int attempts = 0;
@@ -73,19 +80,15 @@ public class PotionMap {
                     attempts = 0;
                 }
 
-                int biasX = 0;
-                int biasY = 0;
-                for (IngredientAlignment alignment : e.getAlignments()) {
-                    biasX += alignment.getX();
-                    biasY += alignment.getY();
-                }
+                int biasX = e.alignmentX();
+                int biasY = e.alignmentY();
 
                 if (biasX == 0 && biasY == 0) {
                     biasX = rand.nextInt(3) - 1;
                     biasY = rand.nextInt(3) - 1;
                 }
 
-                int rarityOrdinal = e.getRarity().ordinal();
+                int rarityOrdinal = e.rarity().ordinal();
                 double baseRadius = size * BASE_RADIUS_FRACTION;
                 double jitter = rand.nextInt(-2, 2) * CELL;
 
@@ -120,7 +123,7 @@ public class PotionMap {
 
                 if (positionValid) {
                     entries.add(new MapEntry(randX, randY,
-                            new PotionEffectPosition(e, effect, 1200, strength, e.getPotion(), true)));
+                            new PotionEffectPosition(e, effect, e.durationTicks(), strength, true)));
                     placed = true;
                 }
 
@@ -130,16 +133,20 @@ public class PotionMap {
             if (!placed) placed = placeAnywhere(e, effect, strength);
 
             if (!placed) {
-                Alchemia.LOGGER.warn("Could not place potion effect {}", e.name());
+                Alchemia.LOGGER.warn("Could not place potion effect {}", e.id());
             }
         }
 
         generateDeadzones(seed, rand);
+        raiseWall(seed);
         Alchemia.LOGGER.info("Potion map built for {}: {}px across, {} effects, {} dead tiles, {} effects need crystals",
                 base.id(), size, entries.size(), deadTileCount(), crystalGated);
     }
 
     private int crystalGated;
+    private double[] wall;
+    private double wallMin;
+    private double wallMax;
 
     public boolean isDeadzone(double x, double y) {
         if (!inBounds(x, y)) return false;
@@ -188,7 +195,109 @@ public class PotionMap {
     }
 
     public boolean inBounds(double x, double y) {
-        return x >= 0 && x < size && y >= 0 && y < size;
+        return x >= 0 && x < size && y >= 0 && y < size && insideWall(x, y);
+    }
+
+    public boolean insideWall(double x, double y) {
+        if (wall == null) return true;
+        double dx = x - middlePosition;
+        double dy = y - middlePosition;
+        double distance = dx * dx + dy * dy;
+        if (distance <= wallMin * wallMin) return true;
+        if (distance > wallMax * wallMax) return false;
+        return Math.sqrt(distance) <= wallRadius(Math.atan2(dy, dx));
+    }
+
+    public boolean walled() {
+        return wall != null;
+    }
+
+    public double wallRadius(double angle) {
+        if (wall == null) return squareLimit(angle);
+        double t = (angle + Math.PI) / (2 * Math.PI) * WALL_SAMPLES;
+        int index = (int) Math.floor(t);
+        double fraction = t - index;
+        double from = wall[Math.floorMod(index, WALL_SAMPLES)];
+        double to = wall[Math.floorMod(index + 1, WALL_SAMPLES)];
+        return from + (to - from) * fraction;
+    }
+
+    public double wallReach() {
+        return wall == null ? middlePosition * Math.sqrt(2) : wallMax;
+    }
+
+    private static double wallAngle(int index) {
+        return -Math.PI + index * 2 * Math.PI / WALL_SAMPLES;
+    }
+
+    private double squareLimit(double angle) {
+        return (middlePosition - 1) / Math.max(Math.abs(Math.cos(angle)), Math.abs(Math.sin(angle)));
+    }
+
+    private void raiseWall(long seed) {
+        int gated = crystalGated;
+        int stranded = countUnreachable(true);
+        double[] shape = wallShape(new Random(seed ^ WALL_SALT));
+
+        for (int growth = 0; growth <= WALL_GROWTH_STEPS; growth++) {
+            double[] trial = new double[WALL_SAMPLES];
+            for (int index = 0; index < WALL_SAMPLES; index++) {
+                trial[index] = Math.min(squareLimit(wallAngle(index)), shape[index] + growth * CELL);
+            }
+            buildWall(trial);
+            if (countUnreachable(false) <= gated && countUnreachable(true) <= stranded) return;
+        }
+        wall = null;
+    }
+
+    private void buildWall(double[] radii) {
+        wall = radii;
+        wallMin = Double.MAX_VALUE;
+        wallMax = 0.0;
+        for (double radius : radii) {
+            wallMin = Math.min(wallMin, radius);
+            wallMax = Math.max(wallMax, radius);
+        }
+    }
+
+    private double[] wallShape(Random rand) {
+        double[] phases = new double[WALL_HARMONICS.length];
+        for (int index = 0; index < phases.length; index++) phases[index] = rand.nextDouble() * 2 * Math.PI;
+
+        double[] need = new double[WALL_SAMPLES];
+        for (MapEntry entry : entries) {
+            double dx = entry.x() - middlePosition;
+            double dy = entry.y() - middlePosition;
+            double distance = Math.sqrt(dx * dx + dy * dy);
+            double bearing = Math.atan2(dy, dx);
+            for (int index = 0; index < WALL_SAMPLES; index++) {
+                double turn = Math.IEEEremainder(wallAngle(index) - bearing, 2 * Math.PI);
+                double side = distance * Math.sin(turn);
+                if (Math.cos(turn) <= 0.0 || Math.abs(side) >= WALL_CLEARANCE) continue;
+                need[index] = Math.max(need[index], distance * Math.cos(turn) + Math.sqrt(WALL_CLEARANCE * WALL_CLEARANCE - side * side));
+            }
+        }
+
+        double[] raw = new double[WALL_SAMPLES];
+        for (int index = 0; index < WALL_SAMPLES; index++) {
+            double angle = wallAngle(index);
+            double wobble = 1.0;
+            for (int harmonic = 0; harmonic < WALL_HARMONICS.length; harmonic++) {
+                wobble += WALL_WOBBLE[harmonic] * Math.sin(WALL_HARMONICS[harmonic] * angle + phases[harmonic]);
+            }
+            raw[index] = Math.max(middlePosition * WALL_FILL * wobble, need[index]);
+        }
+
+        for (int pass = 0; pass < WALL_SMOOTHING; pass++) {
+            double[] smoothed = new double[WALL_SAMPLES];
+            for (int index = 0; index < WALL_SAMPLES; index++) {
+                double total = 0.0;
+                for (int offset = -WALL_WINDOW; offset <= WALL_WINDOW; offset++) total += raw[Math.floorMod(index + offset, WALL_SAMPLES)];
+                smoothed[index] = Math.max(total / (2 * WALL_WINDOW + 1), need[index]);
+            }
+            raw = smoothed;
+        }
+        return raw;
     }
 
     public boolean inBounds(PathPoint point) {
@@ -322,9 +431,9 @@ public class PotionMap {
         }
     }
 
-    public PathPoint positionOf(PotionEnum recipe) {
+    public PathPoint positionOf(AlchemiaEffect recipe) {
         for (MapEntry entry : entries) {
-            if (entry.effect().getRecipe() == recipe) return new PathPoint(entry.x(), entry.y());
+            if (recipe != null && recipe.equals(entry.effect().getRecipe())) return new PathPoint(entry.x(), entry.y());
         }
         return null;
     }
@@ -333,11 +442,11 @@ public class PotionMap {
         return new PotionPath(List.of(new PathPoint(x, y)), false, true, false);
     }
 
-    public List<PathPoint> fixedDriftOffsets(PotionEnum target) {
+    public List<PathPoint> fixedDriftOffsets(AlchemiaEffect target) {
         return fixedDriftOffsets(target, 0);
     }
 
-    public List<PathPoint> fixedDriftOffsets(PotionEnum target, int crushUnits) {
+    public List<PathPoint> fixedDriftOffsets(AlchemiaEffect target, int crushUnits) {
         PathPoint goal = positionOf(target);
         if (goal == null) return List.of();
 
@@ -349,7 +458,7 @@ public class PotionMap {
                 PathGeometry.SAMPLE_SPACING);
     }
 
-    private PotionPath fixedPath(double x, double y, PotionEnum target, int crushUnits) {
+    private PotionPath fixedPath(double x, double y, AlchemiaEffect target, int crushUnits) {
         return trail(x, y, fixedDriftOffsets(target, crushUnits));
     }
 
@@ -498,7 +607,7 @@ public class PotionMap {
         return new PathPoint(startX, startY);
     }
 
-    private boolean pull(List<Span> spans, ItemStack stack, PotionEnum target, int anchor, double partial) {
+    private boolean pull(List<Span> spans, ItemStack stack, AlchemiaEffect target, int anchor, double partial) {
         PathPoint goal = positionOf(target);
         if (goal == null) return false;
 
@@ -1002,12 +1111,12 @@ public class PotionMap {
         return lod.get(clamped)[tileY * count + tileX] > 0.0f;
     }
 
-    private boolean placeAnywhere(PotionEnum recipe, Holder<MobEffect> effect, int strength) {
+    private boolean placeAnywhere(AlchemiaEffect recipe, Holder<MobEffect> effect, int strength) {
         for (int x = HARD_MARGIN; x <= size - 1 - HARD_MARGIN; x += (int) CELL) {
             for (int y = HARD_MARGIN; y <= size - 1 - HARD_MARGIN; y += (int) CELL) {
                 if (nearest(x, y, CELL) != null) continue;
                 entries.add(new MapEntry(x, y,
-                        new PotionEffectPosition(recipe, effect, 1200, strength, recipe.getPotion(), true)));
+                        new PotionEffectPosition(recipe, effect, recipe.durationTicks(), strength, true)));
                 return true;
             }
         }
@@ -1045,6 +1154,10 @@ public class PotionMap {
         }
     }
 
+    private boolean walledOff(int tileX, int tileY) {
+        return wall != null && !insideWall(tileOrigin(tileX) + DEADZONE_RESOLUTION / 2.0, tileOrigin(tileY) + DEADZONE_RESOLUTION / 2.0);
+    }
+
     private int countUnreachable(boolean withCrystals) {
         boolean[] seen = new boolean[tiles * tiles];
         ArrayDeque<int[]> queue = new ArrayDeque<>();
@@ -1066,7 +1179,7 @@ public class PotionMap {
                     if (tileX < 0 || tileY < 0 || tileX >= tiles || tileY >= tiles) continue;
 
                     int index = tileIndex(tileX, tileY);
-                    if (seen[index] || depth[index] > 0.0f) continue;
+                    if (seen[index] || depth[index] > 0.0f || walledOff(tileX, tileY)) continue;
 
                     seen[index] = true;
                     queue.add(new int[]{tileX, tileY});
@@ -1085,7 +1198,7 @@ public class PotionMap {
                 if (tileX < 0 || tileY < 0 || tileX >= tiles || tileY >= tiles) continue;
 
                 int index = tileIndex(tileX, tileY);
-                if (seen[index] || depth[index] > 0.0f) continue;
+                if (seen[index] || depth[index] > 0.0f || walledOff(tileX, tileY)) continue;
 
                 seen[index] = true;
                 queue.add(new int[]{tileX, tileY});
@@ -1100,7 +1213,8 @@ public class PotionMap {
     }
 
     public static synchronized void scramble(long seed) {
-        if (seeded && seed == builtSeed && builtGeneration == BrewBases.generation()) return;
+        if (seeded && seed == builtSeed && builtGeneration == BrewBases.generation()
+                && builtEffects == AlchemiaEffects.generation()) return;
         currentSeed = seed;
         seeded = true;
         rebuild();
@@ -1110,6 +1224,7 @@ public class PotionMap {
         if (!seeded) return;
         long seed = currentSeed;
         int generation = BrewBases.generation();
+        int effects = AlchemiaEffects.generation();
         Map<String, PotionMap> built = new LinkedHashMap<>();
         for (BrewBase brewBase : BrewBases.values()) {
             built.put(brewBase.id(), new PotionMap(seedFor(seed, brewBase), brewBase));
@@ -1117,6 +1232,7 @@ public class PotionMap {
         MAPS = java.util.Collections.unmodifiableMap(built);
         builtSeed = seed;
         builtGeneration = generation;
+        builtEffects = effects;
     }
 
     public static long seedFor(long seed, BrewBase base) {
@@ -1142,7 +1258,7 @@ public class PotionMap {
     }
 
     public PotionEffectPosition getEffectPotion(double x, double y) {
-        PotionEffectPosition defaultEffect = new PotionEffectPosition(null, null, 10, 0, Potions.AWKWARD, false);
+        PotionEffectPosition defaultEffect = new PotionEffectPosition(null, null, 10, 0, false);
 
         MapEntry closest = nearest(x, y, EFFECT_RADIUS);
         if (closest == null) return defaultEffect;
@@ -1153,7 +1269,7 @@ public class PotionMap {
         int ring = Math.max(1, (int) Math.ceil(distance / CELL));
         int falloff = Math.max(0, closest.effect().getStrength() - ring);
         return new PotionEffectPosition(closest.effect().getRecipe(), closest.effect().getEffect(),
-                closest.effect().getDuration(), falloff, closest.effect().getPotion(), false);
+                closest.effect().getDuration(), falloff, false);
     }
 
     public PotionEffectPosition getEffectPotion(PathPoint point) {
@@ -1187,22 +1303,20 @@ public class PotionMap {
     }
 
     public static class PotionEffectPosition {
-        final PotionEnum recipe;
+        final AlchemiaEffect recipe;
         final Holder<MobEffect> effect;
         final int duration;
         final int strength;
-        final Holder<Potion> potion;
         final boolean perfect;
-        PotionEffectPosition(PotionEnum recipe, Holder<MobEffect> effect, int duration, int maxStrength, Holder<Potion> potion, boolean isPerfect) {
+        PotionEffectPosition(AlchemiaEffect recipe, Holder<MobEffect> effect, int duration, int maxStrength, boolean isPerfect) {
             this.recipe = recipe;
             this.effect = effect;
             this.duration = duration;
             this.strength = maxStrength;
-            this.potion = potion;
             this.perfect = isPerfect;
         }
 
-        public PotionEnum getRecipe() {
+        public AlchemiaEffect getRecipe() {
             return recipe;
         }
 
@@ -1218,17 +1332,13 @@ public class PotionMap {
             return strength;
         }
 
-        public Holder<Potion> getPotion() {
-            return potion;
-        }
-
         public boolean isPerfect() {
             return perfect;
         }
 
         public PotionEffectPosition capped(int maxStrength) {
             if (strength <= maxStrength) return this;
-            return new PotionEffectPosition(recipe, effect, duration, Math.max(0, maxStrength), potion, false);
+            return new PotionEffectPosition(recipe, effect, duration, Math.max(0, maxStrength), false);
         }
     }
 }

@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_mineral_earth_pyrite": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:mineral_earth_pyrite"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "alchemia:alchemy_machine_left_upgrade"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_mineral_earth_pyrite"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "alchemia:alchemy_machine_left_upgrade"
+    ]
+  }
+}

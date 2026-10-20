@@ -24,6 +24,9 @@ public class AlchemiaRegistry {
         ParticleTypeRegistry.PARTICLE_TYPES.register(modEventBus);
         CreativeTabRegistry.CREATIVE_MODE_TABS.register(modEventBus);
         PotionRegistry.POTIONS.register(modEventBus);
+        SoundRegistry.SOUNDS.register(modEventBus);
+        RecipeSerializerRegistry.RECIPE_SERIALIZERS.register(modEventBus);
+        LootModifierRegistry.LOOT_MODIFIERS.register(modEventBus);
         Alchemia.LOGGER.info(MOD_NAME + " Registration Complete");
     }
 }

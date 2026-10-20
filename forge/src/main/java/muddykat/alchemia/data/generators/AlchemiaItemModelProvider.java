@@ -1,5 +1,11 @@
 package muddykat.alchemia.data.generators;
 
+import muddykat.alchemia.common.blocks.blockentity.BlockResearchDesk;
+import muddykat.alchemia.common.items.ItemAlchemistNotes;
+import muddykat.alchemia.common.items.ItemAlchemyTablet;
+import muddykat.alchemia.common.items.ItemBark;
+import muddykat.alchemia.common.items.ItemRecipePage;
+
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.blocks.AncientOak;
 import muddykat.alchemia.client.render.CrushProperty;
@@ -57,6 +63,14 @@ public class AlchemiaItemModelProvider extends ItemModelProvider {
                 flatItem(itemName(item), itemTexture("mortar_and_pestle"));
             } else if (item instanceof ItemAlchemiaGuide) {
                 flatItem(itemName(item), itemTexture("book/guide"));
+            } else if (item instanceof ItemBark) {
+                flatItem(itemName(item), itemTexture("bark"));
+            } else if (item instanceof ItemAlchemistNotes) {
+                flatItem(itemName(item), itemTexture(ItemAlchemistNotes.ID));
+            } else if (item instanceof ItemAlchemyTablet) {
+                flatItem(itemName(item), itemTexture(ItemAlchemyTablet.ID));
+            } else if (item instanceof ItemRecipePage) {
+                flatItem(itemName(item), itemTexture("book/recipe_page"));
             } else if (item instanceof ItemPathTool) {
                 wearModel(itemName(item));
             } else if (item instanceof BlockItemGeneric blockItem) {
@@ -79,6 +93,7 @@ public class AlchemiaItemModelProvider extends ItemModelProvider {
         var block = blockItem.getBlock();
 
         if (block instanceof BlockAlchemyCauldron
+                || block instanceof BlockResearchDesk
                 || block instanceof BlockAlchemyMachineCore
                 || block instanceof BlockAlchemyMachineUpgrade) {
             return;

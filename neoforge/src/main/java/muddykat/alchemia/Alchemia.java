@@ -8,7 +8,9 @@ import muddykat.alchemia.registration.registers.IngredientTypeRegistry;
 import muddykat.alchemia.common.network.NetworkHandler;
 import muddykat.alchemia.common.network.packets.PacketImbuements;
 import muddykat.alchemia.common.network.packets.PacketBrewBases;
+import muddykat.alchemia.common.network.packets.PacketEffects;
 import muddykat.alchemia.common.network.packets.PacketPotionRecipe;
+import muddykat.alchemia.common.potion.AlchemiaEffects;
 import muddykat.alchemia.common.potion.BrewBases;
 import muddykat.alchemia.common.potion.PotionMap;
 import muddykat.alchemia.registration.AlchemiaRegistry;
@@ -41,6 +43,7 @@ public class Alchemia {
         LOGGER.info(MOD_NAME + " Initializing Configuration");
         modContainer.registerConfig(ModConfig.Type.COMMON, Configuration.COMMON_CONFIG);
         modContainer.registerConfig(ModConfig.Type.SERVER, Configuration.SERVER_CONFIG);
+        modContainer.registerConfig(ModConfig.Type.CLIENT, Configuration.CLIENT_CONFIG);
 
         AlchemiaRegistry.initialize();
         AlchemiaRegistry.register(modEventBus);
@@ -69,7 +72,8 @@ public class Alchemia {
         if (event.getEntity() instanceof ServerPlayer player) {
             Random rand = new Random(player.level().getSeed());
             long map_seed = rand.nextLong();
-            LOGGER.info("Player Joined - Sending Brew Bases and Potion Map Seed");
+            LOGGER.info("Player Joined - Sending Effects, Brew Bases and Potion Map Seed");
+            NetworkHandler.sendToPlayer(new PacketEffects(AlchemiaEffects.definitions()), player);
             NetworkHandler.sendToPlayer(new PacketBrewBases(BrewBases.definitions()), player);
             NetworkHandler.sendToPlayer(new PacketImbuements(muddykat.alchemia.common.potion.Imbuements.definitions()), player);
             NetworkHandler.sendToPlayer(new PacketPotionRecipe(map_seed), player);

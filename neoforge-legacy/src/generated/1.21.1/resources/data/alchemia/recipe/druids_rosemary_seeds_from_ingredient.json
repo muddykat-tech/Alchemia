@@ -1,0 +1,16 @@
+{
+  "type": "alchemia:quiet_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "alchemia:herb_druids_rosemary"
+    },
+    {
+      "item": "minecraft:shears"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "alchemia:herb_druids_rosemary_seed"
+  }
+}

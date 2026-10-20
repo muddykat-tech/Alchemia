@@ -28,7 +28,8 @@ import muddykat.alchemia.common.network.packets.PacketNameBrew;
 import muddykat.alchemia.common.potion.BrewRecipe;
 import muddykat.alchemia.common.potion.BrewRecipeBook;
 import muddykat.alchemia.common.potion.IngredientDiscovery;
-import muddykat.alchemia.common.potion.PotionEnum;
+import muddykat.alchemia.common.potion.AlchemiaEffect;
+import muddykat.alchemia.common.potion.AlchemiaEffects;
 import muddykat.alchemia.common.potion.RecipeDiscovery;
 import muddykat.alchemia.common.potion.WorldEffects;
 import muddykat.alchemia.common.potion.VanillaIngredients;
@@ -41,11 +42,6 @@ import net.minecraft.world.item.Item;
 import muddykat.alchemia.common.blocks.tileentity.TileEntityResearchDesk;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
-#if MC_VER >= 26200
-import net.minecraft.client.gui.Hud;
-#else
-import net.minecraft.client.gui.Gui;
-#endif
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -170,6 +166,7 @@ public class GuideScreen extends Screen {
     private static final int RING = 22;
     private static final int INGREDIENT_ROW = 20;
     private static final int INGREDIENT_NOTE_LINES = 4;
+    private static final int INGREDIENT_ROWS_SHOWN = 3;
     private static final int DISC_U = 0;
     private static final int DISC_V = 160;
     private static final int DISC = 52;
@@ -210,6 +207,7 @@ public class GuideScreen extends Screen {
     private static final float GLOWING_ART = 16.0F;
     private static final float GLOWING_CENTRE = 9.0F;
     private static final int GRID_ROWS = 6;
+    private static final int EFFECTS_PER_PAGE = GRID_COLUMNS * GRID_ROWS;
     private static final int INDEX_ROWS = 7;
     private static final int INDEX_ROW_H = 24;
     private static final int RECENT_ROW_H = 22;
@@ -287,7 +285,8 @@ public class GuideScreen extends Screen {
     private Chapter chapter;
     private @Nullable String openRecipe;
     private int indexSpread;
-    private @Nullable PotionEnum selectedEffect;
+    private @Nullable AlchemiaEffect selectedEffect;
+    private int effectPage;
     private @Nullable Ingredients selectedIngredient;
     private @Nullable String selectedStage;
     private Set<String> greatWork = Set.of();
@@ -300,6 +299,12 @@ public class GuideScreen extends Screen {
     private boolean reagentPage;
     private @Nullable Item selectedReagent;
     private double scroll;
+    private double ingredientScroll;
+    private int ingredientMax;
+    private int ingredientPaneX;
+    private int ingredientPaneY;
+    private int ingredientPaneW;
+    private int ingredientPaneH;
     private int contentHeight;
     private int viewTop;
     private int viewBottom;
@@ -323,7 +328,7 @@ public class GuideScreen extends Screen {
 
     private ItemStack stack = ItemStack.EMPTY;
     private List<BrewRecipe> recipes = List.of();
-    private Set<PotionEnum> discovered = Set.of();
+    private Set<AlchemiaEffect> discovered = Set.of();
     private Set<String> notes = Set.of();
     private List<Ingredients> knownIngredients = List.of();
     private Set<Item> knownReagents = Set.of();
@@ -510,6 +515,7 @@ public class GuideScreen extends Screen {
 
         recipes = BrewRecipeBook.recipes(stack);
         discovered = RecipeDiscovery.knownTo(stack);
+        if (selectedEffect != null) selectedEffect = AlchemiaEffects.byId(selectedEffect.id());
         notes = WorldEffects.notesIn(stack);
         selected = BrewRecipeBook.selected(stack);
         knownReagents = IngredientDiscovery.knownReagents(stack);
@@ -556,6 +562,7 @@ public class GuideScreen extends Screen {
 
     private void resetScroll() {
         scroll = 0;
+        ingredientScroll = 0;
         dragging = false;
     }
 
@@ -604,6 +611,7 @@ public class GuideScreen extends Screen {
         toBook(mouseX, mouseY);
         hotspots.clear();
         rightHotspots.clear();
+        ingredientMax = 0;
         hoveredMarquee = false;
 
         graphics.pose().pushMatrix();
@@ -966,7 +974,7 @@ public class GuideScreen extends Screen {
     }
 
     private Component effectLabel(BrewRecipe.BrewEffect effect) {
-        PotionEnum potion = effect.asPotion();
+        AlchemiaEffect potion = effect.asPotion();
         Component name = potion != null && !discovered.contains(potion)
                 ? Component.translatable("alchemia.guide.effect.unknown") : effect.displayName();
         return Component.translatable("alchemia.guide.effect.line", name, Component.translatable("enchantment.level." + effect.potency()));
@@ -1096,16 +1104,16 @@ public class GuideScreen extends Screen {
         extractRecipeBar(graphics, recipe, RECIPE_BAR_Y);
     }
 
-    private List<Component> effectTooltip(BrewRecipe.BrewEffect effect, @Nullable PotionEnum potion) {
+    private List<Component> effectTooltip(BrewRecipe.BrewEffect effect, @Nullable AlchemiaEffect potion) {
         List<Component> lines = new ArrayList<>();
         lines.add(effectLabel(effect));
         if (potion != null) lines.addAll(WorldEffects.guideLines(notes, potion));
         return lines;
     }
 
-    private void effectIcon(GuiGraphicsExtractor graphics, @Nullable PotionEnum potion, int x, int y, int size) {
+    private void effectIcon(GuiGraphicsExtractor graphics, @Nullable AlchemiaEffect potion, int x, int y, int size) {
         if (potion != null && discovered.contains(potion)) {
-            graphics.blitSprite(RenderPipelines.GUI_TEXTURED, effectSprite(potion), x, y, size, size);
+            graphics.blitSprite(RenderPipelines.GUI_TEXTURED, potion.sprite(), x, y, size, size);
         } else if (potion != null && WorldEffects.anyVisible(notes, potion)) {
             icon(graphics, Icon.EYE_CLOSED, x + (size - ICON) / 2, y + (size - ICON) / 2, false);
         } else {
@@ -1138,7 +1146,7 @@ public class GuideScreen extends Screen {
                 continue;
             }
             BrewRecipe.BrewEffect effect = levels.get(slot);
-            PotionEnum potion = effect.asPotion();
+            AlchemiaEffect potion = effect.asPotion();
             effectIcon(graphics, potion, x + (pitch - size) / 2, y + (ICON - size) / 2, size);
             Runnable follow = potion == null || pageMode ? null : () -> followEffect(potion);
             hotspot(x, y, pitch, ICON, follow, () -> effectTooltip(effect, potion));
@@ -1186,7 +1194,7 @@ public class GuideScreen extends Screen {
                 continue;
             }
             BrewRecipe.BrewEffect effect = effects.get(index);
-            PotionEnum potion = effect.asPotion();
+            AlchemiaEffect potion = effect.asPotion();
             boolean over = potion != null && !pageMode && hovered(listX, textY - 1, LEFT_X + PAGE_W - listX, PANEL_ROW);
             effectIcon(graphics, potion, listX, textY - 1, 9);
             text(graphics, Component.literal(clip(effectLabel(effect), textW)), listX + 11, textY, over ? INK_LINK : INK);
@@ -1211,8 +1219,21 @@ public class GuideScreen extends Screen {
         for (int needed : tally.values()) countW = Math.max(countW, this.font.width(String.valueOf(needed)));
         int pitch = 16 + countW + 3;
         int rowStart = LEFT_X + RING + 4;
+        int perRow = Math.max(1, (LEFT_X + PAGE_W + 2 - 16 - countW - rowStart) / pitch + 1);
+        int rows = Math.max(1, (tally.size() + perRow - 1) / perRow);
+        int shown = Math.min(rows, INGREDIENT_ROWS_SHOWN);
+        int paneTop = y + 2;
+        int paneBottom = y + 3 + shown * INGREDIENT_ROW - 2;
+        int maxScroll = (rows - shown) * INGREDIENT_ROW;
+        ingredientScroll = Mth.clamp(ingredientScroll, 0, maxScroll);
+        ingredientMax = maxScroll;
+        ingredientPaneX = rowStart - 1;
+        ingredientPaneY = paneTop;
+        ingredientPaneW = LEFT_X + PAGE_W + 7 - ingredientPaneX;
+        ingredientPaneH = paneBottom - paneTop;
+        if (maxScroll > 0) graphics.enableScissor(rowStart - 1, paneTop, LEFT_X + PAGE_W + 3, paneBottom);
         int x = rowStart;
-        int rowY = y + 3;
+        int rowY = y + 3 - (int) ingredientScroll;
 
         for (Map.Entry<ItemStack, Integer> entry : tally.entrySet()) {
             if (x + 16 + countW > LEFT_X + PAGE_W + 2) {
@@ -1226,10 +1247,22 @@ public class GuideScreen extends Screen {
             GuideInk.item(graphics, item, x, rowY, enough ? GuideInk.PLAIN : GuideInk.SHORT);
             text(graphics, Component.literal(String.valueOf(needed)), x + 17, rowY + 8, enough ? INK : INK_RED);
 
-            hotspot(x - 1, rowY - 1, pitch, 18, pageMode ? null : followItem(item), () -> ingredientTooltip(item, needed, held));
+            if (rowY + 8 >= paneTop && rowY + 8 <= paneBottom) {
+                hotspot(x - 1, Math.max(rowY - 1, paneTop), pitch, Math.min(rowY + 17, paneBottom) - Math.max(rowY - 1, paneTop),
+                        pageMode ? null : followItem(item), () -> ingredientTooltip(item, needed, held));
+            }
             x += pitch;
         }
-        return Math.max(y + RING, rowY + 17);
+        if (maxScroll > 0) {
+            graphics.disableScissor();
+            int trackX = LEFT_X + PAGE_W + 4;
+            int trackH = paneBottom - paneTop;
+            int thumbH = Math.max(6, trackH * shown / rows);
+            int thumbY = paneTop + (int) Math.round((trackH - thumbH) * ingredientScroll / maxScroll);
+            graphics.fill(trackX, paneTop, trackX + 2, paneBottom, 0x33B8A27A);
+            graphics.fill(trackX, thumbY, trackX + 2, thumbY + thumbH, RULE);
+        }
+        return Math.max(y + RING, y + 3 + shown * INGREDIENT_ROW - 3);
     }
 
     private List<Component> ingredientTooltip(ItemStack item, int needed, int held) {
@@ -1383,13 +1416,11 @@ public class GuideScreen extends Screen {
         return recipe.steps().contains(String.valueOf(BrewRecipe.STEP_SPLASH));
     }
 
-    private static Identifier effectSprite(PotionEnum potion) {
-        return mobSprite(potion.getEffect());
-    }
-
-    private void followEffect(PotionEnum potion) {
-        if (!discovered.contains(potion)) send(PacketGuideAction.Action.LEARN_EFFECT, potion.name());
+    private void followEffect(AlchemiaEffect potion) {
+        if (!discovered.contains(potion)) send(PacketGuideAction.Action.LEARN_EFFECT, potion.id());
         selectedEffect = potion;
+        int index = effectOrder().indexOf(potion);
+        if (index >= 0) effectPage = index / EFFECTS_PER_PAGE;
         goTo(Chapter.EFFECTS);
     }
 
@@ -1493,11 +1524,13 @@ public class GuideScreen extends Screen {
         int y = TOP - (int) scroll;
 
         y = scrolledHeading(graphics, Component.translatable("alchemia.guide.method"), y, width);
+        List<Step> steps = steps(recipe);
+        int gutter = Math.max(15, this.font.width(steps.size() + "."));
         int number = 1;
-        for (Step step : steps(recipe)) {
+        for (Step step : steps) {
             Component numeral = Component.literal(number + ".");
-            text(graphics, numeral, RIGHT_X + 15 - this.font.width(numeral), y + 4, INK_RED);
-            int iconX = RIGHT_X + 19;
+            text(graphics, numeral, RIGHT_X + gutter - this.font.width(numeral), y + 4, INK_RED);
+            int iconX = RIGHT_X + gutter + 4;
             if (!step.item().isEmpty()) {
                 GuideInk.item(graphics, step.item(), iconX - 2, y, GuideInk.PLAIN);
             } else if (step.icon() != null) {
@@ -1630,6 +1663,13 @@ public class GuideScreen extends Screen {
                 case BrewRecipe.STEP_GLOW -> steps.add(new Step(Component.translatable("alchemia.guide.step.glow"),
                         new ItemStack(Items.GLOWSTONE_DUST), null, List.of(Component.translatable("alchemia.guide.step.glow.tip")),
                         pageMode ? null : () -> followReagent(Items.GLOWSTONE_DUST)));
+                case BrewRecipe.STEP_BOTTLE -> {
+                    muddykat.alchemia.common.potion.PotionGlass glass = muddykat.alchemia.common.potion.PotionGlass.byName(value);
+                    if (!glass.hasEmptyItem()) continue;
+                    ItemStack vessel = new ItemStack(muddykat.alchemia.common.potion.PotionGlasses.emptyItem(glass));
+                    steps.add(new Step(Component.translatable("alchemia.guide.step.bottle", vessel.getHoverName()), vessel, null,
+                            List.of(vessel.getHoverName())));
+                }
                 case BrewRecipe.STEP_SPLASH -> steps.add(new Step(Component.translatable("alchemia.guide.step.splash"),
                         new ItemStack(Items.GUNPOWDER), null, List.of(Component.translatable("alchemia.guide.step.splash.tip")),
                         pageMode ? null : () -> followReagent(Items.GUNPOWDER)));
@@ -1742,11 +1782,8 @@ public class GuideScreen extends Screen {
     }
 
     private static Identifier mobSprite(net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> effect) {
-#if MC_VER >= 26200
-        return Hud.getMobEffectSprite(effect);
-#else
-        return Gui.getMobEffectSprite(effect);
-#endif
+        return effect.unwrapKey().map(key -> AlchemiaEffect.defaultSprite(key.identifier()))
+                .orElseGet(() -> Identifier.withDefaultNamespace("missingno"));
     }
 
     private void prepare(BrewRecipe recipe) {
@@ -1779,25 +1816,22 @@ public class GuideScreen extends Screen {
         int y = chapterHeading(graphics, Component.translatable("alchemia.guide.chapter.effects"), LEFT_X, TOP + 2);
         centred(graphics, Component.translatable("alchemia.guide.effects.known", discovered.size(), RecipeDiscovery.total()), LEFT_X, y, INK_FAINT);
 
-        List<PotionEnum> known = new ArrayList<>();
-        List<PotionEnum> noted = new ArrayList<>();
-        for (PotionEnum potion : PotionEnum.values()) {
-            if (discovered.contains(potion)) known.add(potion);
-            else if (WorldEffects.anyVisible(notes, potion)) noted.add(potion);
-        }
-        known.sort(Comparator.comparing(potion -> potion.getEffect().value().getDisplayName().getString()));
+        List<AlchemiaEffect> shown = effectOrder();
+        int total = RecipeDiscovery.total();
+        int pages = Math.max(1, Mth.ceil(total / (float) EFFECTS_PER_PAGE));
+        effectPage = Math.max(0, Math.min(effectPage, pages - 1));
+        int first = effectPage * EFFECTS_PER_PAGE;
 
         int gridX = LEFT_X + (PAGE_W - GRID_COLUMNS * CELL) / 2;
         int gridY = y + 14;
-        int total = RecipeDiscovery.total();
-        for (int slot = 0; slot < Math.min(total, GRID_COLUMNS * GRID_ROWS); slot++) {
-            int x = gridX + (slot % GRID_COLUMNS) * CELL;
-            int cy = gridY + (slot / GRID_COLUMNS) * CELL;
-            PotionEnum potion = slot < known.size() ? known.get(slot)
-                    : slot < known.size() + noted.size() ? noted.get(slot - known.size()) : null;
-            boolean isKnown = slot < known.size();
+        for (int place = 0; place < Math.min(EFFECTS_PER_PAGE, total - first); place++) {
+            int slot = first + place;
+            int x = gridX + (place % GRID_COLUMNS) * CELL;
+            int cy = gridY + (place / GRID_COLUMNS) * CELL;
+            AlchemiaEffect potion = slot < shown.size() ? shown.get(slot) : null;
+            boolean isKnown = potion != null && discovered.contains(potion);
             boolean over = potion != null && hovered(x, cy, CELL, CELL);
-            cell(graphics, x, cy, potion == null ? 3 : potion == selectedEffect ? 2 : over ? 1 : 0);
+            cell(graphics, x, cy, potion == null ? 3 : potion.equals(selectedEffect) ? 2 : over ? 1 : 0);
 
             if (potion == null) {
                 icon(graphics, Icon.UNKNOWN, x + 3, cy + 3, true);
@@ -1805,11 +1839,11 @@ public class GuideScreen extends Screen {
                 continue;
             }
             if (isKnown) {
-                graphics.blitSprite(RenderPipelines.GUI_TEXTURED, effectSprite(potion), x + 1, cy + 1, 16, 16);
+                graphics.blitSprite(RenderPipelines.GUI_TEXTURED, potion.sprite(), x + 1, cy + 1, 16, 16);
             } else {
                 icon(graphics, Icon.EYE_CLOSED, x + 3, cy + 3, false);
             }
-            PotionEnum chosen = potion;
+            AlchemiaEffect chosen = potion;
             hotspot(x, cy, CELL, CELL, () -> {
                 selectedEffect = chosen;
                 resetScroll();
@@ -1819,11 +1853,33 @@ public class GuideScreen extends Screen {
         int legendY = gridY + GRID_ROWS * CELL + 8;
         wrappedCentred(graphics, Component.translatable("alchemia.guide.effects.legend"), LEFT_X, legendY, INK_FAINT);
 
-        scrollPanel(graphics, TOP, BOTTOM, () -> effectDetail(graphics));
+        if (pages > 1) {
+            Component page = Component.translatable("alchemia.guide.effects.page", effectPage + 1, pages);
+            if (effectPage > 0) corner(graphics, false, () -> flipEffects(-1), page);
+            if (effectPage < pages - 1) corner(graphics, true, () -> flipEffects(1), page);
+        }
+        scrollPanel(graphics, TOP, pages > 1 ? BOTTOM - 20 : BOTTOM, () -> effectDetail(graphics));
     }
 
-    private Component effectName(PotionEnum potion) {
-        return discovered.contains(potion) ? potion.getEffect().value().getDisplayName()
+    private List<AlchemiaEffect> effectOrder() {
+        List<AlchemiaEffect> known = new ArrayList<>();
+        List<AlchemiaEffect> noted = new ArrayList<>();
+        for (AlchemiaEffect potion : AlchemiaEffects.values()) {
+            if (discovered.contains(potion)) known.add(potion);
+            else if (WorldEffects.anyVisible(notes, potion)) noted.add(potion);
+        }
+        known.sort(Comparator.comparing(potion -> potion.displayName().getString()));
+        known.addAll(noted);
+        return known;
+    }
+
+    private void flipEffects(int by) {
+        effectPage += by;
+        turnPage();
+    }
+
+    private Component effectName(AlchemiaEffect potion) {
+        return discovered.contains(potion) ? potion.displayName()
                 : Component.translatable("alchemia.guide.effect.unknown");
     }
 
@@ -1839,10 +1895,10 @@ public class GuideScreen extends Screen {
         }
 
         boolean known = discovered.contains(selectedEffect);
-        PotionEnum shown = selectedEffect;
+        AlchemiaEffect shown = selectedEffect;
         y = banner(graphics, effectName(shown).getString(), y, width, (x, iy) -> {
             if (known) {
-                graphics.blitSprite(RenderPipelines.GUI_TEXTURED, effectSprite(shown), x, iy, 18, 18);
+                graphics.blitSprite(RenderPipelines.GUI_TEXTURED, shown.sprite(), x, iy, 18, 18);
             } else {
                 icon(graphics, Icon.EYE_CLOSED, x + 3, iy + 3, false);
             }
@@ -1850,10 +1906,12 @@ public class GuideScreen extends Screen {
 
         if (known) {
             y = wrapped(graphics, Component.translatable("alchemia.guide.effect.rarity",
-                    Component.translatable("alchemia.guide.rarity." + selectedEffect.getRarity().name().toLowerCase())), RIGHT_X, y, width, INK_SOFT);
+                    Component.translatable("alchemia.guide.rarity." + selectedEffect.rarity().getSerializedName())), RIGHT_X, y, width, INK_SOFT);
             y = wrapped(graphics, Component.translatable("alchemia.guide.effect.alignment",
-                    alignmentName(selectedEffect.getPrimaryAlignment()), alignmentName(selectedEffect.getSecondaryAlignment())),
+                    alignmentName(selectedEffect.primary()), alignmentName(selectedEffect.secondary())),
                     RIGHT_X, y + 2, width, INK_SOFT) + 4;
+            Component description = selectedEffect.descriptionText();
+            if (description != null) y = wrapped(graphics, description, RIGHT_X, y, width, INK) + 4;
         } else {
             y = wrapped(graphics, Component.translatable("alchemia.guide.effect.unbrewed"), RIGHT_X, y, width, INK_FAINT) + 4;
         }
@@ -1878,7 +1936,7 @@ public class GuideScreen extends Screen {
         List<BrewRecipe> using = new ArrayList<>();
         for (BrewRecipe recipe : recipes) {
             for (BrewRecipe.BrewEffect effect : recipe.effects()) {
-                if (effect.recipe().equals(selectedEffect.name())) {
+                if (effect.recipe().equalsIgnoreCase(selectedEffect.id())) {
                     using.add(recipe);
                     break;
                 }
@@ -2154,11 +2212,11 @@ public class GuideScreen extends Screen {
                 continue;
             }
             PotionEffectIngredient.Requirement requirement = levels.get(slot);
-            PotionEnum recipe = RecipeDiscovery.byEffect(requirement.effect());
+            AlchemiaEffect recipe = RecipeDiscovery.byEffect(requirement.effect());
             boolean known = recipe != null && discovered.contains(recipe);
             int iconX = x + (EFFECT_SLOT - ICON) / 2;
             if (known) {
-                graphics.blitSprite(RenderPipelines.GUI_TEXTURED, mobSprite(requirement.effect()), iconX, y, ICON, ICON);
+                graphics.blitSprite(RenderPipelines.GUI_TEXTURED, recipe.sprite(), iconX, y, ICON, ICON);
             } else {
                 icon(graphics, Icon.UNKNOWN, iconX, y, true);
             }
@@ -2171,7 +2229,7 @@ public class GuideScreen extends Screen {
     private List<Component> flaskNames(PotionEffectIngredient flask) {
         List<Component> names = new ArrayList<>();
         for (PotionEffectIngredient.Requirement requirement : flask.required()) {
-            PotionEnum known = RecipeDiscovery.byEffect(requirement.effect());
+            AlchemiaEffect known = RecipeDiscovery.byEffect(requirement.effect());
             Component effectName = known != null && discovered.contains(known) ? requirement.effect().value().getDisplayName()
                     : Component.translatable("alchemia.guide.effect.unknown");
             names.add(Component.translatable("alchemia.guide.opus.flask.effect", effectName,
@@ -2333,8 +2391,8 @@ public class GuideScreen extends Screen {
         y = banner(graphics, item.getHoverName().getString(), y, width, (x, iy) -> graphics.item(item, x + 1, iy + 1));
 
         VanillaIngredients.Drift drift = VanillaIngredients.driftOf(item);
-        if (drift != null) {
-            Component target = drift.target().getEffect().value().getDisplayName();
+        if (drift != null && drift.target() != null) {
+            Component target = drift.target().displayName();
             boolean over = hovered(RIGHT_X - 2, y - 1, width + 4, LINE + 1) && inView();
             y = wrapped(graphics, Component.translatable(drift.lure() ? "alchemia.guide.reagent.lure" : "alchemia.guide.reagent.drift", target),
                     RIGHT_X, y, width, over ? INK_LINK : INK_HEAD) + 2;
@@ -2580,6 +2638,10 @@ public class GuideScreen extends Screen {
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         toBook(mouseX, mouseY);
+        if (ingredientMax > 0 && hovered(ingredientPaneX, ingredientPaneY, ingredientPaneW, ingredientPaneH)) {
+            ingredientScroll = Mth.clamp(ingredientScroll - Math.signum(scrollY) * INGREDIENT_ROW, 0, ingredientMax);
+            return true;
+        }
         boolean overRight = bookMouseX >= RIGHT_X - 4 && bookMouseX < RIGHT_X + PAGE_W + 6;
         if (scrollable() && overRight) {
             scroll = Mth.clamp(scroll - scrollY * LINE * 2, 0, Math.max(0, contentHeight - (viewBottom - viewTop)));

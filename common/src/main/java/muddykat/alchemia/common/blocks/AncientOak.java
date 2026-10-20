@@ -82,6 +82,13 @@ public final class AncientOak {
         block(TRAPDOOR, properties -> new TrapDoorBlock(BlockSetType.OAK, properties), () -> copy(Blocks.OAK_TRAPDOOR));
         var door = BlockRegistry.registerBlock(DOOR, properties -> new DoorBlock(BlockSetType.OAK, properties), () -> copy(Blocks.OAK_DOOR));
         ItemRegistry.registerItem(DOOR, properties -> new DoubleHighBlockItem(door.get(), properties.useBlockDescriptionPrefix()));
+#elif MC_VER >= 12100
+        block(FENCE_GATE, properties -> new FenceGateBlock(WoodType.OAK, properties), () -> copy(Blocks.OAK_FENCE_GATE));
+        block(BUTTON, properties -> new ButtonBlock(BlockSetType.OAK, 30, properties), () -> copy(Blocks.OAK_BUTTON));
+        block(PRESSURE_PLATE, properties -> new PressurePlateBlock(BlockSetType.OAK, properties), () -> copy(Blocks.OAK_PRESSURE_PLATE));
+        block(TRAPDOOR, properties -> new TrapDoorBlock(BlockSetType.OAK, properties), () -> copy(Blocks.OAK_TRAPDOOR));
+        var door = BlockRegistry.registerBlock(DOOR, properties -> new DoorBlock(BlockSetType.OAK, properties), () -> copy(Blocks.OAK_DOOR));
+        ItemRegistry.registerItem(DOOR, properties -> new DoubleHighBlockItem(door.get(), properties));
 #else
         block(FENCE_GATE, properties -> new FenceGateBlock(properties, WoodType.OAK), () -> copy(Blocks.OAK_FENCE_GATE));
         block(BUTTON, properties -> new ButtonBlock(properties, BlockSetType.OAK, 30, true), () -> copy(Blocks.OAK_BUTTON));
@@ -101,7 +108,7 @@ public final class AncientOak {
     }
 
     private static BlockBehaviour.Properties copy(Block block) {
-#if MC_VER >= 26102
+#if MC_VER >= 12100
         return BlockBehaviour.Properties.ofFullCopy(block);
 #else
         return BlockBehaviour.Properties.copy(block);

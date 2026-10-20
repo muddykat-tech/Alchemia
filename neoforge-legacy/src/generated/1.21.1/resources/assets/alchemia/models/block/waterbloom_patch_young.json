@@ -1,0 +1,8 @@
+{
+  "parent": "alchemia:block/template_patch_young",
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "base": "alchemia:block/flowers/waterbloom/waterbloom_base",
+    "top": "alchemia:block/flowers/waterbloom/waterbloom_top"
+  }
+}

@@ -1,6 +1,15 @@
 package muddykat.alchemia.common;
 
+import muddykat.alchemia.common.items.ItemBark;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.level.block.Block;
+import net.minecraftforge.common.ToolActions;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraft.sounds.SoundEvents;
 import muddykat.alchemia.common.items.ItemIngredientSeed;
 import muddykat.alchemia.Alchemia;
@@ -28,6 +37,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.level.BlockEvent;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class WorldEventHandler {
 
@@ -92,6 +104,43 @@ public class WorldEventHandler {
         PotionGlass glass = PotionGlasses.of(event.getItem());
         if (!glass.hasEmptyItem() || !event.getResultStack().is(Items.GLASS_BOTTLE)) return;
         event.setResultStack(new ItemStack(PotionGlasses.emptyItem(glass), event.getResultStack().getCount()));
+    }
+
+    private record PendingStrip(ServerLevel level, BlockPos pos, Block log, Direction face) {
+    }
+
+    private static final List<PendingStrip> PENDING_STRIPS = new ArrayList<>();
+
+    private static boolean stripped(BlockState state) {
+        return BuiltInRegistries.BLOCK.getKey(state.getBlock()).getPath().startsWith("stripped_");
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void watchStrip(BlockEvent.BlockToolModificationEvent event) {
+        if (event.isCanceled() || event.isSimulated() || event.getToolAction() != ToolActions.AXE_STRIP) return;
+        if (!(event.getLevel() instanceof ServerLevel level)) return;
+        BlockState state = event.getState();
+        if (!state.is(BlockTags.LOGS) || stripped(state)) return;
+        Direction face = event.getContext() == null ? Direction.UP : event.getContext().getClickedFace();
+        PENDING_STRIPS.add(new PendingStrip(level, event.getPos().immutable(), state.getBlock(), face));
+    }
+
+    @SubscribeEvent
+    public static void dropBark(TickEvent.LevelTickEvent event) {
+        if (event.phase != TickEvent.Phase.END || PENDING_STRIPS.isEmpty() || !(event.level instanceof ServerLevel level)) return;
+        PENDING_STRIPS.removeIf(pending -> {
+            if (pending.level() != level) return false;
+            BlockState now = level.getBlockState(pending.pos());
+            if (now.getBlock() != pending.log() && stripped(now)) {
+                level.getBiome(pending.pos()).unwrapKey().ifPresent(biome -> {
+                    BlockPos at = pending.pos().relative(pending.face());
+                    ItemEntity bark = new ItemEntity(level, at.getX() + 0.5, at.getY() + 0.25, at.getZ() + 0.5, ItemBark.gathered(biome));
+                    bark.setDefaultPickUpDelay();
+                    level.addFreshEntity(bark);
+                });
+            }
+            return true;
+        });
     }
 
     @SubscribeEvent

@@ -1,0 +1,13 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "#alchemia:has_earth_plants",
+  "features": [
+    "alchemia:fungi_witch_mushroom",
+    "alchemia:geode_earth_pyrite",
+    "alchemia:geode_earth_pyrite_mini",
+    "alchemia:geode_earth_pyrite_giant",
+    "alchemia:geode_earth_pyrite_supermassive",
+    "alchemia:geode_earth_pyrite_surface"
+  ],
+  "step": "underground_decoration"
+}

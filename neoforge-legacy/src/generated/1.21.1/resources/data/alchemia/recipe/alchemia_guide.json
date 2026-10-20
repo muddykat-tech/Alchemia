@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "equipment",
+  "ingredients": [
+    {
+      "item": "minecraft:book"
+    },
+    {
+      "tag": "alchemia:ingredients"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "alchemia:alchemia_guide"
+  }
+}

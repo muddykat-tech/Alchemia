@@ -1,0 +1,145 @@
+package muddykat.alchemia.client.effect;
+
+#if MC_VER >= 26300
+import com.mojang.blaze3d.pipeline.RenderTarget;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.renderpearl.api.commands.RenderPass;
+import muddykat.alchemia.Alchemia;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.StagedVertexBuffer;
+import net.minecraft.client.renderer.rendertype.PreparedRenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import org.joml.Matrix4f;
+import org.joml.Matrix4fStack;
+import org.jspecify.annotations.Nullable;
+
+import java.lang.reflect.Method;
+import java.util.Optional;
+import java.util.OptionalDouble;
+#endif
+import net.minecraft.world.phys.Vec3;
+
+import java.util.ArrayList;
+import java.util.List;
+
+#if MC_VER >= 26300
+@EventBusSubscriber(modid = Alchemia.MODID, value = Dist.CLIENT)
+#endif
+public final class RealityPass {
+
+    public record Request(FracturePattern pattern, RealityBreak.Plane plane, RealityBreak.Choreography choreography, int seed, Vec3 origin) {
+    }
+
+    private static final List<Request> QUEUE = new ArrayList<>();
+
+    private RealityPass() {
+    }
+
+    public static boolean supported() {
+#if MC_VER >= 26300
+        return true;
+#else
+        return false;
+#endif
+    }
+
+    public static void queue(Request request) {
+        QUEUE.add(request);
+    }
+
+#if MC_VER >= 26300
+    private static final int LAYERS = 4;
+
+    private static @Nullable StagedVertexBuffer staging;
+    private static @Nullable Method bobHurt;
+    private static @Nullable Method bobView;
+    private static boolean reflected;
+
+    @SubscribeEvent(priority = EventPriority.LOW)
+    public static void onAfterLevel(RenderLevelStageEvent.AfterLevel event) {
+        if (QUEUE.isEmpty()) return;
+        List<Request> requests = List.copyOf(QUEUE);
+        QUEUE.clear();
+
+        Minecraft minecraft = Minecraft.getInstance();
+        RenderTarget main = minecraft.gameRenderer.mainRenderTarget();
+        if (main.getDepthTextureView() == null || !SceneCapture.captureBehind(main)) return;
+
+        CameraRenderState camera = event.getLevelRenderState().cameraRenderState;
+        Matrix4f view = new Matrix4f(event.getModelViewMatrix());
+        SceneCapture.View live = new SceneCapture.View(projection(minecraft, camera), view, camera.pos);
+
+        RenderType portal = PortalShader.interior();
+        RenderType[] types = {portal != null ? portal : RenderTypes.debugQuads(), RenderTypes.debugQuads(), RenderTypes.text(SceneCapture.BEHIND_ID),
+                RenderTypes.debugQuads()};
+        Matrix4fStack modelView = RenderSystem.getModelViewStack();
+        modelView.pushMatrix().mul(view);
+        PreparedRenderType[] prepared = new PreparedRenderType[LAYERS];
+        for (int layer = 0; layer < LAYERS; layer++) prepared[layer] = types[layer].prepare();
+        modelView.popMatrix();
+
+        if (staging == null) staging = new StagedVertexBuffer(() -> "Alchemia reality", 65536);
+        StagedVertexBuffer buffer = staging;
+        StagedVertexBuffer.Draw[] draws = new StagedVertexBuffer.Draw[LAYERS];
+        for (int layer = 0; layer < LAYERS; layer++) draws[layer] = buffer.appendDraw(types[layer].format(), types[layer].primitiveTopology());
+
+        for (Request request : requests) {
+            Vec3 origin = request.origin();
+            PoseStack poseStack = new PoseStack();
+            poseStack.translate(origin.x - camera.pos.x, origin.y - camera.pos.y, origin.z - camera.pos.z);
+            PoseStack.Pose pose = poseStack.last();
+            RealityBreak.Mapping mapping = rest -> live.projectClamped(origin.x + rest.x, origin.y + rest.y, origin.z + rest.z);
+            RealityBreak.Frame frame = RealityBreak.frame(request.pattern(), request.plane(), request.choreography(), request.seed(), mapping);
+            if (frame.holes()) frame.voids(pose, buffer.getVertexBuilder(draws[0]), portal != null);
+            if (frame.flights()) frame.walls(pose, buffer.getVertexBuilder(draws[1]));
+            if (frame.flights()) frame.shards(pose, buffer.getVertexBuilder(draws[2]), true);
+            if (frame.flights()) frame.shards(pose, buffer.getVertexBuilder(draws[3]), false);
+            frame.lines(pose, buffer.getVertexBuilder(draws[3]));
+        }
+
+        buffer.upload();
+        try (RenderPass renderPass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(() -> "Alchemia reality",
+                main.getColorTextureView(), Optional.empty(), main.getDepthTextureView(), OptionalDouble.empty())) {
+            for (int layer = 0; layer < LAYERS; layer++) {
+                StagedVertexBuffer.ExecuteInfo info = buffer.getExecuteInfo(draws[layer]);
+                if (info != null) prepared[layer].drawFromBuffer(info, renderPass);
+            }
+        }
+        buffer.endFrame();
+    }
+
+    private static Matrix4f projection(Minecraft minecraft, CameraRenderState camera) {
+        Matrix4f projection = new Matrix4f(camera.projectionMatrix);
+        if (!reflected) {
+            reflected = true;
+            try {
+                bobHurt = GameRenderer.class.getDeclaredMethod("bobHurt", CameraRenderState.class, PoseStack.class);
+                bobView = GameRenderer.class.getDeclaredMethod("bobView", CameraRenderState.class, PoseStack.class);
+                bobHurt.setAccessible(true);
+                bobView.setAccessible(true);
+            } catch (ReflectiveOperationException | RuntimeException exception) {
+                bobHurt = null;
+                bobView = null;
+            }
+        }
+        if (bobHurt == null || bobView == null) return projection;
+        PoseStack bob = new PoseStack();
+        try {
+            bobHurt.invoke(minecraft.gameRenderer, camera, bob);
+            if (minecraft.options.bobView().get()) bobView.invoke(minecraft.gameRenderer, camera, bob);
+        } catch (ReflectiveOperationException exception) {
+            return projection;
+        }
+        return projection.mul(bob.last().pose());
+    }
+#endif
+}

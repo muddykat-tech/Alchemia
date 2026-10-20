@@ -26,6 +26,8 @@ public class AlchemiaRegistry {
         CreativeTabRegistry.CREATIVE_MODE_TABS.register(modEventBus);
         IngredientTypeRegistry.INGREDIENT_TYPES.register(modEventBus);
         SoundRegistry.SOUNDS.register(modEventBus);
+        MobEffectRegistry.MOB_EFFECTS.register(modEventBus);
+        EntityTypeRegistry.ENTITY_TYPES.register(modEventBus);
         LootModifierRegistry.LOOT_MODIFIERS.register(modEventBus);
         Alchemia.LOGGER.info(MOD_NAME + " Registration Complete");
     }

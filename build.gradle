@@ -49,6 +49,13 @@ subprojects {
                 includeGroupByRegex 'net\\.mezzdev.*'
             }
         }
+        maven {
+            name = 'CurseMaven'
+            url = 'https://cursemaven.com'
+            content {
+                includeGroup 'curse.maven'
+            }
+        }
     }
 
     def commonJava = new File(commonRoot, 'src/main/java')

@@ -1,5 +1,8 @@
 package muddykat.alchemia.data.generators;
 
+import muddykat.alchemia.common.blocks.blockentity.BlockPlacedGuide;
+import muddykat.alchemia.common.blocks.blockentity.BlockResearchDesk;
+
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.blocks.AncientOak;
 import muddykat.alchemia.common.blocks.BlockInfectedLog;
@@ -76,6 +79,11 @@ public class AlchemiaBlockTagsProvider extends TagsProvider<Block> {
 
             if (block instanceof BlockIngredient || block instanceof BlockTangleBranch || block instanceof BlockKelpStalk) {
                 swords.add(block.builtInRegistryHolder().key());
+                return;
+            }
+
+            if (block instanceof BlockResearchDesk || block instanceof BlockPlacedGuide) {
+                tag(BlockTags.MINEABLE_WITH_AXE).add(block.builtInRegistryHolder().key());
                 return;
             }
 

@@ -51,6 +51,20 @@ public class PotionEffectIngredient extends AbstractIngredient {
         return new PotionEffectIngredient(List.of(required));
     }
 
+    public static PotionEffectIngredient ofRequirements(List<Requirement> required) {
+        return new PotionEffectIngredient(required);
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        return other instanceof PotionEffectIngredient ingredient && required.equals(ingredient.required);
+    }
+
+    @Override
+    public int hashCode() {
+        return required.hashCode();
+    }
+
     @Override
     public boolean test(@Nullable ItemStack stack) {
         if (stack == null || !PotionStacks.isPotion(stack)) return false;

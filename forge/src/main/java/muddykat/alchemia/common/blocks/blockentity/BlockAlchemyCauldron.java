@@ -135,6 +135,11 @@ public class BlockAlchemyCauldron extends EntityBlockGeneric {
     @Override
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (level.getBlockEntity(pos) instanceof TileEntityAlchemyCauldron cauldron) {
+            if (player.isSecondaryUseActive() && player.getItemInHand(hand).isEmpty()) {
+                if (level.isClientSide()) return InteractionResult.SUCCESS;
+                InteractionResult replayed = cauldron.replayFromDesk(player);
+                if (replayed != InteractionResult.PASS) return replayed;
+            }
             return cauldron.onActivated(state, pos, player, hand);
         }
         return InteractionResult.SUCCESS;

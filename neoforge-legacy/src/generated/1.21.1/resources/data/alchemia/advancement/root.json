@@ -1,0 +1,33 @@
+{
+  "criteria": {
+    "has_ingredient": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#alchemia:ingredients"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "background": "minecraft:textures/block/dark_oak_log.png",
+    "description": {
+      "translate": "advancements.alchemia.root.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "alchemia:alchemia_guide"
+    },
+    "title": {
+      "translate": "advancements.alchemia.root.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_ingredient"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

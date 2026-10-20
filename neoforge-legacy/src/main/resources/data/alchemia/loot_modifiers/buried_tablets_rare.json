@@ -1,0 +1,8 @@
+{
+  "type": "alchemia:buried_tablet",
+  "loot_tables": [
+    "minecraft:archaeology/desert_well",
+    "minecraft:archaeology/trail_ruins_rare"
+  ],
+  "chance": 0.25
+}

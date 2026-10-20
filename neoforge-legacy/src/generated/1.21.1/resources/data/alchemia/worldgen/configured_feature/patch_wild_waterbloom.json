@@ -1,0 +1,80 @@
+{
+  "type": "alchemia:wild_herb",
+  "config": {
+    "primary_feature": {
+      "feature": {
+        "type": "alchemia:wild_plant",
+        "config": {
+          "plant": {
+            "Name": "alchemia:flower_waterbloom_seed",
+            "Properties": {
+              "age": "0",
+              "down": "true",
+              "east": "false",
+              "north": "false",
+              "south": "false",
+              "waterlogged": "false",
+              "west": "false"
+            }
+          }
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": "minecraft:air"
+              },
+              {
+                "type": "minecraft:true"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "secondary_feature": {
+      "feature": {
+        "type": "alchemia:wild_plant",
+        "config": {
+          "plant": {
+            "Name": "alchemia:flower_waterbloom_seed",
+            "Properties": {
+              "age": "0",
+              "down": "true",
+              "east": "false",
+              "north": "false",
+              "south": "false",
+              "waterlogged": "false",
+              "west": "false"
+            }
+          }
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": "minecraft:air"
+              },
+              {
+                "type": "minecraft:true"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "tries": 64,
+    "xz_spread": 6,
+    "y_spread": 3
+  }
+}

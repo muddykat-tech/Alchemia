@@ -151,6 +151,7 @@ public class BlockAlchemyCauldron extends EntityBlockGeneric {
 
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+        if (stack.isEmpty()) return InteractionResult.TRY_WITH_EMPTY_HAND;
         if (level.getBlockEntity(pos) instanceof TileEntityAlchemyCauldron cauldron) {
             return cauldron.onActivated(state, pos, player, hand);
         }

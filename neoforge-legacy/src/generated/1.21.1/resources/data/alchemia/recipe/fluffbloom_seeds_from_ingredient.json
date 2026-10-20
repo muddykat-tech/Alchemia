@@ -1,0 +1,16 @@
+{
+  "type": "alchemia:quiet_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "alchemia:flower_fluffbloom"
+    },
+    {
+      "item": "minecraft:shears"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "alchemia:flower_fluffbloom_seed"
+  }
+}

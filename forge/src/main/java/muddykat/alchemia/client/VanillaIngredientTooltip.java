@@ -65,9 +65,16 @@ public class VanillaIngredientTooltip {
         var stack = event.getItemStack();
         String key = stack.is(net.minecraft.world.item.Items.REDSTONE) ? "alchemia.tooltip.use.redstone"
                 : stack.is(net.minecraft.world.item.Items.GUNPOWDER) ? "alchemia.tooltip.use.gunpowder"
+                : stack.is(net.minecraft.world.item.Items.GLOWSTONE_DUST) ? "alchemia.tooltip.use.glowstone"
                 : stack.is(net.minecraft.world.item.Items.DRAGON_BREATH) ? "alchemia.tooltip.use.dragon_breath"
                 : null;
-        if (key == null) return;
+        if (key == null) {
+            var attuner = muddykat.alchemia.common.potion.Imbuements.of(stack);
+            if (attuner == null || attuner.biome() != null || stack.getItem() instanceof muddykat.alchemia.common.items.ItemBark || attuner.blank()) return;
+            event.getToolTip().add(TextUtils.brewingSource());
+            event.getToolTip().add(Component.translatable("alchemia.tooltip.use.attune", attuner.region()).withStyle(ChatFormatting.DARK_GRAY));
+            return;
+        }
 
         event.getToolTip().add(TextUtils.brewingSource());
         event.getToolTip().add(Component.translatable(key).withStyle(ChatFormatting.DARK_GRAY));

@@ -1,0 +1,16 @@
+{
+  "type": "alchemia:quiet_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "alchemia:mushroom_magma_morel"
+    },
+    {
+      "item": "minecraft:shears"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "alchemia:mushroom_magma_morel_seed"
+  }
+}

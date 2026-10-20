@@ -1,0 +1,16 @@
+{
+  "type": "alchemia:quiet_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "alchemia:root_grasping_root"
+    },
+    {
+      "item": "minecraft:shears"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "alchemia:root_grasping_root_seed"
+  }
+}

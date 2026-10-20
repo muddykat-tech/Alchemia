@@ -10,6 +10,7 @@ import muddykat.alchemia.common.items.helper.PathGeometry;
 import muddykat.alchemia.common.items.helper.PathPoint;
 import muddykat.alchemia.common.potion.BrewBases;
 import muddykat.alchemia.common.potion.PotionMap;
+import muddykat.alchemia.common.potion.AlchemiaEffect;
 import muddykat.alchemia.common.potion.VanillaIngredients;
 import muddykat.alchemia.common.utility.TextUtils;
 
@@ -34,9 +35,12 @@ public class VanillaIngredientTooltip {
 
         event.getToolTip().add(TextUtils.brewingSource());
 
-        event.getToolTip().add(Component.translatable(
-                drift.lure() ? "alchemia.tooltip.lure" : "alchemia.tooltip.bearing",
-                drift.target().getEffect().value().getDisplayName()).withStyle(ChatFormatting.DARK_GRAY));
+        AlchemiaEffect target = drift.target();
+        if (target != null) {
+            event.getToolTip().add(Component.translatable(
+                    drift.lure() ? "alchemia.tooltip.lure" : "alchemia.tooltip.bearing",
+                    target.displayName()).withStyle(ChatFormatting.DARK_GRAY));
+        }
 
         int crush = ItemIngredient.crushOf(event.getItemStack());
         if (crush < Ingredients.MAX_CRUSH_UNITS) {

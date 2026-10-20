@@ -10,8 +10,8 @@ displayName="${mod_name}"
 description='''${mod_description}'''
 authors="${mod_authors}"
 displayURL="https://minecraft.curseforge.com/projects/alchemia/"
-iconFile="logo.png"
-credits="Guide title and potion name lettering uses the Alagard font by Hewett Tsoi (Pix3M)."
+${logo_properties}
+credits="The Guide uses the Alagard font by Hewett Tsoi (Pix3M)."
 
 [[dependencies.${mod_id}]]
     modId="neoforge"

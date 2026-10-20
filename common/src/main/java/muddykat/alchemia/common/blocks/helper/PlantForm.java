@@ -108,7 +108,7 @@ public enum PlantForm {
     }
 
     private static BlockBehaviour.Properties copyOf(Block block) {
-#if MC_VER >= 26102
+#if MC_VER >= 12100
         return BlockBehaviour.Properties.ofFullCopy(block);
 #else
         return BlockBehaviour.Properties.copy(block);

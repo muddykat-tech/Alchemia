@@ -1,0 +1,77 @@
+package muddykat.alchemia.registration.registers;
+
+import muddykat.alchemia.common.blocks.AncientOak;
+
+import muddykat.alchemia.Alchemia;
+import muddykat.alchemia.common.items.ItemAlchemiaGuide;
+import muddykat.alchemia.common.items.ItemAlchemyTablet;
+import muddykat.alchemia.common.items.ItemAlchemistNotes;
+import muddykat.alchemia.common.items.ItemRecipePage;
+import muddykat.alchemia.common.items.ItemBark;
+import muddykat.alchemia.common.items.ItemGeneric;
+import muddykat.alchemia.common.items.ItemMortarPestle;
+import muddykat.alchemia.common.items.ItemAlbedo;
+import muddykat.alchemia.common.items.ItemCitrinitas;
+import muddykat.alchemia.common.items.ItemNigredo;
+import muddykat.alchemia.common.items.ItemRubedo;
+import muddykat.alchemia.common.items.ItemPhilosopherStone;
+import muddykat.alchemia.common.items.ItemPotionGlass;
+import muddykat.alchemia.common.potion.PotionGlass;
+import muddykat.alchemia.common.items.helper.Ingredients;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.ItemLike;
+import net.neoforged.neoforge.registries.DeferredItem;
+import net.neoforged.neoforge.registries.DeferredRegister;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.function.Function;
+
+public class ItemRegistry {
+    public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(Alchemia.MODID);
+
+    public static final Map<String, DeferredItem<Item>> ITEM_REGISTRY = new LinkedHashMap<>();
+
+    public static DeferredItem<Item> registerItem(String registry_name, Function<Item.Properties, ? extends Item> factory) {
+        DeferredItem<Item> item = ITEMS.registerItem(registry_name, factory);
+        ITEM_REGISTRY.put(registry_name, item);
+        return item;
+    }
+
+    public static DeferredRegister.Items getRegistry() {
+        return ITEMS;
+    }
+
+    public static ItemLike getSeedByIngredient(Ingredients ingredient) {
+        return ITEM_REGISTRY.get(ingredient.getSeedRegistryName()).get();
+    }
+
+    public static ItemLike getItemFromRegistry(String reg_name) {
+        return ITEM_REGISTRY.get(reg_name).get();
+    }
+
+    public static void initialize() {
+        AncientOak.register();
+
+        for (Ingredients ingredient : Ingredients.values()) {
+            ingredient.register();
+        }
+
+        registerItem("alchemia_guide", ItemAlchemiaGuide::new);
+        registerItem(ItemRecipePage.ID, ItemRecipePage::new);
+        registerItem(ItemBark.ID, ItemBark::new);
+        registerItem("mortar_and_pestle", ItemMortarPestle::new);
+
+        registerItem("nigredo", ItemNigredo::new);
+        registerItem("albedo", ItemAlbedo::new);
+        registerItem("citrinitas", ItemCitrinitas::new);
+        registerItem("rubedo", ItemRubedo::new);
+        registerItem("philosopher_stone", ItemPhilosopherStone::new);
+        registerItem(ItemAlchemyTablet.ID, ItemAlchemyTablet::new);
+        registerItem(ItemAlchemistNotes.ID, ItemAlchemistNotes::new);
+
+        for (PotionGlass glass : PotionGlass.values()) {
+            if (glass.hasEmptyItem()) registerItem(glass.getSerializedName(), properties -> new ItemPotionGlass(glass, properties));
+        }
+    }
+}

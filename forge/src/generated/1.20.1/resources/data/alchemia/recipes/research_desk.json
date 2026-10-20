@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "minecraft:book"
+    },
+    "F": {
+      "item": "minecraft:feather"
+    },
+    "I": {
+      "item": "minecraft:ink_sac"
+    },
+    "P": {
+      "tag": "minecraft:planks"
+    },
+    "S": {
+      "tag": "minecraft:wooden_slabs"
+    }
+  },
+  "pattern": [
+    "FIB",
+    "SSS",
+    "P P"
+  ],
+  "result": {
+    "item": "alchemia:research_desk"
+  },
+  "show_notification": true
+}

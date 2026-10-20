@@ -1,0 +1,64 @@
+{
+  "variants": {
+    "age=0,facing=east": {
+      "model": "alchemia:growth/mushroom/growth_stage_0_wall",
+      "y": 90
+    },
+    "age=0,facing=north": {
+      "model": "alchemia:growth/mushroom/growth_stage_0_wall"
+    },
+    "age=0,facing=south": {
+      "model": "alchemia:growth/mushroom/growth_stage_0_wall",
+      "y": 180
+    },
+    "age=0,facing=west": {
+      "model": "alchemia:growth/mushroom/growth_stage_0_wall",
+      "y": 270
+    },
+    "age=1,facing=east": {
+      "model": "alchemia:growth/mushroom/growth_stage_1_wall",
+      "y": 90
+    },
+    "age=1,facing=north": {
+      "model": "alchemia:growth/mushroom/growth_stage_1_wall"
+    },
+    "age=1,facing=south": {
+      "model": "alchemia:growth/mushroom/growth_stage_1_wall",
+      "y": 180
+    },
+    "age=1,facing=west": {
+      "model": "alchemia:growth/mushroom/growth_stage_1_wall",
+      "y": 270
+    },
+    "age=2,facing=east": {
+      "model": "alchemia:growth/mushroom/growth_stage_2_wall",
+      "y": 90
+    },
+    "age=2,facing=north": {
+      "model": "alchemia:growth/mushroom/growth_stage_2_wall"
+    },
+    "age=2,facing=south": {
+      "model": "alchemia:growth/mushroom/growth_stage_2_wall",
+      "y": 180
+    },
+    "age=2,facing=west": {
+      "model": "alchemia:growth/mushroom/growth_stage_2_wall",
+      "y": 270
+    },
+    "age=3,facing=east": {
+      "model": "alchemia:block/sulphur_shelf_wall",
+      "y": 90
+    },
+    "age=3,facing=north": {
+      "model": "alchemia:block/sulphur_shelf_wall"
+    },
+    "age=3,facing=south": {
+      "model": "alchemia:block/sulphur_shelf_wall",
+      "y": 180
+    },
+    "age=3,facing=west": {
+      "model": "alchemia:block/sulphur_shelf_wall",
+      "y": 270
+    }
+  }
+}

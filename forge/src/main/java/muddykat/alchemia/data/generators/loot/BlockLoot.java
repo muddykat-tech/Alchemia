@@ -1,5 +1,7 @@
 package muddykat.alchemia.data.generators.loot;
 
+import muddykat.alchemia.common.blocks.blockentity.BlockResearchDesk;
+
 import muddykat.alchemia.common.blocks.AncientOak;
 
 import muddykat.alchemia.common.blocks.BlockInfectedLog;
@@ -80,6 +82,8 @@ public class BlockLoot extends BlockLootSubProvider {
                 add(block, LootTable.lootTable().withPool(singleItem(Blocks.CAULDRON)).withPool(singleItem(Blocks.CAMPFIRE)));
             } else if (block instanceof BlockAlchemyMachineCore || block instanceof BlockAlchemyMachineUpgrade) {
                 add(block, LootTable.lootTable().withPool(singleItem(block)));
+            } else if (block instanceof BlockResearchDesk) {
+                dropSelf(block);
             } else if (block instanceof BlockMineralBuddingGeneric) {
                 add(block, noDrop());
             } else if (block instanceof BlockMineralGeneric) {
@@ -166,7 +170,7 @@ public class BlockLoot extends BlockLootSubProvider {
                     || block instanceof BlockTangleBranch || block instanceof BlockKelpStalk || block instanceof BlockInfectedLog
                     || block instanceof BlockAlchemyMachineCore || block instanceof BlockAlchemyMachineUpgrade
                     || block instanceof BlockMineralGeneric || block instanceof BlockMineralBuddingGeneric
-                    || block instanceof BlockMineralClusterGeneric) {
+                    || block instanceof BlockMineralClusterGeneric || block instanceof BlockResearchDesk) {
                 blocks.add(block);
             }
         }

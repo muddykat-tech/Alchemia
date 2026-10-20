@@ -15,6 +15,9 @@ import net.minecraft.world.level.levelgen.placement.SurfaceWaterDepthFilter;
 #if MC_VER >= 26102
 import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.resources.Identifier;
+#elif MC_VER >= 12100
+import net.minecraft.data.worldgen.BootstrapContext;
+import net.minecraft.resources.ResourceLocation;
 #else
 import net.minecraft.data.worldgen.BootstapContext;
 import net.minecraft.resources.ResourceLocation;
@@ -29,7 +32,7 @@ import java.util.List;
 public final class AncientOakGeneration {
 
     public static final String NAME = "ancient_oak";
-    public static final int CHUNKS_PER_TREE = 40;
+    public static final int CHUNKS_PER_TREE = 120;
 
 #if MC_VER >= 26300
     public static final ResourceKey<Feature> CONFIGURED = ResourceKey.create(Registries.FEATURE, id());
@@ -45,6 +48,10 @@ public final class AncientOakGeneration {
     private static Identifier id() {
         return Identifier.fromNamespaceAndPath(Alchemia.MODID, NAME);
     }
+#elif MC_VER >= 12100
+    private static ResourceLocation id() {
+        return ResourceLocation.fromNamespaceAndPath(Alchemia.MODID, NAME);
+    }
 #else
     private static ResourceLocation id() {
         return new ResourceLocation(Alchemia.MODID, NAME);
@@ -57,7 +64,7 @@ public final class AncientOakGeneration {
     }
 
     public static void bootstrapPlaced(BootstrapContext<PlacedFeature> context, HolderGetter<Feature> configured) {
-#elif MC_VER >= 26102
+#elif MC_VER >= 12100
     public static void bootstrapConfigured(BootstrapContext<ConfiguredFeature<?, ?>> context) {
         context.register(CONFIGURED, new ConfiguredFeature<>(BiomeFeatureRegistry.ANCIENT_OAK.get(),
                 new AncientOakConfiguration(AncientOakShape.MIN_HEIGHT, AncientOakShape.HEIGHT_SPREAD)));

@@ -9,7 +9,9 @@ import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyCauldron;
 import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyMachineCore;
 import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyMachinePart;
 import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyMachineUpgrade;
+import muddykat.alchemia.common.blocks.blockentity.BlockPlacedGuide;
 import muddykat.alchemia.common.blocks.blockentity.BlockPlacedPotions;
+import muddykat.alchemia.common.blocks.blockentity.BlockResearchDesk;
 import muddykat.alchemia.common.blocks.helper.UpgradeSide;
 import muddykat.alchemia.common.items.BlockItemAlchemyMachineUpgrade;
 import muddykat.alchemia.common.items.BlockItemGeneric;
@@ -44,6 +46,7 @@ public class BlockRegistry {
         createCauldronBlock("alchemical_cauldron");
         createMachineBlocks();
         createPlacedPotionsBlock();
+        createGuideBlocks();
 
         for (Ingredients ingredient : Ingredients.values()) {
             if (ingredient.getType().equals(IngredientType.Mineral)) {
@@ -95,6 +98,20 @@ public class BlockRegistry {
                         .noOcclusion()
                         .noLootTable()
                         .sound(SoundType.GLASS)
+                        .pushReaction(PushReaction.DESTROY));
+    }
+
+    public static void createGuideBlocks() {
+        RegistryObject<Block> desk = registerBlock(BlockResearchDesk.ID, BlockResearchDesk::new,
+                () -> BlockBehaviour.Properties.copy(Blocks.LECTERN).noOcclusion());
+        ItemRegistry.registerItem(BlockResearchDesk.ID, properties -> new BlockItemGeneric(desk.get(), properties));
+
+        registerBlock(BlockPlacedGuide.ID, BlockPlacedGuide::new,
+                () -> BlockBehaviour.Properties.of()
+                        .strength(0.4F)
+                        .noOcclusion()
+                        .noLootTable()
+                        .sound(SoundType.CHISELED_BOOKSHELF)
                         .pushReaction(PushReaction.DESTROY));
     }
 

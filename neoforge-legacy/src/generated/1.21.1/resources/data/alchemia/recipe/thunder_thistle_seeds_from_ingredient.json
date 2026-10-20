@@ -1,0 +1,16 @@
+{
+  "type": "alchemia:quiet_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "alchemia:herb_thunder_thistle"
+    },
+    {
+      "item": "minecraft:shears"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "alchemia:herb_thunder_thistle_seed"
+  }
+}

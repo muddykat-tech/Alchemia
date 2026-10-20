@@ -38,29 +38,44 @@ public class RecipeDiscovery {
     }
 
     public static int record(Player player, Collection<MobEffectInstance> effects) {
-        List<PotionEnum> brewed = new ArrayList<>();
+        return record(guidesOf(player), effects);
+    }
+
+    public static int record(Iterable<ItemStack> guides, Collection<MobEffectInstance> effects) {
+        List<String> brewed = new ArrayList<>();
         for (MobEffectInstance instance : effects) {
             PotionEnum recipe = byEffect(instance.getEffect());
-            if (recipe != null) brewed.add(recipe);
+            if (recipe != null) brewed.add(recipe.name());
         }
-        if (brewed.isEmpty()) return 0;
+        return learn(guides, brewed);
+    }
+
+    public static int learn(Iterable<ItemStack> guides, Collection<String> names) {
+        if (names.isEmpty()) return 0;
 
         int discovered = 0;
-        for (ItemStack stack : player.getInventory().items) {
-            if (!(stack.getItem() instanceof ItemAlchemiaGuide)) continue;
+        for (ItemStack stack : guides) {
+            List<String> known = new ArrayList<>(stored(stack));
+            int before = known.size();
+            for (String name : names) {
+                if (byName(name) != null && !known.contains(name)) known.add(name);
+            }
+            if (known.size() == before) continue;
 
-            List<String> names = new ArrayList<>(stored(stack));
-            int before = names.size();
-            for (PotionEnum recipe : brewed) {
-                if (!names.contains(recipe.name())) names.add(recipe.name());
-            }
-            if (names.size() != before) {
-                names.sort(null);
-                StackData.DISCOVERED_RECIPES.set(stack, List.copyOf(names));
-                discovered = Math.max(discovered, names.size() - before);
-            }
+            known.sort(null);
+            StackData.DISCOVERED_RECIPES.set(stack, List.copyOf(known));
+            discovered = Math.max(discovered, known.size() - before);
         }
         return discovered;
+    }
+
+    public static List<ItemStack> guidesOf(Player player) {
+        List<ItemStack> guides = new ArrayList<>();
+        if (player == null) return guides;
+        for (ItemStack stack : player.getInventory().items) {
+            if (stack.getItem() instanceof ItemAlchemiaGuide) guides.add(stack);
+        }
+        return guides;
     }
 
     public static PotionEnum byName(String name) {

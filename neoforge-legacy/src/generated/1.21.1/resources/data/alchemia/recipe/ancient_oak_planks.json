@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "building",
+  "group": "planks",
+  "ingredients": [
+    {
+      "tag": "alchemia:ancient_oak_logs"
+    }
+  ],
+  "result": {
+    "count": 4,
+    "id": "alchemia:ancient_oak_planks"
+  }
+}

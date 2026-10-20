@@ -104,6 +104,7 @@ public final class AlchemiaSprites {
     public static final Sprite BUTTON_DISABLED = sprite("container/button_disabled", 16, 16, 3);
     public static final Sprite NAME_FIELD = sprite("container/name_field", 16, 16, 2);
     public static final Sprite POTION_SWATCH = sprite("container/potion_swatch", 16, 16, 1);
+    public static final Sprite RADIANT_HALO = sprite("container/radiant_halo", 32, 32, 0);
     public static final Sprite ALCHEMY_MACHINE = sprite("container/alchemy_machine", 176, 202, 0);
     public static final Sprite UPGRADE_PANEL_RIGHT = sprite("container/upgrade_panel_right", 32, 104, 0);
     public static final Sprite UPGRADE_PANEL_LEFT = sprite("container/upgrade_panel_left", 32, 86, 0);

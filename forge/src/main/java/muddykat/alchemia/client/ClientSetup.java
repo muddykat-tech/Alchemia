@@ -89,7 +89,13 @@ public class ClientSetup {
     @SubscribeEvent
     public static void onRegisterTooltipComponents(RegisterClientTooltipComponentFactoriesEvent event) {
         event.register(IngredientPathTooltip.class, ClientIngredientPathTooltip::new);
-        GuideAccess.bindReader(() -> GuideAccess.carriedBy(Minecraft.getInstance().player));
+        GuideAccess.bindReader(() -> GuideAccess.carriedBy(Minecraft.getInstance().player)
+                || muddykat.alchemia.client.gui.AlchemicalScreen.readingAtDesk());
+    }
+
+    @SubscribeEvent
+    public static void onRegisterShaders(net.minecraftforge.client.event.RegisterShadersEvent event) throws java.io.IOException {
+        muddykat.alchemia.client.gui.GuideInk.register(event);
     }
 
     @SubscribeEvent

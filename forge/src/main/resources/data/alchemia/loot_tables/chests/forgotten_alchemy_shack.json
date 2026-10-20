@@ -1,0 +1,118 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 2,
+        "max": 4
+      },
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "alchemia:herb_druids_rosemary_seed",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "alchemia:herb_healers_heather_seed",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "alchemia:herb_lifeleaf_seed",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "alchemia:herb_goodberry_seed",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "alchemia:herb_coldleaf_seed",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "alchemia:herb_thornstick_seed",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "alchemia:herb_tangleweed_seed",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "alchemia:herb_evergreen_fern_seed",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "alchemia:flower_waterbloom_seed",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "alchemia:flower_fluffbloom_seed",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "alchemia:mushroom_marshroom_seed",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "alchemia:root_dreambeet_seed",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "alchemia:root_terraria_seed",
+          "weight": 1
+        }
+      ]
+    },
+    {
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 1,
+        "max": 3
+      },
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:glass_bottle",
+          "weight": 4
+        },
+        {
+          "type": "minecraft:item",
+          "name": "alchemia:potion_phial",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "alchemia:square_phial",
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "alchemia:alchemist_notes",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:empty",
+          "weight": 1
+        }
+      ]
+    }
+  ],
+  "random_sequence": "alchemia:chests/forgotten_alchemy_shack"
+}

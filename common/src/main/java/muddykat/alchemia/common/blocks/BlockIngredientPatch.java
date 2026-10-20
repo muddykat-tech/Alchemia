@@ -37,7 +37,8 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 #if MC_VER >= 26102
 import net.minecraft.world.level.ScheduledTickAccess;
-#else
+#endif
+#if MC_VER < 12100
 import net.minecraft.world.InteractionHand;
 #endif
 
@@ -410,7 +411,7 @@ public class BlockIngredientPatch extends BlockIngredient implements WildGrowth,
 #endif
     }
 
-#if MC_VER >= 26102
+#if MC_VER >= 12100
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         InteractionResult result = pick(state, level, pos, player);
@@ -460,7 +461,7 @@ public class BlockIngredientPatch extends BlockIngredient implements WildGrowth,
     public void performBonemeal(ServerLevel level, RandomSource random, BlockPos pos, BlockState state, net.minecraft.world.level.block.BonemealSource source) {
         fertilisePatch(level, random, pos);
     }
-#elif MC_VER >= 26102
+#elif MC_VER >= 12100
     @Override
     public boolean isValidBonemealTarget(LevelReader level, BlockPos pos, BlockState state) {
         return true;

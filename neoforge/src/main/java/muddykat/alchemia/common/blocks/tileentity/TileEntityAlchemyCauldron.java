@@ -19,7 +19,8 @@ import muddykat.alchemia.common.items.helper.Ingredients;
 import muddykat.alchemia.common.potion.BrewBase;
 import muddykat.alchemia.common.potion.BrewBases;
 import muddykat.alchemia.common.potion.BrewCourse;
-import muddykat.alchemia.common.potion.PotionEnum;
+import muddykat.alchemia.common.effect.TriggerMobEffect;
+import muddykat.alchemia.common.potion.AlchemiaEffect;
 import muddykat.alchemia.common.potion.WorldEffects;
 import muddykat.alchemia.common.items.helper.PathPoint;
 import muddykat.alchemia.common.potion.PotionMap;
@@ -164,7 +165,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
     private long lastApply = Long.MIN_VALUE;
     private boolean linedUp = false;
     private PathPoint watchedAt;
-    private PotionEnum watchedEffect;
+    private AlchemiaEffect watchedEffect;
     private int watchedStrength;
     private Set<WorldEffects.Condition> watchedHolding = Set.of();
     private int stirredUp;
@@ -334,7 +335,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         if (filled != null) return filled;
 
         if (heldItem instanceof ItemRubedo) {
-            if (!addRubedo(player)) return InteractionResult.FAIL;
+            if (!addRubedo(player)) return InteractionResult.CONSUME;
 
             heldStack.shrink(1);
             player.setItemInHand(hand, heldStack);
@@ -347,7 +348,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
 
             if (!plan(heldStack)) {
                 message(player, spoiled ? "alchemia.brew.ruined" : "alchemia.brew.queue_full");
-                return InteractionResult.FAIL;
+                return InteractionResult.CONSUME;
             }
 
             GuideShelf shelf = shelf(player);
@@ -367,7 +368,11 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
 
             if (!splash) {
                 message(player, "alchemia.brew.needs_gunpowder");
-                return InteractionResult.FAIL;
+                return InteractionResult.CONSUME;
+            }
+            if (getEffectList().stream().anyMatch(instance -> instance.getEffect().value() instanceof TriggerMobEffect trigger && !trigger.lingers())) {
+                message(player, "alchemia.brew.lingering_unstable");
+                return InteractionResult.CONSUME;
             }
             lingeringRequested = true;
             if (!level.isClientSide()) recordIngredient(player, heldStack);
@@ -375,10 +380,12 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
 
         if (heldItem.equals(Items.GLASS_BOTTLE) || heldItem.equals(Items.DRAGON_BREATH) || heldItem instanceof ItemPotionGlass) {
             if (getWaterLevel() > 0) {
-                ItemStack potion = drawPotion(heldItem instanceof ItemPotionGlass glass ? glass.glass() : null);
+                PotionGlass vessel = heldItem instanceof ItemPotionGlass glass ? glass.glass() : null;
+                ItemStack potion = drawPotion(vessel);
                 Collection<MobEffectInstance> brewed = List.copyOf(getEffectList());
                 List<String> used = recipeEntries(addedIngredients, "");
-                List<String> steps = recipeEntries(script, String.valueOf(BrewRecipe.STEP_ADD));
+                List<String> steps = new ArrayList<>(recipeEntries(script, String.valueOf(BrewRecipe.STEP_ADD)));
+                if (vessel != null && vessel.hasEmptyItem()) steps.add(BrewRecipe.bottleStep(vessel));
                 heldStack.shrink(1);
                 Handover.give(player, potion);
 
@@ -593,7 +600,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         List<Imbuements.Attuner> needed = Imbuements.of(recipe);
         WorldEffects.Imbued attuned = needed.isEmpty() ? attunedHolder() : imbue(needed);
         for (BrewRecipe.BrewEffect effect : recipe.effects()) {
-            PotionEnum potion = effect.asPotion();
+            AlchemiaEffect potion = effect.asPotion();
             if (potion == null) continue;
 
             WorldEffects.Requirement requirement = WorldEffects.requirement(potion);
@@ -615,8 +622,8 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         if (spoiled || effectList.size() != recipe.effects().size()) return false;
 
         for (BrewRecipe.BrewEffect effect : recipe.effects()) {
-            PotionEnum potion = effect.asPotion();
-            if (potion == null || heldPotency(potion.getEffect()) != effect.potency()) return false;
+            AlchemiaEffect potion = effect.asPotion();
+            if (potion == null || heldPotency(potion.effect()) != effect.potency()) return false;
         }
         return true;
     }
@@ -787,7 +794,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
 
     private InteractionResult refuseFill(Player player, BrewBase filled) {
         if (waterLevel > 0 && !filled.equals(base)) message(player, "alchemia.brew.wrong_base");
-        return FAIL;
+        return InteractionResult.CONSUME;
     }
 
     private void announceFill(Level level, BlockPos pos, int levels) {
@@ -1158,7 +1165,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         Set<WorldEffects.Condition> holding = found.getRecipe() == null
                 ? Set.of() : WorldEffects.holding(found.getRecipe(), level, getBlockPos(), attunedHolder());
 
-        boolean unmoved = at.equals(watchedAt) && found.getRecipe() == watchedEffect;
+        boolean unmoved = at.equals(watchedAt) && java.util.Objects.equals(found.getRecipe(), watchedEffect);
         if (unmoved && found.getRecipe() != null && strength != watchedStrength && level != null) {
             boolean rising = strength > watchedStrength;
             WorldEffects.Rule cause = WorldEffects.shifted(watchedHolding, holding);
@@ -1215,7 +1222,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         return map().getEffectPotion(at);
     }
 
-    public int levelCap(PotionEnum recipe) {
+    public int levelCap(AlchemiaEffect recipe) {
         return WorldEffects.levelCap(recipe, level, getBlockPos(), attunedHolder());
     }
 
@@ -1395,7 +1402,7 @@ public class TileEntityAlchemyCauldron extends SyncedBlockEntity implements Menu
         if (level == null) return;
 
         GuideShelf shelf = shelf(player);
-        PotionEnum recipe = RecipeDiscovery.byEffect(effect);
+        AlchemiaEffect recipe = RecipeDiscovery.byEffect(effect);
         boolean recorded = RecipeDiscovery.record(shelf, List.of(new MobEffectInstance(effect))) > 0;
         boolean revealed = recipe != null && WorldEffects.reveal(shelf, recipe, heldPotency(effect));
         shelf.settle(getBlockPos());

@@ -2,6 +2,7 @@ package muddykat.alchemia.common;
 
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.config.BrewBaseConfig;
+import muddykat.alchemia.common.config.ImbuementConfig;
 import muddykat.alchemia.common.potion.PotionGlass;
 import muddykat.alchemia.common.potion.PotionGlasses;
 import muddykat.alchemia.common.potion.PotionMap;
@@ -16,6 +17,7 @@ public class CommonSetup {
         Alchemia.LOGGER.info(MOD_NAME + " Common Setup");
         event.enqueueWork(() -> {
             BrewBaseConfig.load();
+            ImbuementConfig.load();
             PotionMap.scramble(0L);
 
             BrewDispenseBehavior.registerBottling(Items.GLASS_BOTTLE);

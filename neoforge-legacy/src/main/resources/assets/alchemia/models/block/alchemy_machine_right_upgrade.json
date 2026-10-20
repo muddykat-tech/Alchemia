@@ -1,0 +1,16 @@
+{
+  "render_type": "minecraft:cutout",
+  "loader": "neoforge:obj",
+  "model": "alchemia:models/alchemy_machine_right_upgrade.obj",
+  "emissive_ambient": false,
+  "flip_v": true,
+  "automatic_culling": false,
+  "transform": {
+    "translation": [1.5, 0.0, 0.5]
+  },
+  "textures": {
+    "alchemy_machine": "alchemia:block/alchemy/alchemy_machine",
+    "alchemy_machine_lit": "alchemia:block/alchemy/alchemy_machine_lit",
+    "particle": "minecraft:block/glass"
+  }
+}

@@ -4,6 +4,10 @@ import muddykat.alchemia.common.blocks.AncientOak;
 
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.items.ItemAlchemiaGuide;
+import muddykat.alchemia.common.items.ItemAlchemyTablet;
+import muddykat.alchemia.common.items.ItemAlchemistNotes;
+import muddykat.alchemia.common.items.ItemBark;
+import muddykat.alchemia.common.items.ItemRecipePage;
 import muddykat.alchemia.common.items.ItemGeneric;
 import muddykat.alchemia.common.items.ItemMortarPestle;
 import muddykat.alchemia.common.items.ItemAlbedo;
@@ -55,6 +59,8 @@ public class ItemRegistry {
         }
 
         registerItem("alchemia_guide", ItemAlchemiaGuide::new);
+        registerItem(ItemRecipePage.ID, ItemRecipePage::new);
+        registerItem(ItemBark.ID, ItemBark::new);
         registerItem("mortar_and_pestle", ItemMortarPestle::new);
 
         registerItem("nigredo", ItemNigredo::new);
@@ -62,6 +68,8 @@ public class ItemRegistry {
         registerItem("citrinitas", ItemCitrinitas::new);
         registerItem("rubedo", ItemRubedo::new);
         registerItem("philosopher_stone", ItemPhilosopherStone::new);
+        registerItem(ItemAlchemyTablet.ID, ItemAlchemyTablet::new);
+        registerItem(ItemAlchemistNotes.ID, ItemAlchemistNotes::new);
 
         for (PotionGlass glass : PotionGlass.values()) {
             if (glass.hasEmptyItem()) registerItem(glass.getSerializedName(), properties -> new ItemPotionGlass(glass, properties));

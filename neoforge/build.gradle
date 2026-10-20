@@ -55,6 +55,9 @@ dependencies {
     compileOnly "mezz.jei:jei-${mc_version}-common-api:${jei_version}"
     compileOnly "mezz.jei:jei-${mc_version}-neoforge-api:${jei_version}"
     runtimeOnly "mezz.jei:jei-${mc_version}-neoforge:${jei_version}"
+
+    def farmersDelight = gradle.ext.mcProps.getProperty('farmers_delight_file')
+    if (farmersDelight) runtimeOnly "curse.maven:farmers-delight-26-neo-ver-1699768:${farmersDelight}"
 }
 
 def generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
@@ -69,6 +72,9 @@ def generateModMetadata = tasks.register('generateModMetadata', ProcessResources
             mod_version            : mod_version,
             mod_authors            : mod_authors,
             mod_description        : mod_description,
+            logo_properties        : (mc_ordinal as int) >= 26200
+                    ? 'iconFile="logo.png"\niconBlur=false'
+                    : 'logoFile="logo.png"\nlogoBlur=false',
     ]
     inputs.properties replaceProperties
     expand replaceProperties

@@ -1,4 +1,4 @@
-// 1.20.1	2026-10-03T07:18:21.956261226	Loot Tables
+// 1.20.1	2026-10-20T07:28:27.519014528	Loot Tables
 9a3c4881fb97b946b1c310ff62a73232f1432f3c data/alchemia/loot_tables/blocks/alchemical_cauldron.json
 a423eacc0706177874fcb94bcf81b8a8829af93b data/alchemia/loot_tables/blocks/alchemy_machine_core.json
 736b89b874ca6bba271a086be36a08938ac43bae data/alchemia/loot_tables/blocks/alchemy_machine_left_upgrade.json
@@ -84,6 +84,7 @@ e6b00a112eec8a66d80096e17f49ce05447ab0a5 data/alchemia/loot_tables/blocks/mushro
 336f706370e0c0402b84b5211105eba3cacaa968 data/alchemia/loot_tables/blocks/mushroom_rainbow_cap_seed.json
 6dc06f768c4150e5e8b15722cbab93d2518cf3cc data/alchemia/loot_tables/blocks/mushroom_sulphur_shelf_seed.json
 81ac009e1d2c15ddf93a1df2414b95536949d331 data/alchemia/loot_tables/blocks/mushroom_witch_mushroom_seed.json
+0bb213d6ad416f0b366557b7dab71341751d5d52 data/alchemia/loot_tables/blocks/research_desk.json
 2cd587db968b02e05854e8fa8bd1713a70ae5086 data/alchemia/loot_tables/blocks/root_dreambeet_seed.json
 0c25daffb8ba1e72eb05dfba0dcda40237693bfd data/alchemia/loot_tables/blocks/root_grasping_root_seed.json
 40aa848c90dd6f3d087853869e7dc0acbeeedddd data/alchemia/loot_tables/blocks/root_lava_root_seed.json

@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_icefruit_ingredient": {
+      "conditions": {
+        "items": [
+          {
+            "items": "alchemia:herb_icefruit"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "alchemia:icefruit_seeds_from_ingredient"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_icefruit_ingredient"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "alchemia:icefruit_seeds_from_ingredient"
+    ]
+  }
+}

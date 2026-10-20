@@ -1,0 +1,12 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "#c:is_spooky",
+  "features": [
+    "alchemia:geode_arcane_crystal",
+    "alchemia:geode_arcane_crystal_mini",
+    "alchemia:geode_arcane_crystal_giant",
+    "alchemia:geode_arcane_crystal_supermassive",
+    "alchemia:geode_arcane_crystal_surface"
+  ],
+  "step": "underground_decoration"
+}

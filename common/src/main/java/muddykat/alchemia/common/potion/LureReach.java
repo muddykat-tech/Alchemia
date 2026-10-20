@@ -8,7 +8,7 @@ import java.util.List;
 
 public final class LureReach {
 
-    public record Span(int lure, int from, PotionEnum target, int stacked, double strength) {
+    public record Span(int lure, int from, AlchemiaEffect target, int stacked, double strength) {
         public boolean bends(int entry) {
             return entry >= from && entry < lure;
         }
@@ -33,7 +33,7 @@ public final class LureReach {
 
         for (int lure = 0; lure < entries.size(); lure++) {
             VanillaIngredients.Drift drift = VanillaIngredients.driftOf(entries.get(lure));
-            if (drift == null || !drift.lure()) continue;
+            if (drift == null || !drift.lure() || drift.target() == null) continue;
 
             int from = reachStart(entries, anchors, anchorFrom, legs, lure);
             int stacked = stackedBefore(entries, from, lure);
@@ -73,7 +73,7 @@ public final class LureReach {
 
     public static Span pending(BrewCourse course, PotionMap map, ItemStack lure) {
         VanillaIngredients.Drift drift = VanillaIngredients.driftOf(lure);
-        if (drift == null || !drift.lure()) return null;
+        if (drift == null || !drift.lure() || drift.target() == null) return null;
 
         BrewCourse trial = course.copy();
         trial.add(lure);

@@ -1,0 +1,19 @@
+{
+  "feature": "alchemia:geode_fable_bismuth_surface",
+  "placement": [
+    {
+      "type": "minecraft:rarity_filter",
+      "chance": 320
+    },
+    {
+      "type": "minecraft:in_square"
+    },
+    {
+      "type": "minecraft:heightmap",
+      "heightmap": "OCEAN_FLOOR_WG"
+    },
+    {
+      "type": "minecraft:biome"
+    }
+  ]
+}

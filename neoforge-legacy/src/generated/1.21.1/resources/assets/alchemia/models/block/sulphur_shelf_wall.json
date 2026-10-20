@@ -1,0 +1,8 @@
+{
+  "parent": "alchemia:block/template_shelf",
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "particle": "alchemia:block/mushrooms/sulphur_shelf",
+    "shelf": "alchemia:block/mushrooms/sulphur_shelf"
+  }
+}

@@ -7,7 +7,7 @@ import muddykat.alchemia.common.network.packets.PacketDiscovery;
 import muddykat.alchemia.common.potion.BrewRecipe;
 import muddykat.alchemia.common.potion.BrewRecipeBook;
 import muddykat.alchemia.common.potion.IngredientDiscovery;
-import muddykat.alchemia.common.potion.PotionEnum;
+import muddykat.alchemia.common.potion.AlchemiaEffect;
 import muddykat.alchemia.common.potion.RecipeDiscovery;
 import muddykat.alchemia.common.potion.WorldEffects;
 import muddykat.alchemia.registration.registers.ItemRegistry;
@@ -29,7 +29,6 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
@@ -73,25 +72,25 @@ public final class GuideNews {
                 if (!ingredients.contains(key)) ingredientEntry(key, entries);
             }
 
-            Set<PotionEnum> discovered = EnumSet.noneOf(PotionEnum.class);
+            Set<AlchemiaEffect> discovered = new LinkedHashSet<>();
             for (String name : RecipeDiscovery.stored(guide)) {
-                PotionEnum recipe = RecipeDiscovery.byName(name);
+                AlchemiaEffect recipe = RecipeDiscovery.byName(name);
                 if (effects.contains(name) || recipe == null) continue;
                 discovered.add(recipe);
-                entries.add(new Entry(Kind.EFFECT, name, ItemStack.EMPTY, recipe.getEffect().value().getDisplayName()));
+                entries.add(new Entry(Kind.EFFECT, recipe.id(), ItemStack.EMPTY, recipe.displayName()));
             }
 
-            Set<PotionEnum> secrets = new LinkedHashSet<>();
+            Set<AlchemiaEffect> secrets = new LinkedHashSet<>();
             for (String mark : WorldEffects.notesIn(guide)) {
                 if (notes.contains(mark)) continue;
-                PotionEnum recipe = WorldEffects.recipeOfMark(mark);
+                AlchemiaEffect recipe = WorldEffects.recipeOfMark(mark);
                 if (recipe != null && !discovered.contains(recipe)) secrets.add(recipe);
             }
-            Set<PotionEnum> known = RecipeDiscovery.knownTo(guide);
-            for (PotionEnum recipe : secrets) {
-                Component name = known.contains(recipe) ? recipe.getEffect().value().getDisplayName()
+            Set<AlchemiaEffect> known = RecipeDiscovery.knownTo(guide);
+            for (AlchemiaEffect recipe : secrets) {
+                Component name = known.contains(recipe) ? recipe.displayName()
                         : Component.translatable("alchemia.toast.unknown_effect");
-                entries.add(new Entry(Kind.SECRET, recipe.name(), ItemStack.EMPTY, name));
+                entries.add(new Entry(Kind.SECRET, recipe.id(), ItemStack.EMPTY, name));
             }
 
             for (BrewRecipe recipe : BrewRecipeBook.recipes(guide)) {
@@ -181,15 +180,16 @@ public final class GuideNews {
         ItemStack potion = new ItemStack(recipe.steps().contains(String.valueOf(BrewRecipe.STEP_SPLASH)) ? Items.SPLASH_POTION : Items.POTION);
         potion.set(DataComponents.POTION_CONTENTS, new PotionContents(Optional.empty(), Optional.of(colourOf(recipe)), List.of(), Optional.empty()));
         if (recipe.steps().contains(String.valueOf(BrewRecipe.STEP_GLOW))) potion.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
+        muddykat.alchemia.common.potion.PotionGlasses.apply(potion, recipe.glass());
         return potion;
     }
 
     private static int colourOf(BrewRecipe recipe) {
         int red = 0, green = 0, blue = 0, count = 0;
         for (BrewRecipe.BrewEffect effect : recipe.effects()) {
-            PotionEnum potion = effect.asPotion();
+            AlchemiaEffect potion = effect.asPotion();
             if (potion == null || count == 3) continue;
-            int colour = potion.getEffect().value().getColor();
+            int colour = potion.color();
             red += (colour >> 16) & 255;
             green += (colour >> 8) & 255;
             blue += colour & 255;

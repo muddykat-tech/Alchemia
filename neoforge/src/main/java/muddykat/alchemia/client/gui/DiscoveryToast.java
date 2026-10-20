@@ -2,16 +2,11 @@ package muddykat.alchemia.client.gui;
 
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.guide.GuideNews;
-import muddykat.alchemia.common.potion.PotionEnum;
+import muddykat.alchemia.common.potion.AlchemiaEffect;
 import muddykat.alchemia.common.potion.RecipeDiscovery;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-#if MC_VER >= 26200
-import net.minecraft.client.gui.Hud;
-#else
-import net.minecraft.client.gui.Gui;
-#endif
 import net.minecraft.client.gui.components.toasts.Toast;
 import net.minecraft.client.gui.components.toasts.ToastManager;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -176,9 +171,9 @@ public class DiscoveryToast implements Toast {
     private void icon(GuiGraphicsExtractor graphics, GuideNews.Entry entry) {
         switch (entry.kind()) {
             case EFFECT -> {
-                PotionEnum recipe = RecipeDiscovery.byName(entry.key());
+                AlchemiaEffect recipe = RecipeDiscovery.byName(entry.key());
                 if (recipe != null) {
-                    graphics.blitSprite(RenderPipelines.GUI_TEXTURED, effectSprite(recipe),
+                    graphics.blitSprite(RenderPipelines.GUI_TEXTURED, recipe.sprite(),
                             SLOT_X + EFFECT_INSET, SLOT_Y + EFFECT_INSET, SLOT - 2 * EFFECT_INSET, SLOT - 2 * EFFECT_INSET);
                 }
             }
@@ -188,13 +183,6 @@ public class DiscoveryToast implements Toast {
         }
     }
 
-    private static Identifier effectSprite(PotionEnum recipe) {
-#if MC_VER >= 26200
-        return Hud.getMobEffectSprite(recipe.getEffect());
-#else
-        return Gui.getMobEffectSprite(recipe.getEffect());
-#endif
-    }
 
     private void title(GuiGraphicsExtractor graphics, Font font, String text) {
         if (text.isEmpty()) return;

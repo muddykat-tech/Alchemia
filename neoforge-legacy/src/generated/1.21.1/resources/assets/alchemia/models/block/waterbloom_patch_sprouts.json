@@ -1,0 +1,7 @@
+{
+  "parent": "alchemia:block/template_patch_sprouts",
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "base": "alchemia:block/flowers/waterbloom/waterbloom_base"
+  }
+}

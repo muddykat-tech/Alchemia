@@ -1,9 +1,9 @@
-// 1.20.1	2026-10-03T07:18:21.955478465	Tags for minecraft:block mod id alchemia
+// 1.20.1	2026-10-20T07:28:27.51814584	Tags for minecraft:block mod id alchemia
 2dc2398aaf41c7d8062e93d6be63043704615166 data/minecraft/tags/blocks/fence_gates.json
 2e842075d0e4599a59f7a92c2f45e1f18e0256e4 data/minecraft/tags/blocks/leaves.json
 01e958af4be1b6e0e1fbfc527983b2625b1f39d8 data/minecraft/tags/blocks/logs.json
 7df70b2daba51dcfe7fc29a1ded021ee3ced2ee6 data/minecraft/tags/blocks/logs_that_burn.json
-dfd48c8b8db261983dd802642282511ff51a7cca data/minecraft/tags/blocks/mineable/axe.json
+011bd3fb0a9eb7fa8f98511a2af90a1d9a7205ac data/minecraft/tags/blocks/mineable/axe.json
 2e842075d0e4599a59f7a92c2f45e1f18e0256e4 data/minecraft/tags/blocks/mineable/hoe.json
 4a7cf28700c5101f668e32f33d423ef0bd0fdeab data/minecraft/tags/blocks/mineable/pickaxe.json
 edba68045464d3e2dbd692072b160956119671c3 data/minecraft/tags/blocks/needs_iron_tool.json

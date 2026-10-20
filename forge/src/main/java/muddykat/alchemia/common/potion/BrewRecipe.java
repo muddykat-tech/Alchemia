@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public record BrewRecipe(String id, String name, String base, List<BrewRecipe.BrewEffect> effects,
-                         List<String> ingredients, List<String> steps) {
+                         List<String> ingredients, List<String> steps, String notes) {
 
     public static final char STEP_ADD = '+';
     public static final char STEP_STIR = '~';
@@ -29,6 +29,11 @@ public record BrewRecipe(String id, String name, String base, List<BrewRecipe.Br
     public static final char STEP_REDSTONE = '*';
     public static final char STEP_SPLASH = '^';
     public static final char STEP_FINISH = '=';
+    public static final char STEP_BARK = '%';
+    public static final char STEP_GLOW = '#';
+    public static final char STEP_BOTTLE = '&';
+
+    private static final int LEGACY_CRUSH_SCALE = 2;
 
     public BrewRecipe {
         if (id == null || id.isBlank()) {
@@ -37,6 +42,19 @@ public record BrewRecipe(String id, String name, String base, List<BrewRecipe.Br
         if (name == null) name = "";
         if (base == null || base.isBlank()) base = BrewBases.DEFAULT_ID;
         if (steps == null) steps = List.of();
+        if (notes == null) notes = "";
+    }
+
+    public BrewRecipe(String id, String name, String base, List<BrewEffect> effects, List<String> ingredients, List<String> steps) {
+        this(id, name, base, effects, ingredients, steps, "");
+    }
+
+    public BrewRecipe withName(String renamed) {
+        return new BrewRecipe(id, renamed, base, effects, ingredients, steps, notes);
+    }
+
+    public BrewRecipe withNotes(String written) {
+        return new BrewRecipe(id, name, base, effects, ingredients, steps, written);
     }
 
     public static BrewRecipe create(String name, BrewBase base, List<BrewEffect> effects,
@@ -45,9 +63,16 @@ public record BrewRecipe(String id, String name, String base, List<BrewRecipe.Br
     }
 
     private static BrewRecipe stored(String id, String name, String base, List<BrewEffect> effects,
-                                     List<String> ingredients, List<String> steps) {
-        if (!steps.isEmpty()) return new BrewRecipe(id, name, base, effects, ingredients, steps);
-        return new BrewRecipe(id, name, base, effects, ingredients, legacySteps(ingredients));
+                                     List<String> ingredients, List<String> steps, String notes) {
+        if (!steps.isEmpty()) return new BrewRecipe(id, name, base, effects, ingredients, steps, notes);
+
+        return new BrewRecipe(id, name, base, effects, ingredients, legacySteps(ingredients), notes);
+    }
+
+    public static List<String> upgradeEntries(List<String> legacy) {
+        List<String> upgraded = new ArrayList<>(legacy.size());
+        for (String entry : legacy) upgraded.add(encode(nameOf(entry), crushOf(entry) * LEGACY_CRUSH_SCALE));
+        return List.copyOf(upgraded);
     }
 
     public static List<String> legacySteps(List<String> entries) {
@@ -76,6 +101,17 @@ public record BrewRecipe(String id, String name, String base, List<BrewRecipe.Br
                 && base.equals(other.base())
                 && ingredients.equals(other.ingredients())
                 && sortedEffects().equals(other.sortedEffects());
+    }
+
+    public PotionGlass glass() {
+        for (String step : steps) {
+            if (!step.isEmpty() && step.charAt(0) == STEP_BOTTLE) return PotionGlass.byName(step.substring(1));
+        }
+        return PotionGlass.NORMAL_POTION;
+    }
+
+    public static String bottleStep(PotionGlass glass) {
+        return STEP_BOTTLE + glass.getSerializedName();
     }
 
     private List<BrewEffect> sortedEffects() {
@@ -107,7 +143,8 @@ public record BrewRecipe(String id, String name, String base, List<BrewRecipe.Br
             Codec.STRING.optionalFieldOf("base", BrewBases.DEFAULT_ID).forGetter(BrewRecipe::base),
             BrewEffect.CODEC.listOf().fieldOf("effects").forGetter(BrewRecipe::effects),
             Codec.STRING.listOf().fieldOf("ingredients").forGetter(BrewRecipe::ingredients),
-            Codec.STRING.listOf().optionalFieldOf("steps", List.of()).forGetter(BrewRecipe::steps)
+            Codec.STRING.listOf().optionalFieldOf("steps", List.of()).forGetter(BrewRecipe::steps),
+            Codec.STRING.optionalFieldOf("notes", "").forGetter(BrewRecipe::notes)
     ).apply(instance, BrewRecipe::stored));
 
     private static final Codec<BrewRecipe> LEGACY = RecordCodecBuilder.create(instance -> instance.group(
@@ -115,9 +152,10 @@ public record BrewRecipe(String id, String name, String base, List<BrewRecipe.Br
             Codec.STRING.listOf().fieldOf("ingredients").forGetter(BrewRecipe::ingredients),
             Codec.INT.fieldOf("potency").forGetter(brew -> brew.effects().get(0).potency())
     ).apply(instance, (recipe, ingredients, potency) -> stored("", "",
-            BrewBases.DEFAULT_ID, List.of(new BrewEffect(recipe, potency)), ingredients, List.of())));
+            BrewBases.DEFAULT_ID, List.of(new BrewEffect(recipe, potency)), ingredients, List.of(), "")));
 
     public static final Codec<BrewRecipe> CODEC = Codec.either(MODERN, LEGACY).xmap(either -> either.map(left -> left, right -> right), Either::left);
+
 
     public Component displayName() {
         if (!name.isBlank()) return Component.literal(name);

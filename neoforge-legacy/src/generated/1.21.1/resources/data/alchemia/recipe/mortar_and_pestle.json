@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "equipment",
+  "ingredients": [
+    {
+      "item": "minecraft:stick"
+    },
+    {
+      "item": "minecraft:stone"
+    },
+    {
+      "item": "minecraft:stone"
+    },
+    {
+      "item": "minecraft:stone"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "alchemia:mortar_and_pestle"
+  }
+}

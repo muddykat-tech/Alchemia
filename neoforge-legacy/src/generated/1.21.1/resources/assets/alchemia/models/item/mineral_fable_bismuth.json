@@ -1,0 +1,14 @@
+{
+  "parent": "minecraft:item/generated",
+  "overrides": [
+    {
+      "model": "alchemia:item/mineral_fable_bismuth_crushed",
+      "predicate": {
+        "alchemia:crush": 1.0
+      }
+    }
+  ],
+  "textures": {
+    "layer0": "alchemia:item/minerals/fable_bismuth"
+  }
+}

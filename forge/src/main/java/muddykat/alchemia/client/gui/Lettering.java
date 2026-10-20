@@ -1,0 +1,24 @@
+package muddykat.alchemia.client.gui;
+
+import muddykat.alchemia.Alchemia;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceLocation;
+
+public final class Lettering {
+
+    public static final ResourceLocation ALAGARD = new ResourceLocation(Alchemia.MODID, "alagard");
+    public static final int RISE = 4;
+    public static final int HEIGHT = 14;
+
+    private Lettering() {
+    }
+
+    public static MutableComponent of(String text) {
+        return Component.literal(text).withStyle(style -> style.withFont(ALAGARD));
+    }
+
+    public static MutableComponent of(Component text) {
+        return text.copy().withStyle(style -> style.withFont(ALAGARD));
+    }
+}

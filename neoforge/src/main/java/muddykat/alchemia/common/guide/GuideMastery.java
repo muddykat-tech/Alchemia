@@ -4,7 +4,7 @@ import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.potion.BrewBase;
 import muddykat.alchemia.common.potion.BrewBases;
 import muddykat.alchemia.common.potion.IngredientDiscovery;
-import muddykat.alchemia.common.potion.PotionEnum;
+import muddykat.alchemia.common.potion.AlchemiaEffect;
 import muddykat.alchemia.common.potion.RecipeDiscovery;
 import muddykat.alchemia.common.potion.WorldEffects;
 import net.minecraft.advancements.AdvancementHolder;
@@ -33,9 +33,9 @@ public final class GuideMastery {
         award(player, "complete_guide", effects && secrets && ingredients && stages);
     }
 
-    private static Set<PotionEnum> brewable() {
-        Set<PotionEnum> potions = java.util.EnumSet.noneOf(PotionEnum.class);
-        for (PotionEnum potion : PotionEnum.values()) {
+    private static Set<AlchemiaEffect> brewable() {
+        Set<AlchemiaEffect> potions = new java.util.LinkedHashSet<>();
+        for (AlchemiaEffect potion : muddykat.alchemia.common.potion.AlchemiaEffects.values()) {
             for (BrewBase base : BrewBases.values()) {
                 if (base.allows(potion)) {
                     potions.add(potion);

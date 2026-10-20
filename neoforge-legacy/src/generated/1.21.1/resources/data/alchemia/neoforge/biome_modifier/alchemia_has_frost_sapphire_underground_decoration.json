@@ -1,0 +1,12 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "#alchemia:has_frost_sapphire",
+  "features": [
+    "alchemia:geode_frost_sapphire",
+    "alchemia:geode_frost_sapphire_mini",
+    "alchemia:geode_frost_sapphire_giant",
+    "alchemia:geode_frost_sapphire_supermassive",
+    "alchemia:geode_frost_sapphire_surface"
+  ],
+  "step": "underground_decoration"
+}

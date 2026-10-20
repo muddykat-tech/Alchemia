@@ -2,11 +2,12 @@ package muddykat.alchemia.common.network;
 
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.network.packets.PacketBrewBases;
-import muddykat.alchemia.common.network.packets.PacketDiscover;
-import muddykat.alchemia.common.network.packets.PacketForgetRecipe;
+import muddykat.alchemia.common.network.packets.PacketDiscovery;
+import muddykat.alchemia.common.network.packets.PacketGreatWork;
+import muddykat.alchemia.common.network.packets.PacketGuideAction;
+import muddykat.alchemia.common.network.packets.PacketImbuements;
 import muddykat.alchemia.common.network.packets.PacketNameBrew;
 import muddykat.alchemia.common.network.packets.PacketPotionRecipe;
-import muddykat.alchemia.common.network.packets.PacketSelectRecipe;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkDirection;
@@ -15,7 +16,7 @@ import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 
 public class NetworkHandler {
-    private static final String PROTOCOL_VERSION = "1.0";
+    private static final String PROTOCOL_VERSION = "1.4";
 
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
             new ResourceLocation(Alchemia.MODID, "main"),
@@ -38,22 +39,28 @@ public class NetworkHandler {
                 .consumerMainThread(PacketPotionRecipe::handle)
                 .add();
 
-        CHANNEL.messageBuilder(PacketSelectRecipe.class, nextId++, NetworkDirection.PLAY_TO_SERVER)
-                .encoder(PacketSelectRecipe::encode)
-                .decoder(PacketSelectRecipe::decode)
-                .consumerMainThread(PacketSelectRecipe::handle)
+        CHANNEL.messageBuilder(PacketImbuements.class, nextId++, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(PacketImbuements::encode)
+                .decoder(PacketImbuements::decode)
+                .consumerMainThread(PacketImbuements::handle)
                 .add();
 
-        CHANNEL.messageBuilder(PacketForgetRecipe.class, nextId++, NetworkDirection.PLAY_TO_SERVER)
-                .encoder(PacketForgetRecipe::encode)
-                .decoder(PacketForgetRecipe::decode)
-                .consumerMainThread(PacketForgetRecipe::handle)
+        CHANNEL.messageBuilder(PacketGreatWork.class, nextId++, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(PacketGreatWork::encode)
+                .decoder(PacketGreatWork::decode)
+                .consumerMainThread(PacketGreatWork::handle)
                 .add();
 
-        CHANNEL.messageBuilder(PacketDiscover.class, nextId++, NetworkDirection.PLAY_TO_SERVER)
-                .encoder(PacketDiscover::encode)
-                .decoder(PacketDiscover::decode)
-                .consumerMainThread(PacketDiscover::handle)
+        CHANNEL.messageBuilder(PacketDiscovery.class, nextId++, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(PacketDiscovery::encode)
+                .decoder(PacketDiscovery::decode)
+                .consumerMainThread(PacketDiscovery::handle)
+                .add();
+
+        CHANNEL.messageBuilder(PacketGuideAction.class, nextId++, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(PacketGuideAction::encode)
+                .decoder(PacketGuideAction::decode)
+                .consumerMainThread(PacketGuideAction::handle)
                 .add();
 
         CHANNEL.messageBuilder(PacketNameBrew.class, nextId++, NetworkDirection.PLAY_TO_SERVER)

@@ -6,7 +6,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.SaplingBlock;
 import net.minecraft.world.level.block.state.BlockState;
-#if MC_VER >= 26102
+#if MC_VER >= 12100
 import net.minecraft.world.level.block.grower.TreeGrower;
 #else
 import net.minecraft.world.level.block.grower.OakTreeGrower;
@@ -15,7 +15,7 @@ import net.minecraft.world.level.block.grower.OakTreeGrower;
 public class BlockAncientOakSapling extends SaplingBlock {
 
     public BlockAncientOakSapling(Properties properties) {
-#if MC_VER >= 26102
+#if MC_VER >= 12100
         super(TreeGrower.OAK, properties);
 #else
         super(new OakTreeGrower(), properties);

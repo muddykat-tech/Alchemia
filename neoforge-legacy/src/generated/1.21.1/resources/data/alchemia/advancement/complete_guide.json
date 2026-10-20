@@ -1,0 +1,27 @@
+{
+  "parent": "alchemia:all_stages",
+  "criteria": {
+    "unlocked": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.alchemia.complete_guide.description"
+    },
+    "frame": "challenge",
+    "icon": {
+      "count": 1,
+      "id": "alchemia:alchemia_guide"
+    },
+    "title": {
+      "translate": "advancements.alchemia.complete_guide.title"
+    }
+  },
+  "requirements": [
+    [
+      "unlocked"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

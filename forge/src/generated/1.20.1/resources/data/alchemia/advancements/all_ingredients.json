@@ -1,0 +1,29 @@
+{
+  "parent": "alchemia:guide",
+  "criteria": {
+    "unlocked": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.alchemia.all_ingredients.description"
+    },
+    "frame": "goal",
+    "hidden": false,
+    "icon": {
+      "item": "alchemia:herb_druids_rosemary"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.alchemia.all_ingredients.title"
+    }
+  },
+  "requirements": [
+    [
+      "unlocked"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

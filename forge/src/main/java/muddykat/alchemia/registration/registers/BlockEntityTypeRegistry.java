@@ -6,7 +6,11 @@ import muddykat.alchemia.common.blocks.tileentity.TileEntityAlchemyCauldron;
 import muddykat.alchemia.common.blocks.tileentity.TileEntityAlchemyMachineCore;
 import muddykat.alchemia.common.blocks.tileentity.TileEntityAlchemyMachineUpgrade;
 import muddykat.alchemia.common.blocks.tileentity.TileEntityPlacedPotions;
+import muddykat.alchemia.common.blocks.blockentity.BlockPlacedGuide;
 import muddykat.alchemia.common.blocks.blockentity.BlockPlacedPotions;
+import muddykat.alchemia.common.blocks.blockentity.BlockResearchDesk;
+import muddykat.alchemia.common.blocks.tileentity.TileEntityPlacedGuide;
+import muddykat.alchemia.common.blocks.tileentity.TileEntityResearchDesk;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -32,6 +36,14 @@ public class BlockEntityTypeRegistry {
     public static final RegistryObject<BlockEntityType<TileEntityPlacedPotions>> PLACED_POTIONS = TILES.register(BlockPlacedPotions.ID,
             () -> BlockEntityType.Builder.of(TileEntityPlacedPotions::new,
                     BlockRegistry.BLOCK_REGISTRY.get(BlockPlacedPotions.ID).get()).build(null));
+
+    public static final RegistryObject<BlockEntityType<TileEntityResearchDesk>> RESEARCH_DESK = TILES.register(BlockResearchDesk.ID,
+            () -> BlockEntityType.Builder.of(TileEntityResearchDesk::new,
+                    BlockRegistry.BLOCK_REGISTRY.get(BlockResearchDesk.ID).get()).build(null));
+
+    public static final RegistryObject<BlockEntityType<TileEntityPlacedGuide>> PLACED_GUIDE = TILES.register(BlockPlacedGuide.ID,
+            () -> BlockEntityType.Builder.of(TileEntityPlacedGuide::new,
+                    BlockRegistry.BLOCK_REGISTRY.get(BlockPlacedGuide.ID).get()).build(null));
 
     private static Block[] upgradeBlocks() {
         return Arrays.stream(UpgradeSide.values())

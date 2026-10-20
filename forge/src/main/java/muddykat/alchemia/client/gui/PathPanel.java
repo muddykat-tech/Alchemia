@@ -1,5 +1,7 @@
 package muddykat.alchemia.client.gui;
 
+import muddykat.alchemia.registration.registers.ItemRegistry;
+import net.minecraft.world.item.ItemStack;
 import muddykat.alchemia.common.items.helper.PathGeometry;
 import muddykat.alchemia.common.items.helper.PathPoint;
 import net.minecraft.client.gui.Font;
@@ -15,9 +17,9 @@ public final class PathPanel {
     private static final int INSET = 7;
     private static final int TITLE_H = 10;
     private static final int RULE_GAP = 3;
-    private static final int ICON = 9;
-    private static final int ICON_MARGIN = ICON / 2 + 1;
     private static final int THICKNESS = 2;
+    private static final int INK_ICON = 16;
+    private static final int INK_MARGIN = INK_ICON / 2 + 1;
 
     private static final int TITLE_INK = 0xFF4A2E1C;
     private static final int RULE_DARK = 0xFF9A7448;
@@ -45,11 +47,11 @@ public final class PathPanel {
     }
 
     private int previewWidth() {
-        return Math.max(MIN_WIDTH, (int) Math.ceil(fit.width())) + ICON_MARGIN * 2;
+        return Math.max(MIN_WIDTH, (int) Math.ceil(fit.width())) + INK_MARGIN * 2;
     }
 
     private int previewHeight() {
-        return (int) Math.ceil(fit.height()) + ICON_MARGIN * 2;
+        return (int) Math.ceil(fit.height()) + INK_MARGIN * 2;
     }
 
     private static int headerHeight() {
@@ -75,9 +77,22 @@ public final class PathPanel {
         graphics.fill(left + INSET, ruleY, left + width - INSET, ruleY + 1, RULE_DARK);
         graphics.fill(left + INSET, ruleY + 1, left + width - INSET, ruleY + 2, RULE_LIGHT);
 
-        double originX = left + (width - Math.ceil(fit.width())) / 2.0;
-        double originY = y + INSET + headerHeight() + ICON_MARGIN;
+        drawPath(graphics, left + (width - Math.ceil(fit.width())) / 2.0, y + INSET + headerHeight() + INK_MARGIN);
+    }
 
+    public int plainWidth() {
+        return previewWidth();
+    }
+
+    public int plainHeight() {
+        return previewHeight();
+    }
+
+    public void drawPlain(GuiGraphics graphics, int left, int top) {
+        drawPath(graphics, left + (previewWidth() - Math.ceil(fit.width())) / 2.0, top + INK_MARGIN);
+    }
+
+    private void drawPath(GuiGraphics graphics, double originX, double originY) {
         List<PathPoint> full = PathGeometry.translate(fit.apply(points), originX, originY);
         List<PathPoint> taken = PathGeometry.translate(fit.apply(reached), originX, originY);
         double walked = PathGeometry.length(taken);
@@ -86,8 +101,13 @@ public final class PathPanel {
         PathRenderer.outline(graphics, PathGeometry.tail(full, walked), THICKNESS, POTENTIAL_INK, teleport, walked);
         PathRenderer.dashes(graphics, taken, THICKNESS, TAKEN_INK, teleport);
 
-        icon(graphics, AlchemiaSprites.PATH_ORIGIN, fit.apply(PathPoint.ORIGIN).plus(originX, originY));
-        if (!complete) icon(graphics, AlchemiaSprites.PATH_ENDING, full.get(full.size() - 1));
+        PathPoint origin = fit.apply(PathPoint.ORIGIN).plus(originX, originY);
+        PathPoint ending = full.get(full.size() - 1);
+        GuideInk.waterBottle(graphics, centred(origin.x()), centred(origin.y()), GuideInk.PLAIN);
+        if (!complete) {
+            GuideInk.item(graphics, new ItemStack(ItemRegistry.getItemFromRegistry("mortar_and_pestle")),
+                    centred(ending.x()), centred(ending.y()), GuideInk.PLAIN);
+        }
 
         if (taken.size() > 1) {
             PathPoint landing = taken.get(taken.size() - 1);
@@ -99,7 +119,7 @@ public final class PathPanel {
         }
     }
 
-    private static void icon(GuiGraphics graphics, AlchemiaSprites.Sprite sprite, PathPoint at) {
-        sprite.blit(graphics, (int) Math.round(at.x()) - ICON / 2, (int) Math.round(at.y()) - ICON / 2, ICON, ICON);
+    private static int centred(double at) {
+        return (int) Math.round(at) - INK_ICON / 2;
     }
 }

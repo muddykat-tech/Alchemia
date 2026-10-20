@@ -6,6 +6,7 @@ import muddykat.alchemia.common.items.helper.Ingredients;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -26,40 +27,44 @@ public class VanillaIngredients {
         return grindScale(ItemIngredient.crushOf(stack));
     }
 
-    public record Drift(PotionEnum target, boolean lure) {}
+    public record Drift(String effect, boolean lure) {
+        public @Nullable AlchemiaEffect target() {
+            return AlchemiaEffects.byId(effect);
+        }
+    }
 
     private static final Map<Item, Drift> DRIFTS = new LinkedHashMap<>();
 
-    private static void mobPart(Item item, PotionEnum target) {
+    private static void mobPart(Item item, String target) {
         DRIFTS.put(item, new Drift(target, true));
     }
 
-    private static void harvested(Item item, PotionEnum target) {
+    private static void harvested(Item item, String target) {
         DRIFTS.put(item, new Drift(target, false));
     }
 
     static {
-        mobPart(Items.ROTTEN_FLESH, PotionEnum.Hunger);
-        mobPart(Items.SPIDER_EYE, PotionEnum.Poison);
-        mobPart(Items.FERMENTED_SPIDER_EYE, PotionEnum.Weakness);
-        mobPart(Items.GHAST_TEAR, PotionEnum.Regeneration);
-        mobPart(Items.BLAZE_POWDER, PotionEnum.Damage_Boost);
-        mobPart(Items.MAGMA_CREAM, PotionEnum.Fire_Protection);
-        mobPart(Items.PHANTOM_MEMBRANE, PotionEnum.Slow_Falling);
-        mobPart(Items.SHULKER_SHELL, PotionEnum.Levitation);
-        mobPart(Items.WITHER_SKELETON_SKULL, PotionEnum.Wither);
-        mobPart(Items.RABBIT_FOOT, PotionEnum.Jump);
-        mobPart(Items.PUFFERFISH, PotionEnum.Water_Breathing);
-        mobPart(Items.NAUTILUS_SHELL, PotionEnum.Conduit_Power);
-        mobPart(Items.GLOW_INK_SAC, PotionEnum.Glowing);
-        mobPart(Items.SLIME_BALL, PotionEnum.Slow);
+        mobPart(Items.ROTTEN_FLESH, "Hunger");
+        mobPart(Items.SPIDER_EYE, "Poison");
+        mobPart(Items.FERMENTED_SPIDER_EYE, "Weakness");
+        mobPart(Items.GHAST_TEAR, "Regeneration");
+        mobPart(Items.BLAZE_POWDER, "Damage_Boost");
+        mobPart(Items.MAGMA_CREAM, "Fire_Protection");
+        mobPart(Items.PHANTOM_MEMBRANE, "Slow_Falling");
+        mobPart(Items.SHULKER_SHELL, "Levitation");
+        mobPart(Items.WITHER_SKELETON_SKULL, "Wither");
+        mobPart(Items.RABBIT_FOOT, "Jump");
+        mobPart(Items.PUFFERFISH, "Water_Breathing");
+        mobPart(Items.NAUTILUS_SHELL, "Conduit_Power");
+        mobPart(Items.GLOW_INK_SAC, "Glowing");
+        mobPart(Items.SLIME_BALL, "Slow");
 
-        harvested(Items.SUGAR, PotionEnum.Speed);
-        harvested(Items.GLISTERING_MELON_SLICE, PotionEnum.Healing);
-        harvested(Items.GOLDEN_CARROT, PotionEnum.Night_Vision);
-        harvested(Items.GLOW_BERRIES, PotionEnum.Saturation);
-        harvested(Items.NETHER_WART, PotionEnum.Absorption);
-        harvested(Items.CHORUS_FRUIT, PotionEnum.Invisibility);
+        harvested(Items.SUGAR, "Speed");
+        harvested(Items.GLISTERING_MELON_SLICE, "Healing");
+        harvested(Items.GOLDEN_CARROT, "Night_Vision");
+        harvested(Items.GLOW_BERRIES, "Saturation");
+        harvested(Items.NETHER_WART, "Absorption");
+        harvested(Items.CHORUS_FRUIT, "Invisibility");
     }
 
     public static Drift driftOf(ItemStack stack) {

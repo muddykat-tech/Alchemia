@@ -15,4 +15,7 @@ public class ParticleTypeRegistry {
 
     public static final DeferredHolder<ParticleType<?>, SimpleParticleType> ANCIENT_OAK_LEAF = PARTICLE_TYPES
             .register("ancient_oak_leaf", () -> new SimpleParticleType(false));
+
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> NAPALM_FLAME = PARTICLE_TYPES
+            .register("napalm_flame", () -> new SimpleParticleType(false));
 }

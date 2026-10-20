@@ -21,6 +21,8 @@
     "alchemia:sulphur_shelf_infected_cherry_log",
     "alchemia:sulphur_shelf_infected_dark_oak_log",
     "alchemia:sulphur_shelf_infected_mangrove_log",
-    "alchemia:sulphur_shelf_infected_ancient_oak_log"
+    "alchemia:sulphur_shelf_infected_ancient_oak_log",
+    "alchemia:research_desk",
+    "alchemia:placed_guide"
   ]
 }

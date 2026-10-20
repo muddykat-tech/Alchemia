@@ -23,5 +23,5 @@
   "result": {
     "item": "alchemia:alchemy_machine_right_upgrade"
   },
-  "show_notification": true
+  "show_notification": false
 }

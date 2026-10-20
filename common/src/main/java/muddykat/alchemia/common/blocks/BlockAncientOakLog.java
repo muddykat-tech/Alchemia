@@ -2,7 +2,7 @@ package muddykat.alchemia.common.blocks;
 
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RotatedPillarBlock;
-#if MC_VER < 26102
+#if MC_VER < 12100
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.ToolAction;
@@ -20,7 +20,7 @@ public class BlockAncientOakLog extends RotatedPillarBlock {
         this.stripped = stripped;
     }
 
-#if MC_VER < 26102
+#if MC_VER < 12100
     @Override
     public BlockState getToolModifiedState(BlockState state, UseOnContext context, ToolAction toolAction, boolean simulate) {
         if (stripped == null || toolAction != ToolActions.AXE_STRIP) return super.getToolModifiedState(state, context, toolAction, simulate);

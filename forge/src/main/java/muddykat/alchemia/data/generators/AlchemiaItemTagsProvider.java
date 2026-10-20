@@ -48,6 +48,13 @@ public class AlchemiaItemTagsProvider extends TagsProvider<Item> {
         tag(ItemTags.LEAVES).add(itemKey(AncientOak.LEAVES));
         tag(ItemTags.SAPLINGS).add(itemKey(AncientOak.SAPLING));
 
+        var imbuements = tag(AlchemiaItemTags.IMBUEMENTS).add(itemKey(muddykat.alchemia.common.items.ItemBark.ID));
+        for (var category : muddykat.alchemia.common.potion.Imbuements.defaults()) {
+            if (BuiltInRegistries.ITEM.containsKey(category.item())) {
+                imbuements.add(net.minecraft.resources.ResourceKey.create(Registries.ITEM, category.item()));
+            }
+        }
+
         var appender = tag(AlchemiaItemTags.INGREDIENTS);
 
         for (Item item : BuiltInRegistries.ITEM) {
