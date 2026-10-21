@@ -1,0 +1,5 @@
+Effects
+
+@unlock advancement alchemia:cauldron
+@photo effects
+TODO explain how potion effects work, as in how they're discovered, and how the strength system works, testing pointing to [[effects|the Effects chapter]].

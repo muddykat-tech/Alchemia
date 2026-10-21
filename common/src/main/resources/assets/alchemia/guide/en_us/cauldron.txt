@@ -1,0 +1,4 @@
+The Cauldron
+
+@photo cauldron_build_1 cauldron_build_2
+To create Alchemia Potions, you'll need to create an Alchemical Cauldron. Create by placing a cauldron on top of a campfire.

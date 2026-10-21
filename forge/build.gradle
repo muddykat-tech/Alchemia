@@ -31,6 +31,11 @@ legacyForge {
     }
 }
 
+mixin {
+    add sourceSets.main, "${mod_id}.refmap.json"
+    config "${mod_id}.mixins.json"
+}
+
 sourceSets.main.resources {
     def generated = file("src/generated/${mc_version}/resources")
     if (generated.exists()) {
@@ -41,6 +46,7 @@ sourceSets.main.resources {
 
 dependencies {
     annotationProcessor "systems.manifold:manifold-preprocessor:${manifold_version}"
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
     compileOnly "systems.manifold:manifold-preprocessor:${manifold_version}"
 
     compileOnly "mezz.jei:jei-${mc_version}-common-api:${jei_version}"
@@ -84,6 +90,7 @@ jar {
                 'Implementation-Title'  : project.name,
                 'Implementation-Version': project.version,
                 'Implementation-Vendor' : mod_authors,
+                'MixinConfigs'          : "${mod_id}.mixins.json",
         ])
     }
 }

@@ -22,8 +22,10 @@ import net.minecraft.util.RandomSource;
 public class FlameCloudRenderer extends EntityRenderer<FlameCloudEntity, FlameCloudRenderer.State> {
 
     private static final int SEGMENTS = 32;
-    private static final float GLOW_LIFT = 0.03F;
-    private static final float SCORCH_LIFT = 0.02F;
+    private static final float SCORCH_LIFT = 0.012F;
+    private static final float GLOW_LIFT = 0.04F;
+    private static final float LAYER_STEP = 0.0035F;
+    private static final int LAYERS = 8;
     private static final int GLOW_CORE = 0xFFB040;
     private static final int GLOW_EDGE = 0xFF4A10;
     private static final int SCORCH = 0x1A0C06;
@@ -95,12 +97,13 @@ public class FlameCloudRenderer extends EntityRenderer<FlameCloudEntity, FlameCl
         float sincePulse = (age - 1.0F) % FlameCloudEntity.PULSE_TICKS;
         float flare = 1.0F + 0.45F * (float) Math.exp(-sincePulse / 3.0F);
         float flicker = 0.85F + 0.1F * (float) Math.sin(age * 0.9F) + 0.05F * (float) Math.sin(age * 2.3F + 1.3F);
+        float layer = layer(state.seed);
 
         collector.submitCustomGeometry(poseStack, RenderTypes.debugQuads(),
-                (pose, buffer) -> disc(pose, buffer, reach * 1.08F, SCORCH_LIFT, ARGB.color((int) (130 * fade), SCORCH),
+                (pose, buffer) -> disc(pose, buffer, reach * 1.08F, SCORCH_LIFT + layer, ARGB.color((int) (130 * fade), SCORCH),
                         ARGB.color((int) (70 * fade), SCORCH), ARGB.color(0, SCORCH)));
         collector.submitCustomGeometry(poseStack, RenderTypes.lightning(),
-                (pose, buffer) -> disc(pose, buffer, reach * 1.15F, GLOW_LIFT, ARGB.color((int) (150 * fade * flicker * Math.min(flare, 1.2F)), GLOW_CORE),
+                (pose, buffer) -> disc(pose, buffer, reach * 1.15F, GLOW_LIFT + layer, ARGB.color((int) (150 * fade * flicker * Math.min(flare, 1.2F)), GLOW_CORE),
                         ARGB.color((int) (90 * fade * flicker), GLOW_EDGE), ARGB.color(0, GLOW_EDGE)));
     }
 
@@ -111,12 +114,13 @@ public class FlameCloudRenderer extends EntityRenderer<FlameCloudEntity, FlameCl
         float ring = state.full * easeOut(Math.min(1.0F, age / RING_TICKS));
         float fade = 1.0F - smooth((life - 0.45F) / 0.55F);
         float flash = (float) Math.exp(-age / 4.0F);
+        float layer = layer(state.seed);
 
         collector.submitCustomGeometry(poseStack, RenderTypes.debugQuads(),
-                (pose, buffer) -> disc(pose, buffer, ring * 1.05F, SCORCH_LIFT, ARGB.color((int) (120 * fade), SCORCH),
+                (pose, buffer) -> disc(pose, buffer, ring * 1.05F, SCORCH_LIFT + layer, ARGB.color((int) (120 * fade), SCORCH),
                         ARGB.color((int) (60 * fade), SCORCH), ARGB.color(0, SCORCH)));
         collector.submitCustomGeometry(poseStack, RenderTypes.lightning(),
-                (pose, buffer) -> disc(pose, buffer, ring * 1.2F + 0.4F, GLOW_LIFT, ARGB.color((int) (230 * Math.min(1.0F, flash + 0.25F * fade)), GLOW_CORE),
+                (pose, buffer) -> disc(pose, buffer, ring * 1.2F + 0.4F, GLOW_LIFT + layer, ARGB.color((int) (230 * Math.min(1.0F, flash + 0.25F * fade)), GLOW_CORE),
                         ARGB.color((int) (140 * fade), GLOW_EDGE), ARGB.color(0, GLOW_EDGE)));
 
         RandomSource random = RandomSource.create(state.seed * 7919L + 17L);
@@ -184,6 +188,10 @@ public class FlameCloudRenderer extends EntityRenderer<FlameCloudEntity, FlameCl
             buffer.addVertex(pose, ca * mid, lift, sa * mid).setColor(middle);
             buffer.addVertex(pose, cb * mid, lift, sb * mid).setColor(middle);
         }
+    }
+
+    private static float layer(int seed) {
+        return Math.floorMod(seed * 0x9E3779B1, LAYERS) * LAYER_STEP;
     }
 
     private static float smooth(float value) {

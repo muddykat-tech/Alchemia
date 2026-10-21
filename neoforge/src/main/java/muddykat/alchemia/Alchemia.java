@@ -5,6 +5,8 @@ import muddykat.alchemia.common.CommonSetup;
 import muddykat.alchemia.common.WorldEventHandler;
 import muddykat.alchemia.common.config.Configuration;
 import muddykat.alchemia.registration.registers.IngredientTypeRegistry;
+import muddykat.alchemia.common.effect.WildConversion;
+import muddykat.alchemia.common.effect.WildGreening;
 import muddykat.alchemia.common.network.NetworkHandler;
 import muddykat.alchemia.common.network.packets.PacketImbuements;
 import muddykat.alchemia.common.network.packets.PacketBrewBases;
@@ -50,11 +52,14 @@ public class Alchemia {
 
         LOGGER.info(MOD_NAME + " Setting up Networking");
         modEventBus.addListener(NetworkHandler::register);
+        modEventBus.addListener(WildConversion::register);
+        modEventBus.addListener(WildGreening::register);
 
         LOGGER.info(MOD_NAME + " Registering Event Handlers");
         NeoForge.EVENT_BUS.register(WorldEventHandler.class);
         NeoForge.EVENT_BUS.register(muddykat.alchemia.common.PhilosopherStoneHandler.class);
         NeoForge.EVENT_BUS.register(muddykat.alchemia.common.guide.GuideNews.class);
+        NeoForge.EVENT_BUS.register(muddykat.alchemia.common.guide.PrimerSync.class);
         NeoForge.EVENT_BUS.register(muddykat.alchemia.common.crafting.GreatWorkSetup.class);
         NeoForge.EVENT_BUS.register(this);
 

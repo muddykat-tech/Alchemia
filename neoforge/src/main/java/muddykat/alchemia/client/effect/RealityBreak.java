@@ -92,6 +92,14 @@ public final class RealityBreak {
         default boolean rimLines() {
             return true;
         }
+
+        default float lineWidth() {
+            return 1.0F;
+        }
+
+        default float crackLight(float reach) {
+            return 1.0F;
+        }
     }
 
     public interface Mapping {
@@ -112,6 +120,7 @@ public final class RealityBreak {
         private final @Nullable Mapping mapping;
         private final boolean holes;
         private final boolean flights;
+        private final float lineWidth;
 
         private Frame(FracturePattern pattern, Plane plane, Choreography choreography, int seed, @Nullable Mapping mapping) {
             this.pattern = pattern;
@@ -119,6 +128,7 @@ public final class RealityBreak {
             this.choreography = choreography;
             this.seed = seed;
             this.mapping = mapping;
+            this.lineWidth = choreography.lineWidth();
             List<FracturePattern.Cell> cells = pattern.cells();
             states = new CellState[cells.size()];
             boolean anyHole = false;
@@ -255,8 +265,8 @@ public final class RealityBreak {
             for (int segment = 0; segment < SEGMENTS; segment++) {
                 float startReach = (float) Math.sqrt(xs[segment] * xs[segment] + ys[segment] * ys[segment]);
                 float endReach = (float) Math.sqrt(xs[segment + 1] * xs[segment + 1] + ys[segment + 1] * ys[segment + 1]);
-                float startGlow = glow(edge.fade(), startReach, crackGlow, flash);
-                float endGlow = glow(edge.fade(), endReach, crackGlow, flash);
+                float startGlow = Math.min(1.0F, glow(edge.fade(), startReach, crackGlow, flash) * choreography.crackLight(startReach));
+                float endGlow = Math.min(1.0F, glow(edge.fade(), endReach, crackGlow, flash) * choreography.crackLight(endReach));
                 if (segment == SEGMENTS - 1 && grown < 1.0F) endGlow *= 0.3F;
                 if (startGlow <= 0.01F && endGlow <= 0.01F) continue;
                 Vector3f a = plane.at(xs[segment], ys[segment]).add(offset);
@@ -279,7 +289,7 @@ public final class RealityBreak {
         private void shade(PoseStack.Pose pose, VertexConsumer buffer, Vector3f from, Vector3f to, float width, int start, int end) {
             Vector3f side = new Vector3f(to).sub(from).cross(plane.toViewer());
             if (side.lengthSquared() < 1.0E-10F) return;
-            side.normalize().mul(width * plane.scale());
+            side.normalize().mul(width * plane.scale() * lineWidth);
             quad(pose, buffer, from, to, new Vector3f(to).sub(side), new Vector3f(from).sub(side), start, end, ARGB.color(0, end), ARGB.color(0, start));
         }
 
@@ -382,7 +392,7 @@ public final class RealityBreak {
         private void line(PoseStack.Pose pose, VertexConsumer buffer, Vector3f from, Vector3f to, float width, int start, int end, int outer) {
             Vector3f side = new Vector3f(to).sub(from).cross(plane.toViewer());
             if (side.lengthSquared() < 1.0E-10F) return;
-            side.normalize().mul(width * plane.scale());
+            side.normalize().mul(width * plane.scale() * lineWidth);
             int outerStart = ARGB.color(Math.min(ARGB.alpha(outer), ARGB.alpha(start)), outer);
             int outerEnd = ARGB.color(Math.min(ARGB.alpha(outer), ARGB.alpha(end)), outer);
             quad(pose, buffer, from, to, new Vector3f(to).add(side), new Vector3f(from).add(side), start, end, outerEnd, outerStart);

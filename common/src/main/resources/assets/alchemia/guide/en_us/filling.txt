@@ -1,0 +1,5 @@
+Filling the Cauldron
+
+@photo filling_1 filling_2
+You can fill a cauldron either by using one of the fill items, it can also be filled via dispenser
+@items center #bases

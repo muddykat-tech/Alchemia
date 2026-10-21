@@ -40,7 +40,7 @@ public final class GuideNews {
     private static final int DESK_EVERY = 100;
 
     public enum Kind {
-        INGREDIENT, REAGENT, EFFECT, SECRET, RECIPE, OPUS;
+        INGREDIENT, REAGENT, EFFECT, SECRET, RECIPE, OPUS, CHAPTER;
 
         public static final StreamCodec<io.netty.buffer.ByteBuf, Kind> STREAM_CODEC =
                 ByteBufCodecs.idMapper(index -> values()[index], Kind::ordinal);

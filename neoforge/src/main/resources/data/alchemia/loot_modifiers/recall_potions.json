@@ -1,0 +1,12 @@
+{
+  "type": "alchemia:alchemical_potion",
+  "effect": "alchemia:recall",
+  "loot_tables": [
+    "minecraft:chests/stronghold_corridor",
+    "minecraft:chests/stronghold_crossing",
+    "minecraft:chests/igloo_chest",
+    "minecraft:chests/abandoned_camp_common_chest",
+    "minecraft:chests/village/village_temple"
+  ],
+  "chance": 0.08
+}

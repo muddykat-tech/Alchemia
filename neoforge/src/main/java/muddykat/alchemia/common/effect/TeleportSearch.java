@@ -15,6 +15,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.Level;
@@ -23,6 +24,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.portal.TeleportTransition;
+import net.minecraft.world.level.storage.LevelData;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -61,12 +64,35 @@ public final class TeleportSearch {
 
     public static void begin(LivingEntity entity, int level) {
         if (!(entity.level() instanceof ServerLevel server)) return;
+        start(entity, server, new Job(server.dimension(), entity.position(), level * RANGE_PER_LEVEL));
+    }
+
+    public static void recall(LivingEntity entity) {
+        if (!(entity.level() instanceof ServerLevel server)) return;
+        TeleportTransition home = home(entity, server);
+        Job job = new Job(server.dimension(), entity.position(), 0);
+        job.found = home.position();
+        job.target = home.newLevel().dimension();
+        job.targetYaw = home.yRot();
+        job.recall = true;
+        start(entity, server, job);
+    }
+
+    private static TeleportTransition home(LivingEntity entity, ServerLevel server) {
+        if (entity instanceof ServerPlayer player) return player.findRespawnPositionAndUseSpawnBlock(false, TeleportTransition.DO_NOTHING);
+        LevelData.RespawnData spawn = server.getServer().getRespawnData();
+        ServerLevel level = server.getServer().getLevel(spawn.dimension());
+        if (level == null) level = server.getServer().overworld();
+        BlockPos ground = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, spawn.pos());
+        return new TeleportTransition(level, Vec3.atBottomCenterOf(ground), Vec3.ZERO, spawn.yaw(), 0.0F, TeleportTransition.DO_NOTHING);
+    }
+
+    private static void start(LivingEntity entity, ServerLevel server, Job job) {
         Job previous = JOBS.remove(entity.getUUID());
         if (previous != null) {
             previous.end();
             view(entity, TeleportViewState.REVEAL);
         }
-        Job job = new Job(server.dimension(), entity.position(), level * RANGE_PER_LEVEL);
         job.rift = rift(server, entity.position(), RiftEntity.CHARGE, entity.getId());
         server.playSound(null, entity.getX(), entity.getY(), entity.getZ(), SoundEvents.AMETHYST_BLOCK_RESONATE, entity.getSoundSource(), 1.0F, 0.7F);
         JOBS.put(entity.getUUID(), job);
@@ -126,7 +152,7 @@ public final class TeleportSearch {
                 return false;
             }
             if (++job.openTicks < VIEW_OPEN_TICKS) return false;
-            arrive(entity, job.origin, job.found);
+            arrive(entity, job);
             job.teleported = true;
             job.closeRift();
             view(entity, TeleportViewState.HOLD);
@@ -167,15 +193,27 @@ public final class TeleportSearch {
         job.pending = level.getChunkSource().getChunkFuture(x >> 4, z >> 4, ChunkStatus.FULL, true);
     }
 
-    private static void arrive(LivingEntity entity, Vec3 origin, Vec3 found) {
-        ServerLevel level = (ServerLevel) entity.level();
-        entity.teleportTo(level, found.x, found.y, found.z, Set.of(), entity.getYRot(), entity.getXRot(), false);
-        entity.resetFallDistance();
-        if (entity instanceof Mob mob) mob.getNavigation().stop();
-        level.playSound(null, origin.x, origin.y, origin.z, SoundEvents.CHORUS_FRUIT_TELEPORT, entity.getSoundSource(), 1.0F, 1.0F);
+    private static void arrive(LivingEntity entity, Job job) {
+        ServerLevel from = (ServerLevel) entity.level();
+        ServerLevel level = job.target == null ? null : from.getServer().getLevel(job.target);
+        if (level == null) level = from;
+        Vec3 origin = job.origin;
+        Vec3 found = job.found;
+        float yaw = job.recall ? job.targetYaw : entity.getYRot();
+        Entity arrived = entity;
+        if (level == from) {
+            entity.teleportTo(level, found.x, found.y, found.z, Set.of(), yaw, entity.getXRot(), false);
+        } else {
+            arrived = entity.teleport(new TeleportTransition(level, found, Vec3.ZERO, yaw, entity.getXRot(), TeleportTransition.DO_NOTHING));
+            if (arrived == null) arrived = entity;
+            job.dimension = level.dimension();
+        }
+        arrived.resetFallDistance();
+        if (arrived instanceof Mob mob) mob.getNavigation().stop();
+        from.playSound(null, origin.x, origin.y, origin.z, SoundEvents.CHORUS_FRUIT_TELEPORT, entity.getSoundSource(), 1.0F, 1.0F);
         level.playSound(null, found.x, found.y, found.z, SoundEvents.CHORUS_FRUIT_TELEPORT, entity.getSoundSource(), 1.0F, 1.0F);
         level.sendParticles(ParticleTypes.PORTAL, found.x, found.y + 1.0, found.z, 40, 0.5, 0.8, 0.5, 0.2);
-        rift(level, found, RiftEntity.ARRIVE, entity.getId());
+        rift(level, found, RiftEntity.ARRIVE, arrived.getId());
     }
 
     private static void view(LivingEntity entity, int phase) {
@@ -237,7 +275,10 @@ public final class TeleportSearch {
     }
 
     private static final class Job {
-        private final ResourceKey<Level> dimension;
+        private ResourceKey<Level> dimension;
+        private @Nullable ResourceKey<Level> target;
+        private float targetYaw;
+        private boolean recall;
         private final Vec3 origin;
         private final int range;
         private int attempts = ATTEMPTS;

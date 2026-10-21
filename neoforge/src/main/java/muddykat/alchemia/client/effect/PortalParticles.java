@@ -1,5 +1,6 @@
 package muddykat.alchemia.client.effect;
 
+import muddykat.alchemia.common.effect.PortalTimeline;
 import muddykat.alchemia.common.effect.ReturnPortalEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.particles.ParticleTypes;
@@ -10,7 +11,6 @@ import net.minecraft.world.phys.Vec3;
 public final class PortalParticles {
 
     private static final int SLAM_BURST = 36;
-    private static final int SLAM_TICK = 15;
     private static final double FRONT_OFFSET = 0.06;
     private static final double REACH_X = ReturnPortalRenderer.HOLE * ReturnPortalRenderer.PLANE_WIDTH * 0.85;
     private static final double REACH_Y = ReturnPortalRenderer.HOLE * ReturnPortalRenderer.PLANE_HEIGHT * 0.85;
@@ -31,7 +31,7 @@ public final class PortalParticles {
         double frontX = portal.getX() - normal.x * FRONT_OFFSET;
         double frontZ = portal.getZ() - normal.z * FRONT_OFFSET;
 
-        if (portal.collapse() == SLAM_TICK) {
+        if (portal.collapse() == PortalTimeline.SLAM_TICK) {
             for (int index = 0; index < SLAM_BURST; index++) {
                 double angle = random.nextDouble() * 2 * Math.PI;
                 double reach = Math.sqrt(random.nextDouble());

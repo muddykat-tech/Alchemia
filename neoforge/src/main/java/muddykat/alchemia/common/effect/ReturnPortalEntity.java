@@ -189,18 +189,31 @@ public class ReturnPortalEntity extends Entity {
     private void clientTick() {
         double centreY = getY() + HALF_HEIGHT;
         if (!collapsing()) {
-            if (tickCount == 1) {
-                level().playLocalSound(getX(), centreY, getZ(), SoundEvents.GLASS_BREAK, SoundSource.NEUTRAL, 0.35F, 0.55F, false);
+            for (int level = 0; level < PortalTimeline.HIT_TICKS.length; level++) {
+                if (tickCount != PortalTimeline.HIT_TICKS[level]) continue;
+                level().playLocalSound(getX(), centreY, getZ(), SoundEvents.GLASS_BREAK, SoundSource.NEUTRAL, PortalTimeline.HIT_VOLUME[level],
+                        PortalTimeline.HIT_PITCH[level], false);
             }
             if (tickCount == TEAR_START) {
-                level().playLocalSound(getX(), centreY, getZ(), SoundEvents.GLASS_BREAK, SoundSource.NEUTRAL, 0.6F, 0.4F, false);
                 level().playLocalSound(getX(), centreY, getZ(), SoundEvents.PORTAL_TRIGGER, SoundSource.NEUTRAL, 0.25F, 1.5F, false);
             }
-        } else if (collapse() == 6) {
-            level().playLocalSound(getX(), centreY, getZ(), SoundEvents.BEACON_DEACTIVATE, SoundSource.NEUTRAL, 0.5F, 1.6F, false);
-        } else if (collapse() == 15) {
-            level().playLocalSound(getX(), centreY, getZ(), SoundEvents.GLASS_BREAK, SoundSource.NEUTRAL, 0.7F, 1.6F, false);
-            level().playLocalSound(getX(), centreY, getZ(), SoundEvents.AMETHYST_BLOCK_HIT, SoundSource.NEUTRAL, 1.0F, 0.6F, false);
+        } else {
+            if (collapse() == 6) {
+                level().playLocalSound(getX(), centreY, getZ(), SoundEvents.BEACON_DEACTIVATE, SoundSource.NEUTRAL, 0.5F, 1.6F, false);
+            }
+            if (PortalTimeline.crackle(collapse())) {
+                level().playLocalSound(getX(), centreY, getZ(), SoundEvents.GLASS_HIT, SoundSource.NEUTRAL, 0.45F,
+                        collapse() < PortalTimeline.HOLE_FROM ? 1.5F + random.nextFloat() * 0.4F : 0.9F + random.nextFloat() * 0.3F, false);
+            }
+            if (collapse() == PortalTimeline.SLAM_TICK) {
+                level().playLocalSound(getX(), centreY, getZ(), SoundEvents.GLASS_BREAK, SoundSource.NEUTRAL, 0.7F, 1.6F, false);
+                level().playLocalSound(getX(), centreY, getZ(), SoundEvents.AMETHYST_BLOCK_HIT, SoundSource.NEUTRAL, 1.0F, 0.6F, false);
+            }
+            for (int level = 0; level < PortalTimeline.HIT_TICKS.length; level++) {
+                if (collapse() != PortalTimeline.unhitTick(level) || tickCount - collapse() < PortalTimeline.HIT_TICKS[level]) continue;
+                level().playLocalSound(getX(), centreY, getZ(), SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.NEUTRAL,
+                        PortalTimeline.HIT_VOLUME[level], 2.0F - PortalTimeline.HIT_PITCH[level] * 0.5F, false);
+            }
         }
 
         PortalParticles.tick(this);

@@ -1,5 +1,6 @@
 package muddykat.alchemia.common.utility;
 
+import muddykat.alchemia.registration.registers.PotionRegistry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -27,6 +28,12 @@ public class PotionStacks {
 
     public static boolean isPotion(ItemStack stack) {
         return !stack.isEmpty() && stack.getItem() instanceof PotionItem;
+    }
+
+    public static boolean alchemical(ItemStack stack) {
+        if (!isPotion(stack)) return false;
+        Potion potion = PotionUtils.getPotion(stack);
+        return potion == PotionRegistry.ALCHEMICAL.get() || potion == PotionRegistry.RUINED.get();
     }
 
     public static List<MobEffectInstance> effectsOf(ItemStack stack) {

@@ -1,0 +1,15 @@
+{
+  "type": "alchemia:alchemical_potion",
+  "effect": "alchemia:treasure_vision",
+  "loot_tables": [
+    "minecraft:chests/buried_treasure",
+    "minecraft:chests/shipwreck_treasure",
+    "minecraft:chests/shipwreck_map",
+    "minecraft:chests/desert_pyramid",
+    "minecraft:chests/jungle_temple",
+    "minecraft:chests/underwater_ruin_big",
+    "minecraft:chests/village/village_cartographer"
+  ],
+  "chance": 0.2,
+  "max_level": 2
+}

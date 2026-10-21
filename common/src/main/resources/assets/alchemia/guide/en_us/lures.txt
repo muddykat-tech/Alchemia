@@ -1,0 +1,6 @@
+Lures
+
+@photo lure_1 lure_2 lure_3
+todo explain what lures are
+@page
+and expand on what queueing a lure does to the existing paths. Testing pagination so this should be on a new page now.

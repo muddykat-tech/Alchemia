@@ -82,6 +82,12 @@ public class DataComponentRegistry {
                     .networkSynchronized(ByteBufCodecs.STRING_UTF8)
                     .build());
 
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<String>> GUIDE_BOOKMARK = DATA_COMPONENTS.register("guide_bookmark",
+            () -> DataComponentType.<String>builder()
+                    .persistent(Codec.STRING)
+                    .networkSynchronized(ByteBufCodecs.STRING_UTF8)
+                    .build());
+
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> GUIDE_PAGES = DATA_COMPONENTS.register("guide_pages",
             () -> DataComponentType.<Integer>builder()
                     .persistent(Codec.intRange(0, BrewRecipeBook.MAX_PAGES))

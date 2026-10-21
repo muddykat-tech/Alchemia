@@ -15,9 +15,9 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 #if MC_VER >= 26200
-public abstract class TriggerMobEffect extends InstantaneousMobEffect {
+public abstract class TriggerMobEffect extends InstantaneousMobEffect implements ShatterEffect {
 #else
-public abstract class TriggerMobEffect extends InstantenousMobEffect {
+public abstract class TriggerMobEffect extends InstantenousMobEffect implements ShatterEffect {
 #endif
 
     protected TriggerMobEffect(MobEffectCategory category, int color) {
@@ -49,6 +49,7 @@ public abstract class TriggerMobEffect extends InstantenousMobEffect {
     protected void splashed(ServerLevel level, @Nullable Entity owner, LivingEntity mob, int amplifier, double scale) {
     }
 
+    @Override
     public void shattered(ServerLevel level, Vec3 at, @Nullable Entity owner, int amplifier, boolean lingering) {
     }
 }

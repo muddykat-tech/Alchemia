@@ -1,0 +1,15 @@
+{
+  "type": "alchemia:alchemical_potion",
+  "effect": "alchemia:dangersense",
+  "loot_tables": [
+    "minecraft:chests/simple_dungeon",
+    "minecraft:chests/abandoned_mineshaft",
+    "minecraft:chests/ancient_city",
+    "minecraft:chests/pillager_outpost",
+    "minecraft:chests/woodland_mansion",
+    "minecraft:chests/trial_chambers/corridor",
+    "minecraft:chests/trial_chambers/supply"
+  ],
+  "chance": 0.15,
+  "max_level": 2
+}

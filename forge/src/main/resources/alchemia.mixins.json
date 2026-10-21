@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "muddykat.alchemia.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "alchemia.refmap.json",
+  "mixins": [
+    "PotionBrewingMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

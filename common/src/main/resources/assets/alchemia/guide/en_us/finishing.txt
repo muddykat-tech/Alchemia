@@ -1,0 +1,5 @@
+Finishing Touches
+
+@photo finishing
+@items center minecraft:redstone minecraft:glowstone_dust minecraft:gunpowder
+TODO Go over Modifiers, and how they impact a potions output.

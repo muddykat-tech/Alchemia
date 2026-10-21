@@ -1,0 +1,5 @@
+{
+  "from": "minecraft:sand",
+  "tier": 4,
+  "to": "minecraft:gravel"
+}

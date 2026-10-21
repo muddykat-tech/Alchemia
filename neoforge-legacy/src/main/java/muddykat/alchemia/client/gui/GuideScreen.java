@@ -1047,7 +1047,7 @@ public class GuideScreen extends Screen {
         }
 
         if (recipes.isEmpty()) {
-            wrappedCentred(graphics, Component.translatable("alchemia.guide.recipes.none"), LEFT_X, TOP + 26 + INDEX_ROWS * INDEX_ROW_H - 30, INK_FAINT);
+            wrappedCentred(graphics, Component.translatable("alchemia.guide.recipes.none"), LEFT_X, TOP + 30 + INDEX_ROWS * INDEX_ROW_H - 30, INK_FAINT);
         }
 
         Component folio = Component.translatable("alchemia.guide.page", indexSpread + 1, spreads);

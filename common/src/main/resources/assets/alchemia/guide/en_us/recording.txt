@@ -1,0 +1,6 @@
+Recording
+
+@unlock advancement alchemia:cauldron
+@photo recording
+@items right alchemia:alchemia_guide
+TODO explain how brews are written into the guide, and link [[recipes|the Recipes chapter]] and explain how to prepare one for auto brewing.

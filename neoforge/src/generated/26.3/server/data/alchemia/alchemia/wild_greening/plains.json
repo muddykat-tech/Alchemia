@@ -1,0 +1,9 @@
+{
+  "counts": "growth",
+  "from": [
+    "minecraft:plains",
+    "minecraft:sunflower_plains"
+  ],
+  "steps": 40,
+  "to": "minecraft:flower_forest"
+}

@@ -2,6 +2,7 @@ package muddykat.alchemia.registration.registers;
 
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.effect.FlameCloudEntity;
+import muddykat.alchemia.common.effect.GrowthFieldEntity;
 import muddykat.alchemia.common.effect.TeleportFieldEntity;
 import muddykat.alchemia.common.effect.ReturnPortalEntity;
 import muddykat.alchemia.common.effect.RiftEntity;
@@ -37,6 +38,17 @@ public class EntityTypeRegistry {
 
     public static final DeferredHolder<EntityType<?>, EntityType<TeleportFieldEntity>> TELEPORT_FIELD = ENTITY_TYPES.register("teleport_field",
             id -> EntityType.Builder.<TeleportFieldEntity>of(TeleportFieldEntity::new, MobCategory.MISC)
+                    .sized(1.0F, 0.25F)
+                    .noSummon()
+                    .noSave()
+                    .fireImmune()
+                    .noLootTable()
+                    .clientTrackingRange(10)
+                    .updateInterval(Integer.MAX_VALUE)
+                    .build(ResourceKey.create(Registries.ENTITY_TYPE, id)));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<GrowthFieldEntity>> GROWTH_FIELD = ENTITY_TYPES.register("growth_field",
+            id -> EntityType.Builder.<GrowthFieldEntity>of(GrowthFieldEntity::new, MobCategory.MISC)
                     .sized(1.0F, 0.25F)
                     .noSummon()
                     .noSave()

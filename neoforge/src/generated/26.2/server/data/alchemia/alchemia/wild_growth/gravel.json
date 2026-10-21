@@ -1,0 +1,5 @@
+{
+  "from": "minecraft:gravel",
+  "tier": 3,
+  "to": "minecraft:coarse_dirt"
+}

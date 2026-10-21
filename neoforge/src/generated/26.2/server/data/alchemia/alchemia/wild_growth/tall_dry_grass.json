@@ -1,0 +1,6 @@
+{
+  "from": "minecraft:tall_dry_grass",
+  "kind": "plant",
+  "tier": 1,
+  "to": "minecraft:tall_grass"
+}

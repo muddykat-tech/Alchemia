@@ -75,6 +75,9 @@ def generateModMetadata = tasks.register('generateModMetadata', ProcessResources
             logo_properties        : (mc_ordinal as int) >= 26200
                     ? 'iconFile="logo.png"\niconBlur=false'
                     : 'logoFile="logo.png"\nlogoBlur=false',
+            mixin_properties       : (mc_ordinal as int) < 26300
+                    ? '[[mixins]]\n    config="alchemia.mixins.json"'
+                    : '',
     ]
     inputs.properties replaceProperties
     expand replaceProperties

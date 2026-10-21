@@ -1,0 +1,11 @@
+{
+  "type": "alchemia:alchemical_potion",
+  "effect": "alchemia:teleportation",
+  "loot_tables": [
+    "minecraft:chests/end_city_treasure",
+    "minecraft:chests/ruined_portal",
+    "minecraft:chests/stronghold_library",
+    "minecraft:chests/ancient_city"
+  ],
+  "chance": 0.03
+}

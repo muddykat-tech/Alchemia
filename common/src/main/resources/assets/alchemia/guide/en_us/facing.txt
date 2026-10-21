@@ -1,0 +1,5 @@
+Block Facing
+
+@photo size=square align=left angle=-4 cauldron_facing
+The Facing Direction is inherited from the campfire.
+@items center minecraft:cauldron minecraft:campfire

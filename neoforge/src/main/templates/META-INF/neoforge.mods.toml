@@ -26,3 +26,5 @@ credits="The Guide uses the Alagard font by Hewett Tsoi (Pix3M)."
     versionRange="${minecraft_version_range}"
     ordering="NONE"
     side="BOTH"
+
+${mixin_properties}

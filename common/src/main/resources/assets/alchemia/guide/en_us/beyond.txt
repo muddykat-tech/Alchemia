@@ -1,0 +1,6 @@
+Beyond
+
+@unlock advancement alchemia:cauldron
+@photo tablets_shack tablets_brushing tablets_reading
+@items left alchemia:alchemy_tablet
+TODO go over finding Alchemy Tablets in forgotten shacks and ruins, Testing Links to the [[opus|the Great Work chapter]].

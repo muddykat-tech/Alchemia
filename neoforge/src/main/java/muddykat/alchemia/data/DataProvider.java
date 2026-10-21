@@ -1,6 +1,8 @@
 package muddykat.alchemia.data;
 
 import muddykat.alchemia.Alchemia;
+import muddykat.alchemia.common.effect.WildConversion;
+import muddykat.alchemia.common.effect.WildGreening;
 import muddykat.alchemia.common.world.WildHerbGeneration;
 import muddykat.alchemia.data.generators.AlchemiaModelProvider;
 import muddykat.alchemia.data.generators.PlacedPotionModelProvider;
@@ -47,7 +49,9 @@ public class DataProvider {
         event.createWorldRegistryObjects(new RegistrySetBuilder()
                 .add(Registries.FEATURE, WildHerbGeneration::bootstrapConfiguredFeatures)
                 .add(Registries.PLACED_FEATURE, WildHerbGeneration::bootstrapPlacedFeatures)
-                .add(NeoForgeRegistries.Keys.BIOME_MODIFIERS, AlchemiaBiomeModifiers::bootstrap));
+                .add(NeoForgeRegistries.Keys.BIOME_MODIFIERS, AlchemiaBiomeModifiers::bootstrap)
+                .add(WildConversion.REGISTRY, WildConversion::bootstrap)
+                .add(WildGreening.REGISTRY, WildGreening::bootstrap));
 #else
         event.createProvider((PackOutput out, CompletableFuture<HolderLookup.Provider> reg) ->
                 new net.minecraft.data.advancements.AdvancementProvider(out, reg, List.of(new AlchemiaAdvancementProvider())));
@@ -57,7 +61,9 @@ public class DataProvider {
         event.createDatapackRegistryObjects(new RegistrySetBuilder()
                 .add(Registries.CONFIGURED_FEATURE, WildHerbGeneration::bootstrapConfiguredFeatures)
                 .add(Registries.PLACED_FEATURE, WildHerbGeneration::bootstrapPlacedFeatures)
-                .add(NeoForgeRegistries.Keys.BIOME_MODIFIERS, AlchemiaBiomeModifiers::bootstrap));
+                .add(NeoForgeRegistries.Keys.BIOME_MODIFIERS, AlchemiaBiomeModifiers::bootstrap)
+                .add(WildConversion.REGISTRY, WildConversion::bootstrap)
+                .add(WildGreening.REGISTRY, WildGreening::bootstrap));
 #endif
     }
 }

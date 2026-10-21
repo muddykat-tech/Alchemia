@@ -27,11 +27,10 @@ public final class PotionImpactHandler {
         boolean lingering = potion instanceof ThrownLingeringPotion;
         boolean triggersOnly = contents.hasEffects();
         for (MobEffectInstance instance : contents.getAllEffects()) {
-            if (instance.getEffect().value() instanceof TriggerMobEffect trigger) {
-                trigger.shattered(level, event.getRayTraceResult().getLocation(), potion.getOwner(), instance.getAmplifier(), lingering);
-            } else {
-                triggersOnly = false;
+            if (instance.getEffect().value() instanceof ShatterEffect shatter) {
+                shatter.shattered(level, event.getRayTraceResult().getLocation(), potion.getOwner(), instance.getAmplifier(), lingering);
             }
+            if (!(instance.getEffect().value() instanceof TriggerMobEffect)) triggersOnly = false;
         }
 
         if (lingering && triggersOnly) {

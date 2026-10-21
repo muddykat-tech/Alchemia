@@ -1,0 +1,5 @@
+The Research Desk
+
+@photo desk
+@items center alchemia:research_desk
+TODO provide information on how the guide tracks progress, recipes and how to share this with other players or make backups.

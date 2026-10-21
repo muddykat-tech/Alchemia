@@ -28,7 +28,7 @@ public class TeleportFieldEntity extends Entity {
     public static final int SCAR_TICKS = 72;
     public static final int SCAR_SNAP = 52;
     public static final int COLLAPSE_TICKS = PortalTimeline.COLLAPSE_TICKS;
-    public static final int SLAM_TICK = 15;
+    public static final int SLAM_TICK = PortalTimeline.SLAM_TICK;
     public static final float FIELD_RADIUS = 2.0F;
     public static final float SPLASH_REACH = 4.0F;
 
@@ -41,6 +41,7 @@ public class TeleportFieldEntity extends Entity {
 
     private final Map<UUID, Long> cooldowns = new HashMap<>();
     private int strength = 1;
+    private boolean recall;
     private long heard = Long.MIN_VALUE;
 
     public TeleportFieldEntity(EntityType<? extends TeleportFieldEntity> type, Level level) {
@@ -54,6 +55,10 @@ public class TeleportFieldEntity extends Entity {
         entityData.set(MODE, mode);
         entityData.set(DURATION, duration);
         entityData.set(START, level().getGameTime());
+    }
+
+    public void recall() {
+        recall = true;
     }
 
     @Override
@@ -102,7 +107,12 @@ public class TeleportFieldEntity extends Entity {
         for (LivingEntity target : server.getEntitiesOfClass(LivingEntity.class, bounds, entity -> inside(entity, centre))) {
             if (cooldowns.containsKey(target.getUUID()) || target.isSpectator()) continue;
             cooldowns.put(target.getUUID(), now + COOLDOWN);
-            if (!TeleportSearch.active(target)) TeleportSearch.begin(target, strength);
+            if (TeleportSearch.active(target)) continue;
+            if (recall) {
+                TeleportSearch.recall(target);
+            } else {
+                TeleportSearch.begin(target, strength);
+            }
         }
     }
 
@@ -128,11 +138,23 @@ public class TeleportFieldEntity extends Entity {
         }
 
         int collapseAt = duration() - COLLAPSE_TICKS;
-        if (crossed(previous, age, 1)) {
-            level().playLocalSound(at.x, at.y, at.z, SoundEvents.GLASS_BREAK, SoundSource.NEUTRAL, 0.5F, 0.55F, false);
+        for (int level = 0; level < PortalTimeline.HIT_TICKS.length; level++) {
+            if (crossed(previous, age, PortalTimeline.HIT_TICKS[level])) {
+                level().playLocalSound(at.x, at.y, at.z, SoundEvents.GLASS_BREAK, SoundSource.NEUTRAL, PortalTimeline.HIT_VOLUME[level] + 0.1F,
+                        PortalTimeline.HIT_PITCH[level], false);
+            }
+            if (crossed(previous, age, collapseAt + PortalTimeline.unhitTick(level))) {
+                level().playLocalSound(at.x, at.y, at.z, SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.NEUTRAL, PortalTimeline.HIT_VOLUME[level],
+                        2.0F - PortalTimeline.HIT_PITCH[level] * 0.5F, false);
+            }
+        }
+        for (int tick = PortalTimeline.FRAME_FROM; tick < PortalTimeline.SLAM_TICK; tick += 2) {
+            if (crossed(previous, age, collapseAt + tick)) {
+                level().playLocalSound(at.x, at.y, at.z, SoundEvents.GLASS_HIT, SoundSource.NEUTRAL, 0.45F,
+                        tick < PortalTimeline.HOLE_FROM ? 1.5F + random.nextFloat() * 0.4F : 0.9F + random.nextFloat() * 0.3F, false);
+            }
         }
         if (crossed(previous, age, PortalTimeline.TEAR_START)) {
-            level().playLocalSound(at.x, at.y, at.z, SoundEvents.GLASS_BREAK, SoundSource.NEUTRAL, 0.8F, 0.4F, false);
             level().playLocalSound(at.x, at.y, at.z, SoundEvents.PORTAL_TRIGGER, SoundSource.NEUTRAL, 0.25F, 1.5F, false);
         }
         if (crossed(previous, age, collapseAt + 6)) {

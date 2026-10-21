@@ -1,0 +1,4 @@
+Imbuements
+
+@photo size=portrait align=right angle=6 imbuements
+TODO go over how some potions have conditions, that can be filled either via environment or using an Imbuement, essentially an item form that environment.

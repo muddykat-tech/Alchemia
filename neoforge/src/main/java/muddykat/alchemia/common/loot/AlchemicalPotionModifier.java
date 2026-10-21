@@ -1,0 +1,47 @@
+package muddykat.alchemia.common.loot;
+
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import muddykat.alchemia.common.potion.AlchemicalPotions;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.storage.loot.LootContext;
+import net.neoforged.neoforge.common.loot.IGlobalLootModifier;
+
+import java.util.List;
+
+public record AlchemicalPotionModifier(List<Identifier> tables, Holder<MobEffect> effect, Item item, int minLevel, int maxLevel, float chance,
+                                       int priority) implements IGlobalLootModifier {
+
+    public static final MapCodec<AlchemicalPotionModifier> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+            Identifier.CODEC.listOf().fieldOf("loot_tables").forGetter(AlchemicalPotionModifier::tables),
+            BuiltInRegistries.MOB_EFFECT.holderByNameCodec().fieldOf("effect").forGetter(AlchemicalPotionModifier::effect),
+            BuiltInRegistries.ITEM.byNameCodec().optionalFieldOf("item", Items.POTION).forGetter(AlchemicalPotionModifier::item),
+            Codec.intRange(1, 10).optionalFieldOf("min_level", 1).forGetter(AlchemicalPotionModifier::minLevel),
+            Codec.intRange(1, 10).optionalFieldOf("max_level", 1).forGetter(AlchemicalPotionModifier::maxLevel),
+            Codec.floatRange(0.0F, 1.0F).fieldOf("chance").forGetter(AlchemicalPotionModifier::chance),
+            Codec.INT.optionalFieldOf("priority", IGlobalLootModifier.DEFAULT_PRIORITY).forGetter(AlchemicalPotionModifier::priority)
+    ).apply(instance, AlchemicalPotionModifier::new));
+
+    @Override
+    public ObjectArrayList<ItemStack> apply(ObjectArrayList<ItemStack> generatedLoot, LootContext context) {
+        if (!tables.contains(context.getQueriedLootTableId())) return generatedLoot;
+        if (context.getRandom().nextFloat() >= chance) return generatedLoot;
+        int spread = Math.max(0, maxLevel - minLevel);
+        int level = minLevel + (spread == 0 ? 0 : context.getRandom().nextInt(spread + 1));
+        generatedLoot.add(AlchemicalPotions.of(item, effect, level));
+        return generatedLoot;
+    }
+
+    @Override
+    public MapCodec<? extends IGlobalLootModifier> codec() {
+        return CODEC;
+    }
+}

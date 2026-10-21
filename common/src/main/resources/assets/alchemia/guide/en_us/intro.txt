@@ -1,0 +1,5 @@
+Introduction
+
+Alchemia is heavily inspired by Potion Craft: Alchemist Simulator, the core systems are rough replications of its main gameplay loop, with some extras thrown in to adjust it to Minecraft.
+
+The core gameplay of this mod is about making and using potions, this section will guide you on getting started and more.

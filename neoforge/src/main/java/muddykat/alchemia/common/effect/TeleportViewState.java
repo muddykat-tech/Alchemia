@@ -7,7 +7,6 @@ public final class TeleportViewState {
     public static final int HOLD = 2;
     public static final int REVEAL = 3;
     public static final int OPEN_TICKS = 12;
-    public static final int REVEAL_TICKS = 24;
 
     private static volatile int phase = -1;
     private static volatile int revision;

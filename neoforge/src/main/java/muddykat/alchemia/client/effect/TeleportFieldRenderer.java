@@ -68,7 +68,7 @@ public class TeleportFieldRenderer extends EntityRenderer<TeleportFieldEntity, T
         RealityBreak.Plane plane = ground(size, size / ReturnPortalRenderer.PLANE_WIDTH * 0.6F);
         RealityBreak.Choreography choreography = scar
                 ? new Scar(state.age)
-                : new Field(state.age, state.collapse);
+                : new Field(state.age, state.collapse, state.seed);
         if (RealityPass.supported()) {
             RealityPass.queue(new RealityPass.Request(pattern, plane, choreography, state.seed, new Vec3(state.x, state.y, state.z)));
         } else {
@@ -82,10 +82,10 @@ public class TeleportFieldRenderer extends EntityRenderer<TeleportFieldEntity, T
                 new Vector3f(0.0F, 1.0F, 0.0F), size, size, scale);
     }
 
-    public record Field(float age, float collapse) implements RealityBreak.Choreography {
+    public record Field(float age, float collapse, int seed) implements RealityBreak.Choreography {
 
         private ReturnPortalRenderer.Choreography base() {
-            return new ReturnPortalRenderer.Choreography(age, collapse);
+            return new ReturnPortalRenderer.Choreography(age, collapse, seed);
         }
 
         private static float roll(FracturePattern.Cell cell, float salt) {
@@ -124,6 +124,11 @@ public class TeleportFieldRenderer extends EntityRenderer<TeleportFieldEntity, T
         @Override
         public boolean rimLines() {
             return base().rimLines();
+        }
+
+        @Override
+        public float lineWidth() {
+            return base().lineWidth();
         }
     }
 

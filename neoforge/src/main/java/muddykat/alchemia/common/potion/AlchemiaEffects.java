@@ -32,7 +32,7 @@ public final class AlchemiaEffects {
 
     public static final Comparator<AlchemiaEffect> ORDER = Comparator.comparingInt(AlchemiaEffects::indexOf);
 
-    public static final int DEFAULTS_VERSION = 2;
+    public static final int DEFAULTS_VERSION = 3;
 
     private static volatile List<AlchemiaEffect> EFFECTS = List.of();
     private static volatile Map<String, AlchemiaEffect> BY_ID = Map.of();
@@ -54,7 +54,8 @@ public final class AlchemiaEffects {
     }
 
     public static List<AlchemiaEffect> introducedAfter(int version) {
-        return version < 2 ? alchemical() : List.of();
+        if (version < 2) return alchemical();
+        return version < 3 ? alchemical().subList(7, 9) : List.of();
     }
 
     private static List<AlchemiaEffect> alchemical() {
@@ -65,7 +66,9 @@ public final class AlchemiaEffects {
                 alchemia("Treasure_Vision", "treasure_vision", Earth, Fire, RARE, 3, 90, "water"),
                 alchemia("Dangersense", "dangersense", Fire, Void, UNCOMMON, 2, 120, "water"),
                 alchemia("Flames", "flames", Fire, Earth, UNCOMMON, 3, 1, "honey"),
-                alchemia("Thorns", "thorns", Earth, Void, RARE, 4, 120, "honey"));
+                alchemia("Thorns", "thorns", Earth, Void, RARE, 4, 120, "honey"),
+                alchemia("Recall", "recall", Void, Water, RARE, 1, 1, "water"),
+                alchemia("Wild_Growth", "wild_growth", Earth, Water, UNCOMMON, 4, 120, "honey"));
     }
 
     private static AlchemiaEffect alchemia(String id, String path, IngredientAlignment primary, IngredientAlignment secondary,

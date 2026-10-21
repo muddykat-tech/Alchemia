@@ -4,6 +4,8 @@ import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.network.packets.PacketDiscovery;
 import muddykat.alchemia.common.network.packets.PacketEffects;
 import muddykat.alchemia.common.network.packets.PacketGreatWork;
+import muddykat.alchemia.common.network.packets.PacketPrimer;
+import muddykat.alchemia.common.network.packets.PacketPrimerUnlock;
 import muddykat.alchemia.common.network.packets.PacketImbuements;
 import muddykat.alchemia.common.network.packets.PacketBrewBases;
 import muddykat.alchemia.common.network.packets.PacketPotionRecipe;
@@ -25,12 +27,14 @@ public class NetworkHandler {
                 .playToClient(PacketBrewBases.TYPE, PacketBrewBases.STREAM_CODEC, PacketBrewBases::handle)
                 .playToClient(PacketImbuements.TYPE, PacketImbuements.STREAM_CODEC, PacketImbuements::handle)
                 .playToClient(PacketGreatWork.TYPE, PacketGreatWork.STREAM_CODEC, PacketGreatWork::handle)
+                .playToClient(PacketPrimer.TYPE, PacketPrimer.STREAM_CODEC, PacketPrimer::handle)
                 .playToClient(PacketDiscovery.TYPE, PacketDiscovery.STREAM_CODEC, PacketDiscovery::handle)
                 .playToClient(PacketTeleportView.TYPE, PacketTeleportView.STREAM_CODEC, PacketTeleportView::handle)
                 .playToClient(PacketTreasureLoot.TYPE, PacketTreasureLoot.STREAM_CODEC, PacketTreasureLoot::handle)
                 .playToClient(PacketPotionRecipe.TYPE, PacketPotionRecipe.STREAM_CODEC, PacketPotionRecipe::handle)
                 .playToServer(PacketGuideAction.TYPE, PacketGuideAction.STREAM_CODEC, PacketGuideAction::handle)
-                .playToServer(PacketNameBrew.TYPE, PacketNameBrew.STREAM_CODEC, PacketNameBrew::handle);
+                .playToServer(PacketNameBrew.TYPE, PacketNameBrew.STREAM_CODEC, PacketNameBrew::handle)
+                .playToServer(PacketPrimerUnlock.TYPE, PacketPrimerUnlock.STREAM_CODEC, PacketPrimerUnlock::handle);
     }
 
     public static void sendToPlayer(CustomPacketPayload payload, ServerPlayer player) {

@@ -1,0 +1,3 @@
+Potion Glasses
+
+@craft minecraft:glass_bottle alchemia:potion_phial alchemia:square_phial

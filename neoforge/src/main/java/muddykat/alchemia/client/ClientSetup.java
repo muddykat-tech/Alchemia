@@ -34,6 +34,7 @@ import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import muddykat.alchemia.client.particle.AncientOakLeafParticle;
 import muddykat.alchemia.client.particle.BrewBubbleParticle;
 import muddykat.alchemia.client.particle.NapalmFlameParticle;
+import muddykat.alchemia.client.particle.WildLeafParticle;
 import muddykat.alchemia.common.blocks.AncientOak;
 import net.minecraft.client.color.block.BlockTintSources;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
@@ -100,6 +101,8 @@ public class ClientSetup {
         event.registerSpriteSet(ParticleTypeRegistry.BREW_BUBBLE.get(), BrewBubbleParticle.Provider::new);
         event.registerSpriteSet(ParticleTypeRegistry.ANCIENT_OAK_LEAF.get(), AncientOakLeafParticle.Provider::new);
         event.registerSpriteSet(ParticleTypeRegistry.NAPALM_FLAME.get(), NapalmFlameParticle.Provider::new);
+        event.registerSpriteSet(ParticleTypeRegistry.WILD_LEAF.get(), WildLeafParticle.Free::new);
+        event.registerSpriteSet(ParticleTypeRegistry.WILD_SWIRL.get(), WildLeafParticle.Swirl::new);
     }
 
     @SubscribeEvent
@@ -133,5 +136,7 @@ public class ClientSetup {
                 muddykat.alchemia.client.effect.TeleportFieldRenderer::new);
         event.registerEntityRenderer(muddykat.alchemia.registration.registers.EntityTypeRegistry.RIFT.get(),
                 muddykat.alchemia.client.effect.RiftRenderer::new);
+        event.registerEntityRenderer(muddykat.alchemia.registration.registers.EntityTypeRegistry.GROWTH_FIELD.get(),
+                net.minecraft.client.renderer.entity.NoopRenderer::new);
     }
 }

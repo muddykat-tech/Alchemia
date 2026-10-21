@@ -3,6 +3,7 @@ package muddykat.alchemia.client.effect;
 import com.mojang.blaze3d.vertex.PoseStack;
 import muddykat.alchemia.common.effect.PortalTimeline;
 import muddykat.alchemia.common.effect.ReturnPortalEntity;
+import muddykat.alchemia.common.effect.TeleportFieldEntity;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
@@ -21,21 +22,26 @@ public class ReturnPortalRenderer extends EntityRenderer<ReturnPortalEntity, Ret
     public static final float PLANE_WIDTH = 1.2F;
     public static final float PLANE_HEIGHT = 1.55F;
     public static final float HOLE = 0.62F;
-    public static final float CRACK_TICKS = 12.0F;
     public static final float BREAK_SPREAD = 9.0F;
     public static final float FALL_TICKS = 16.0F;
-    public static final float RETURN_SPREAD = 9.0F;
-    public static final float RETURN_TICKS = 5.0F;
-    public static final float FLASH_TICKS = 5.0F;
-    public static final float HEAL_FROM = 12.0F;
+    public static final float LANDED = 1.8F;
+    public static final float FLARE = 1.8F;
+    public static final float FADE_TICKS = 6.0F;
     public static final float JOSTLE_BAND = 0.2F;
     public static final float JOSTLE_TICKS = 4.0F;
-    public static final float SNAP_TICKS = 3.0F;
     public static final float CREEP = 1.2F;
     public static final float STRAY_BAND = 0.5F;
     public static final float STRAY_CHANCE = 0.4F;
     public static final float STRAY_SHIFT = 0.75F;
     public static final float CREEP_TICKS = 40.0F;
+    public static final float GLOW = 0.7F;
+    public static final float LINE_BASE = 0.3F;
+    public static final float LINE_PER_HIT = 0.17F;
+    public static final Impacts IMPACTS = new Impacts(new float[]{0.5F, 0.95F, EXTENT * 1.25F}, new float[]{1.5F, 2.0F, 2.5F},
+            new float[]{0.55F, 0.75F, 1.0F}, new float[]{0.55F, 0.85F, 0.85F}, new float[]{0.3F, 0.55F, 0.55F},
+            new float[]{0.3F, 0.55F, 0.55F}, 1, 0.5F, 0.3F, 12.0F, 4.0F, 3.0F, true);
+    private static final float GROUND_SHATTER_SIZE = TeleportFieldRenderer.SCAR_SIZE;
+    private static final float GROUND_SHATTER_HOLD = TeleportFieldEntity.SCAR_SNAP - 10.0F;
 
     public static class State extends EntityRenderState {
         float age;
@@ -69,17 +75,45 @@ public class ReturnPortalRenderer extends EntityRenderer<ReturnPortalEntity, Ret
 
     @Override
     public void submit(State state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
-        if (!front(state, camera)) return;
+        boolean portalFacing = front(state, camera);
+        boolean groundVisible = camera.pos.y >= state.y + TeleportFieldRenderer.LIFT;
+        if (!portalFacing && !groundVisible) return;
 
-        FracturePattern pattern = pattern(state.seed);
-        RealityBreak.Plane plane = plane(state.yaw);
-        Choreography choreography = new Choreography(state.age, state.collapse);
         if (RealityPass.supported()) {
-            RealityPass.queue(new RealityPass.Request(pattern, plane, choreography, state.seed, new Vec3(state.x, state.y, state.z)));
+            Vec3 origin = new Vec3(state.x, state.y, state.z);
+            if (portalFacing) {
+                RealityPass.queue(new RealityPass.Request(pattern(state.seed), plane(state.yaw),
+                        new Choreography(state.age, state.collapse, state.seed), state.seed, origin));
+            }
+            if (groundVisible) {
+                RealityPass.queue(new RealityPass.Request(groundPattern(state.seed), groundPlane(), groundChoreography(state),
+                        state.seed, origin));
+            }
         } else {
-            RealityBreak.render(collector, poseStack, RealityBreak.frame(pattern, plane, choreography, state.seed, null), null);
+            if (portalFacing) {
+                RealityBreak.render(collector, poseStack,
+                        RealityBreak.frame(pattern(state.seed), plane(state.yaw), new Choreography(state.age, state.collapse, state.seed), state.seed, null), null);
+            }
+            if (groundVisible) {
+                RealityBreak.render(collector, poseStack,
+                        RealityBreak.frame(groundPattern(state.seed), groundPlane(), groundChoreography(state), state.seed, null), null);
+            }
         }
-        super.submit(state, poseStack, collector, camera);
+        if (portalFacing) super.submit(state, poseStack, collector, camera);
+    }
+
+    private static FracturePattern groundPattern(int seed) {
+        return new FracturePattern(seed * 13L + 3L, TeleportFieldRenderer.SCAR_SPOKES, TeleportFieldRenderer.SCAR_RINGS,
+                TeleportFieldRenderer.SCAR_EXTENT, TeleportFieldRenderer.SCAR_LOOSE);
+    }
+
+    private static RealityBreak.Plane groundPlane() {
+        return TeleportFieldRenderer.ground(GROUND_SHATTER_SIZE, GROUND_SHATTER_SIZE / PLANE_WIDTH * 0.6F);
+    }
+
+    private static TeleportFieldRenderer.Scar groundChoreography(State state) {
+        float age = Math.min(state.age, GROUND_SHATTER_HOLD) + state.collapse;
+        return new TeleportFieldRenderer.Scar(age);
     }
 
     public static FracturePattern pattern(int seed) {
@@ -99,14 +133,14 @@ public class ReturnPortalRenderer extends EntityRenderer<ReturnPortalEntity, Ret
         return (camera.pos.x - state.x) * -Math.sin(radians) + (camera.pos.z - state.z) * Math.cos(radians) < 0.0;
     }
 
-    public record Choreography(float age, float collapse) implements RealityBreak.Choreography {
+    public record Choreography(float age, float collapse, int seed) implements RealityBreak.Choreography, Impacts.Clock {
 
         private static boolean breaks(FracturePattern.Cell cell) {
             return cell.reach() + cell.wobble() * 0.1F < HOLE;
         }
 
         private static float breakAt(FracturePattern.Cell cell) {
-            return PortalTimeline.TEAR_START + Mth.clamp(cell.reach() / HOLE, 0.0F, 1.0F) * BREAK_SPREAD + cell.wobble() * 2.0F;
+            return PortalTimeline.TEAR_START + 1.5F + Mth.clamp(cell.reach() / HOLE, 0.0F, 1.0F) * BREAK_SPREAD + cell.wobble() * 2.0F;
         }
 
         private static boolean jostles(FracturePattern.Cell cell) {
@@ -122,71 +156,129 @@ public class ReturnPortalRenderer extends EntityRenderer<ReturnPortalEntity, Ret
         }
 
         private static float roll(FracturePattern.Cell cell) {
-            float noise = (float) Math.sin(cell.cx() * 127.1F + cell.cy() * 311.7F) * 43758.547F;
+            return roll(cell, 0.0F);
+        }
+
+        private static float roll(FracturePattern.Cell cell, float salt) {
+            float noise = (float) Math.sin(cell.cx() * 127.1F + cell.cy() * 311.7F + salt) * 43758.547F;
             return noise - (float) Math.floor(noise);
+        }
+
+        private static float landing(float since) {
+            return since < LANDED ? 0.0F : (float) Math.exp(-(since - LANDED) / 3.0F);
+        }
+
+        private static float jump(float since) {
+            return since < 0.0F ? 0.0F : 0.7F * (float) Math.exp(-since / 2.5F);
         }
 
         private static float jostleAt(FracturePattern.Cell cell) {
             return PortalTimeline.TEAR_START + BREAK_SPREAD + (cell.reach() - HOLE) / JOSTLE_BAND * 3.0F + cell.wobble() * 2.0F;
         }
 
-        private RealityBreak.CellState jostle(FracturePattern.Cell cell, int index) {
+        private float opened() {
+            return age - collapse;
+        }
+
+        @Override
+        public float age(int level) {
+            return age - PortalTimeline.HIT_TICKS[level];
+        }
+
+        @Override
+        public boolean reached(int level) {
+            return opened() >= PortalTimeline.HIT_TICKS[level];
+        }
+
+        @Override
+        public float undone(int level) {
+            if (collapse <= 0.0F || !reached(level)) return Impacts.NEVER;
+            return collapse - PortalTimeline.unhitTick(level);
+        }
+
+        private RealityBreak.CellState jostle(FracturePattern.Cell cell, int index, float flash) {
+            if (opened() < jostleAt(cell)) return new RealityBreak.CellState(0.0F, false, flash);
             float grow = (age - jostleAt(cell)) / JOSTLE_TICKS;
-            if (grow <= 0.0F) return RealityBreak.CellState.REST;
             float settle = Mth.clamp(grow, 0.0F, 1.0F);
             float jolt = settle * settle * (3.0F - 2.0F * settle) * (1.0F + 0.35F * (float) Math.sin(settle * Math.PI));
             float creep = (age - jostleAt(cell)) / CREEP_TICKS;
             float drift = 1.0F + CREEP * creep / (1.0F + creep) + 0.22F * (float) Math.sin(age * 0.09F + index * 1.7F);
             float shift = jolt * drift * (stray(cell) ? STRAY_SHIFT : 1.0F);
-            if (collapse <= 0.0F) return new RealityBreak.CellState(0.0F, true, 0.0F, shift);
+            if (collapse <= 0.0F) return new RealityBreak.CellState(0.0F, true, flash, shift);
 
-            float snap = (collapse - 1.0F - (cell.wobble() + 0.5F) * 2.0F) / SNAP_TICKS;
-            if (snap <= 0.0F) return new RealityBreak.CellState(0.0F, true, 0.0F, shift);
-            if (snap < 1.0F) return new RealityBreak.CellState(0.0F, true, 0.0F, shift * (1.0F - snap * snap));
-            float flash = 1.0F - (snap - 1.0F) * SNAP_TICKS / FLASH_TICKS;
-            return new RealityBreak.CellState(0.0F, false, Mth.clamp(flash, 0.0F, 1.0F));
+            float since = collapse - (PortalTimeline.FRAME_FROM + roll(cell, 17.0F) * PortalTimeline.FRAME_TICKS);
+            if (since < 0.0F) {
+                float tremble = since > -2.0F ? 0.12F * (1.0F + since / 2.0F) * (float) Math.sin(since * 9.0F) : 0.0F;
+                return new RealityBreak.CellState(0.0F, true, flash, shift * (1.0F + tremble));
+            }
+            float left = Impacts.stepped(since);
+            if (left > 0.0F) return new RealityBreak.CellState(0.0F, true, Math.max(flash, jump(since)), shift * left);
+            return new RealityBreak.CellState(0.0F, false, Math.max(flash, landing(since)));
         }
 
         private static float returnAt(FracturePattern.Cell cell) {
-            return Mth.clamp(1.0F - cell.reach() / HOLE, 0.0F, 1.0F) * RETURN_SPREAD + 1.0F + cell.wobble();
+            return PortalTimeline.HOLE_FROM + Mth.clamp(1.0F - cell.reach() / HOLE, 0.0F, 1.0F) * PortalTimeline.HOLE_TICKS
+                    + (roll(cell, 5.0F) - 0.5F) * 1.5F;
+        }
+
+        private static int region(float reach) {
+            for (int level = 0; level < PortalTimeline.SHATTER; level++) {
+                if (reach < IMPACTS.front()[level]) return level;
+            }
+            return PortalTimeline.SHATTER;
         }
 
         @Override
         public RealityBreak.CellState cell(FracturePattern.Cell cell, int index) {
-            if (jostles(cell)) return jostle(cell, index);
-            if (!breaks(cell)) return RealityBreak.CellState.REST;
-            float since = age - breakAt(cell);
-            if (since < 0.0F) return RealityBreak.CellState.REST;
-            if (collapse <= 0.0F) return new RealityBreak.CellState(Math.min(1.0F, since / FALL_TICKS), true, 0.0F);
+            float flash = IMPACTS.flash(this, cell);
+            if (jostles(cell)) return jostle(cell, index, flash);
+            if (!breaks(cell) || opened() < breakAt(cell)) return IMPACTS.cracked(this, cell, seed, index, flash);
+            boolean chip = IMPACTS.chip(cell, seed, index) && reached(IMPACTS.chipLevel());
+            if (collapse <= 0.0F) {
+                if (chip) return IMPACTS.cracked(this, cell, seed, index, flash);
+                return new RealityBreak.CellState(Math.min(1.0F, (age - breakAt(cell)) / FALL_TICKS), true, 0.0F);
+            }
+            if (chip) {
+                if (undone(IMPACTS.chipLevel()) < 0.0F) return new RealityBreak.CellState(1.0F, true, 0.0F);
+                return IMPACTS.cracked(this, cell, seed, index, flash);
+            }
 
-            float back = (collapse - returnAt(cell)) / RETURN_TICKS;
-            if (back <= 0.0F) return new RealityBreak.CellState(1.0F, true, 0.0F);
-            if (back < 1.0F) return new RealityBreak.CellState(1.0F - back * back, true, 0.0F);
-            float flash = 1.0F - (collapse - returnAt(cell) - RETURN_TICKS) / FLASH_TICKS;
-            return new RealityBreak.CellState(0.0F, false, Mth.clamp(flash, 0.0F, 1.0F));
+            float since = collapse - returnAt(cell);
+            if (since < 0.0F) return new RealityBreak.CellState(1.0F, true, 0.0F);
+            float left = Impacts.stepped(since);
+            if (left > 0.0F) return new RealityBreak.CellState(Math.min(1.0F, left * 1.4F), true, 0.0F);
+            return IMPACTS.cracked(this, cell, seed, index, Math.max(flash, landing(since)));
         }
 
         @Override
         public float crackFront() {
-            float grow = Mth.clamp(age / CRACK_TICKS, 0.0F, 1.0F);
-            return EXTENT * 1.25F * grow * grow * (3.0F - 2.0F * grow);
+            return collapse > 0.0F ? IMPACTS.front()[PortalTimeline.SHATTER] : IMPACTS.crackFront(this);
         }
 
         @Override
         public float crackGlow() {
-            if (collapse > 0.0F) {
-                float heal = Mth.clamp((collapse - HEAL_FROM) / (PortalTimeline.COLLAPSE_TICKS - HEAL_FROM), 0.0F, 1.0F);
-                return 0.6F * (1.0F - heal) * (1.0F - heal);
-            }
-            float pulse = 0.08F * (float) Math.sin(age * 0.2F);
-            if (age < CRACK_TICKS) return 0.9F + 0.1F * (float) Math.sin(age * 2.3F);
-            float settle = Mth.clamp((age - CRACK_TICKS) / 12.0F, 0.0F, 1.0F);
-            return Mth.lerp(settle, 0.9F, 0.45F) + pulse;
+            if (collapse > 0.0F) return (0.5F + 0.08F * (float) Math.sin(age * 0.35F)) * GLOW;
+            return IMPACTS.crackGlow(this, age) * GLOW;
+        }
+
+        @Override
+        public float crackLight(float reach) {
+            float undone = undone(region(reach));
+            if (undone < 0.0F) return 1.0F;
+            float flare = 1.0F + FLARE * (float) Math.exp(-undone / 1.5F) * Math.min(1.0F, undone / 0.4F);
+            float fade = Mth.clamp((undone - 1.0F) / FADE_TICKS, 0.0F, 1.0F);
+            float flicker = (float) Math.sin(undone * 7.3F + reach * 41.0F) > 0.0F ? 1.0F : 0.7F;
+            return flare * (1.0F - fade * fade * (3.0F - 2.0F * fade)) * (fade > 0.0F ? flicker : 1.0F);
         }
 
         @Override
         public boolean rimLines() {
             return RIM_LINES;
+        }
+
+        @Override
+        public float lineWidth() {
+            return LINE_BASE + LINE_PER_HIT * (collapse > 0.0F ? PortalTimeline.HIT_TICKS.length : IMPACTS.lit(this));
         }
 
         @Override

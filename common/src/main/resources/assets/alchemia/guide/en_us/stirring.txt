@@ -1,0 +1,5 @@
+Stirring
+
+@unlock advancement alchemia:cauldron
+@photo stirring_1 stirring_2
+TODO explain how stirring works

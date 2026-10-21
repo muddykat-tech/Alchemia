@@ -29,6 +29,7 @@ public class AlchemiaRegistry {
         MobEffectRegistry.MOB_EFFECTS.register(modEventBus);
         EntityTypeRegistry.ENTITY_TYPES.register(modEventBus);
         LootModifierRegistry.LOOT_MODIFIERS.register(modEventBus);
+        AttachmentRegistry.ATTACHMENT_TYPES.register(modEventBus);
         Alchemia.LOGGER.info(MOD_NAME + " Registration Complete");
     }
 }

@@ -1,0 +1,6 @@
+Bottling
+
+@unlock advancement alchemia:cauldron
+@photo bottling_1 bottling_2
+@items left minecraft:glass_bottle|alchemia:potion_phial|alchemia:square_phial
+TODO explain how bottling a potion works, and what potion vials are available.

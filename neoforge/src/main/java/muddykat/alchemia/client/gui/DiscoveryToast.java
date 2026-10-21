@@ -47,6 +47,9 @@ public class DiscoveryToast implements Toast {
     private static final long BASE_MS = 4000L;
     private static final long PER_ENTRY_MS = 1500L;
     private static final int MAX_PACED = 6;
+    private static final float NUMERAL_SCALE = 1.25F;
+    private static final int NUMERAL_INSET = 3;
+    private static final int NUMERAL_CAP = 11;
 
     private final GuideNews.Kind kind;
     private final Identifier ribbon;
@@ -64,6 +67,7 @@ public class DiscoveryToast implements Toast {
             case SECRET -> "secret";
             case RECIPE -> "recipe";
             case OPUS -> "opus";
+            case CHAPTER -> "contents";
         });
     }
 
@@ -80,7 +84,7 @@ public class DiscoveryToast implements Toast {
 #endif
         ToastManager toasts = toasts(minecraft);
         for (GuideNews.Entry entry : news) {
-            if (brewing && entry.kind() != GuideNews.Kind.RECIPE) continue;
+            if (brewing && entry.kind() != GuideNews.Kind.RECIPE && entry.kind() != GuideNews.Kind.CHAPTER) continue;
 
             DiscoveryToast toast = toasts.getToast(DiscoveryToast.class, entry.kind());
             if (toast == null) {
@@ -177,6 +181,7 @@ public class DiscoveryToast implements Toast {
                             SLOT_X + EFFECT_INSET, SLOT_Y + EFFECT_INSET, SLOT - 2 * EFFECT_INSET, SLOT - 2 * EFFECT_INSET);
                 }
             }
+            case CHAPTER -> numeral(graphics, Minecraft.getInstance().font, entry.key());
             case SECRET -> graphics.blit(RenderPipelines.GUI_TEXTURED, WIDGETS, SLOT_X + (SLOT - EYE) / 2, SLOT_Y + (SLOT - EYE) / 2,
                     EYE_U, 0, EYE, EYE, SHEET, SHEET);
             default -> graphics.fakeItem(entry.icon(), SLOT_X + ITEM_INSET, SLOT_Y + ITEM_INSET);
@@ -184,20 +189,29 @@ public class DiscoveryToast implements Toast {
     }
 
 
+    private static void numeral(GuiGraphicsExtractor graphics, Font font, String numeral) {
+        int width = font.width(Lettering.of(numeral));
+        float scale = Math.min(NUMERAL_SCALE, (SLOT - 2 * NUMERAL_INSET) / (float) Math.max(1, width));
+        float x = SLOT_X + (SLOT - width * scale) / 2.0F;
+        float y = SLOT_Y + (SLOT - NUMERAL_CAP * scale) / 2.0F;
+        lettered(graphics, font, numeral, x + scale, y + scale, scale, INK_SHADOW);
+        lettered(graphics, font, numeral, x, y, scale, INK_RED);
+    }
+
     private void title(GuiGraphicsExtractor graphics, Font font, String text) {
         if (text.isEmpty()) return;
         String initial = text.substring(0, text.offsetByCodePoints(0, 1));
         String rest = text.substring(initial.length());
-        lettered(graphics, font, text, TEXT_X + TITLE_SCALE, TITLE_Y + TITLE_SCALE, INK_SHADOW);
-        lettered(graphics, font, initial, TEXT_X, TITLE_Y, INK_RED);
-        lettered(graphics, font, rest, TEXT_X + font.width(Lettering.of(initial)) * TITLE_SCALE, TITLE_Y, INK);
+        lettered(graphics, font, text, TEXT_X + TITLE_SCALE, TITLE_Y + TITLE_SCALE, TITLE_SCALE, INK_SHADOW);
+        lettered(graphics, font, initial, TEXT_X, TITLE_Y, TITLE_SCALE, INK_RED);
+        lettered(graphics, font, rest, TEXT_X + font.width(Lettering.of(initial)) * TITLE_SCALE, TITLE_Y, TITLE_SCALE, INK);
     }
 
-    private static void lettered(GuiGraphicsExtractor graphics, Font font, String text, float x, float capTop, int colour) {
+    private static void lettered(GuiGraphicsExtractor graphics, Font font, String text, float x, float capTop, float scale, int colour) {
         if (text.isEmpty()) return;
         graphics.pose().pushMatrix();
         graphics.pose().translate(x, capTop);
-        graphics.pose().scale(TITLE_SCALE, TITLE_SCALE);
+        graphics.pose().scale(scale, scale);
         graphics.text(font, Lettering.of(text), 0, Lettering.RISE, colour, false);
         graphics.pose().popMatrix();
     }
