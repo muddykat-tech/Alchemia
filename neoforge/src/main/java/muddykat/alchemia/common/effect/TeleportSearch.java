@@ -44,7 +44,7 @@ import java.util.concurrent.CompletableFuture;
 @EventBusSubscriber(modid = Alchemia.MODID)
 public final class TeleportSearch {
 
-    private static final int RANGE_PER_LEVEL = 1500;
+    private static final int RANGE_PER_LEVEL = 500;
     private static final double MIN_FRACTION = 0.1;
     private static final int ATTEMPTS = 8;
     private static final int MIN_CHARGE = RiftEntity.CHARGE_TICKS;

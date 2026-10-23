@@ -44,19 +44,25 @@ final class PrimerBook {
 
     static final float MAX_ANGLE = 15.0F;
 
-    sealed interface Block permits Text, Photo, Items, Crafts, Rule, Break {
+    sealed interface Block permits Text, Photo, Items, Path, Crafts, Rule, Break {
     }
 
     record Text(String line) implements Block {
     }
 
-    record Photo(Shape shape, Align align, float angle, List<String> names) implements Block {
+    record Photo(Shape shape, Align align, float angle, List<String> names, List<String> titles) implements Block {
+        String title(int index) {
+            return index < titles.size() ? titles.get(index) : "";
+        }
     }
 
     record Items(Align align, List<String> slots) implements Block {
     }
 
-    record Crafts(List<GuidePrimer.CraftSource> crafts) implements Block {
+    record Path(String itemName, boolean compact, Align align, boolean grind) implements Block {
+    }
+
+    record Crafts(List<GuidePrimer.CraftSource> crafts, boolean compact) implements Block {
     }
 
     record Rule() implements Block {
@@ -75,7 +81,7 @@ final class PrimerBook {
     record Section(String key, String title, String label, List<Block> blocks, List<Unlock> unlocks) {
     }
 
-    private static final Pattern TOKEN = Pattern.compile("\"([^\"]*)\"|(\\S+)");
+    private static final Pattern TOKEN = Pattern.compile("([A-Za-z]+=)?\"([^\"]*)\"|(\\S+)");
     private static final Map<String, Section> SECTIONS = new HashMap<>();
     private static String language = "";
 
@@ -125,21 +131,27 @@ final class PrimerBook {
         List<Block> blocks = new ArrayList<>();
         List<Unlock> unlocks = new ArrayList<>();
         List<GuidePrimer.CraftSource> crafts = new ArrayList<>();
+        boolean compact = false;
         for (int index = 2; index < lines.length; index++) {
             String line = lines[index].stripTrailing();
             boolean recipe = line.startsWith("@craft ");
             boolean manual = line.startsWith("@manual_craft ");
-            if (!recipe && !manual && !crafts.isEmpty()) {
-                blocks.add(new Crafts(List.copyOf(crafts)));
+            List<String> craftTokens = recipe ? tokens(line.substring("@craft ".length()))
+                    : manual ? tokens(line.substring("@manual_craft ".length())) : List.of();
+            boolean lineCompact = craftTokens.stream().anyMatch(token -> token.equalsIgnoreCase("style=compact"));
+            craftTokens = craftTokens.stream().filter(token -> !token.startsWith("style=")).toList();
+            if (!crafts.isEmpty() && (!(recipe || manual) || lineCompact != compact)) {
+                blocks.add(new Crafts(List.copyOf(crafts), compact));
                 crafts.clear();
             }
+            if (recipe || manual) compact = lineCompact;
             if (recipe) {
-                for (String token : tokens(line.substring("@craft ".length()))) {
+                for (String token : craftTokens) {
                     Identifier id = Identifier.tryParse(token);
                     if (id != null) crafts.add(new GuidePrimer.CraftRecipe(id));
                 }
             } else if (manual) {
-                GuidePrimer.Craft parsed = craft(tokens(line.substring("@manual_craft ".length())));
+                GuidePrimer.Craft parsed = craft(craftTokens);
                 if (parsed != null) crafts.add(parsed);
             } else if (line.equals("@unlock") || line.startsWith("@unlock ")) {
                 Unlock unlock = unlock(key, tokens(line.substring("@unlock".length())));
@@ -151,7 +163,7 @@ final class PrimerBook {
                 blocks.add(new Text(line.strip()));
             }
         }
-        if (!crafts.isEmpty()) blocks.add(new Crafts(List.copyOf(crafts)));
+        if (!crafts.isEmpty()) blocks.add(new Crafts(List.copyOf(crafts), compact));
         while (!blocks.isEmpty() && blocks.getLast() instanceof Text text && text.line().isEmpty()) blocks.removeLast();
         return new Section(key, title, label.isEmpty() ? title : label, List.copyOf(blocks), List.copyOf(unlocks));
     }
@@ -159,7 +171,7 @@ final class PrimerBook {
     private static List<String> tokens(String line) {
         List<String> tokens = new ArrayList<>();
         Matcher match = TOKEN.matcher(line);
-        while (match.find()) tokens.add(match.group(1) != null ? match.group(1) : match.group(2));
+        while (match.find()) tokens.add(match.group(3) != null ? match.group(3) : (match.group(1) == null ? "" : match.group(1)) + match.group(2));
         return tokens;
     }
 
@@ -173,12 +185,15 @@ final class PrimerBook {
                 Align align = Align.CENTER;
                 float angle = 0.0F;
                 List<String> names = new ArrayList<>();
+                List<String> titles = new ArrayList<>();
                 for (String token : rest) {
                     String value = token.contains("=") ? token.substring(token.indexOf('=') + 1).toUpperCase(Locale.ROOT) : "";
                     if (token.startsWith("size=")) {
                         shape = parse(Shape.class, value, shape);
                     } else if (token.startsWith("align=")) {
                         align = parse(Align.class, value, align);
+                    } else if (token.startsWith("title=")) {
+                        for (String title : token.substring(6).split("\\|", -1)) titles.add(title.strip());
                     } else if (token.startsWith("angle=")) {
                         try {
                             angle = Math.max(-MAX_ANGLE, Math.min(MAX_ANGLE, Float.parseFloat(value)));
@@ -188,7 +203,7 @@ final class PrimerBook {
                         names.add(token);
                     }
                 }
-                yield names.isEmpty() ? null : new Photo(shape, align, angle, List.copyOf(names));
+                yield names.isEmpty() ? null : new Photo(shape, align, angle, List.copyOf(names), List.copyOf(titles));
             }
             case "items" -> {
                 Align align = Align.CENTER;
@@ -203,6 +218,24 @@ final class PrimerBook {
                     }
                 }
                 yield slots.isEmpty() ? null : new Items(align, List.copyOf(slots));
+            }
+            case "path" -> {
+                boolean compact = false;
+                boolean grind = false;
+                Align align = Align.CENTER;
+                List<String> names = new ArrayList<>();
+                for (String token : rest) {
+                    if (token.startsWith("style=")) {
+                        compact = token.substring(6).equalsIgnoreCase("compact");
+                    } else if (token.startsWith("align=")) {
+                        align = parse(Align.class, token.substring(6).toUpperCase(Locale.ROOT), align);
+                    } else if (token.startsWith("grind=")) {
+                        grind = token.substring(6).equalsIgnoreCase("true");
+                    } else {
+                        names.add(token);
+                    }
+                }
+                yield names.size() == 1 ? new Path(names.getFirst(), compact, align, grind) : null;
             }
             case "break" -> new Rule();
             case "page" -> new Break();

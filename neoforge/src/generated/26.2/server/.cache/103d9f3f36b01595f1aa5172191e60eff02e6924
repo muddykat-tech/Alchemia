@@ -1,4 +1,4 @@
-// 26.2	2026-10-21T12:15:08.114360988	Registries
+// 26.2	2026-10-22T20:28:11.696909765	Registries
 1384db2f5804caa5955fe44d000b96cbb51381b1 data/alchemia/alchemia/wild_greening/desert.json
 db8e373f34ea29e4d22c9b9e15cf9919fd2de9f3 data/alchemia/alchemia/wild_greening/plains.json
 434c081fe25397bd8d2663a164282857c79a0608 data/alchemia/alchemia/wild_growth/coarse_dirt.json
@@ -98,7 +98,7 @@ fb8d451a764ca6241be06ab503d5bd14ec1a010d data/alchemia/worldgen/configured_featu
 963aca911d0403001d7e544805fbba1e56eb2480 data/alchemia/worldgen/configured_feature/roots_grasping_root.json
 bae2d05017a238fabdb5afeffdaf9041404d80be data/alchemia/worldgen/configured_feature/roots_lava_root.json
 13300d38f327ce38b39209979ef250566886bb76 data/alchemia/worldgen/configured_feature/roots_terraria.json
-97135a1ccbf3c762aa1a24e396db0688f0cdd3d5 data/alchemia/worldgen/configured_feature/seabed_flameweed.json
+5ac47b73e4a986874d16c1cba37acbbb42424c21 data/alchemia/worldgen/configured_feature/seabed_flameweed.json
 bbac5230d9272c7a32aded499d57e43c9be341dd data/alchemia/worldgen/configured_feature/seabed_tangleweed.json
 9430fb7aab58d7f79aa08ed15322054428ab0565 data/alchemia/worldgen/configured_feature/trunk_sulphur_shelf.json
 d183e65611e6ac8542bd24888160b961d8523c79 data/alchemia/worldgen/placed_feature/ancient_oak.json

@@ -17,6 +17,13 @@ public interface IngredientTool {
 
     void playStep(Level level, BlockPos pos);
 
+    default int soundGap() {
+        return 10;
+    }
+
+    default void playDone(Level level, BlockPos pos) {
+    }
+
     String actionKey();
 
     float progress(ItemStack target);

@@ -1,4 +1,4 @@
-// 1.21.1	2026-10-20T08:05:57.898694904	Loot Tables
+// 1.21.1	2026-10-22T20:27:00.370830844	Loot Tables
 9a3c4881fb97b946b1c310ff62a73232f1432f3c data/alchemia/loot_table/blocks/alchemical_cauldron.json
 a423eacc0706177874fcb94bcf81b8a8829af93b data/alchemia/loot_table/blocks/alchemy_machine_core.json
 736b89b874ca6bba271a086be36a08938ac43bae data/alchemia/loot_table/blocks/alchemy_machine_left_upgrade.json
@@ -65,7 +65,7 @@ f81a663095f67c9f8eb14af3c73f1c50eaa32771 data/alchemia/loot_table/blocks/herb_co
 d686c7edcc8b6754ddc30de6d7106293bfd7f365 data/alchemia/loot_table/blocks/herb_dragon_pepper_seed.json
 b605fd37ac973b5440740181dbbbdc1647eb8b66 data/alchemia/loot_table/blocks/herb_druids_rosemary_seed.json
 49cbdd13174a2029378a46d97e3688bf046ea55a data/alchemia/loot_table/blocks/herb_evergreen_fern_seed.json
-9a4d376b602abe156138c2acd912b078686724e8 data/alchemia/loot_table/blocks/herb_flameweed_seed.json
+284b6d93dd21a0c4b84b7232301722dcfdcaea50 data/alchemia/loot_table/blocks/herb_flameweed_seed.json
 e62440efe0651b26d62d04ee90a8274c9f11295e data/alchemia/loot_table/blocks/herb_flameweed_stalk.json
 213ea2ebcdece3b2c03b54b3b677103e695bf4fb data/alchemia/loot_table/blocks/herb_goldthorn_seed.json
 9c84ff4ee69ed7c56c293a11b0cfa7d886fa5f05 data/alchemia/loot_table/blocks/herb_goodberry_seed.json

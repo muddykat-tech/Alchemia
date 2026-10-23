@@ -53,7 +53,19 @@ public class BlockIngredientTall extends BlockIngredient implements WildGrowth {
     }
 
     public boolean hasUpper(BlockState state) {
-        return getAge(state) >= UPPER_FROM_AGE;
+        return getAge(state) >= upperFromAge();
+    }
+
+    protected int upperFromAge() {
+        return UPPER_FROM_AGE;
+    }
+
+    protected boolean canPlaceUpper(LevelReader level, BlockPos pos) {
+        return level.isEmptyBlock(pos);
+    }
+
+    protected boolean hasValidUpper(BlockState state, LevelReader level, BlockPos pos) {
+        return isHalf(level.getBlockState(pos.above()), DoubleBlockHalf.UPPER);
     }
 
     protected boolean isHalf(BlockState state, DoubleBlockHalf half) {
@@ -75,7 +87,7 @@ public class BlockIngredientTall extends BlockIngredient implements WildGrowth {
         if (!state.is(this)) return super.canSurvive(state, level, pos);
         if (!isLower(state)) return isHalf(level.getBlockState(pos.below()), DoubleBlockHalf.LOWER);
         if (!super.canSurvive(state, level, pos)) return false;
-        return !hasUpper(state) || isHalf(level.getBlockState(pos.above()), DoubleBlockHalf.UPPER);
+        return !hasUpper(state) || hasValidUpper(state, level, pos);
     }
 
     @Override
@@ -86,7 +98,7 @@ public class BlockIngredientTall extends BlockIngredient implements WildGrowth {
     @Override
     public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         if (!isLower(state)) return;
-        if (getAge(state) + 1 >= UPPER_FROM_AGE && !hasUpper(state) && !level.isEmptyBlock(pos.above())) return;
+        if (getAge(state) + 1 >= upperFromAge() && !hasUpper(state) && !canPlaceUpper(level, pos.above())) return;
         super.randomTick(state, level, pos, random);
     }
 
@@ -108,7 +120,7 @@ public class BlockIngredientTall extends BlockIngredient implements WildGrowth {
         if (synced != lower) level.setBlock(below, synced, 2);
     }
 
-    private void raiseUpper(Level level, BlockPos pos, BlockState lower) {
+    protected void raiseUpper(Level level, BlockPos pos, BlockState lower) {
         BlockPos above = pos.above();
         BlockState current = level.getBlockState(above);
         BlockState upper = lower.setValue(HALF, DoubleBlockHalf.UPPER);
@@ -116,10 +128,10 @@ public class BlockIngredientTall extends BlockIngredient implements WildGrowth {
         if (isHalf(current, DoubleBlockHalf.UPPER)) {
             BlockState synced = shareGrowth(lower, current);
             if (synced != current) level.setBlock(above, synced, 2);
-        } else if (current.isAir()) {
+        } else if (canPlaceUpper(level, above)) {
             level.setBlock(above, upper, 3);
         } else {
-            level.setBlock(pos, lower.setValue(getAgeProperty(), UPPER_FROM_AGE - 1), 2);
+            level.setBlock(pos, lower.setValue(getAgeProperty(), upperFromAge() - 1), 2);
         }
     }
 
@@ -156,7 +168,7 @@ public class BlockIngredientTall extends BlockIngredient implements WildGrowth {
         if (!seedling.canSurvive(level, pos)) return false;
 
         int age = random.nextInt(getMaxAge() + 1);
-        if (!level.isEmptyBlock(pos.above())) age = Math.min(age, UPPER_FROM_AGE - 1);
+        if (!canPlaceUpper(level, pos.above())) age = Math.min(age, upperFromAge() - 1);
 
         BlockState lower = wildState(plant, age, random);
         level.setBlock(pos, lower, 2);

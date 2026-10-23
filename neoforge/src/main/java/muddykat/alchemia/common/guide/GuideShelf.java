@@ -88,8 +88,21 @@ public final class GuideShelf implements Iterable<ItemStack> {
     }
 
     public void settle(BlockPos from) {
+        settle(from, false);
+    }
+
+    public void settleQuietly(BlockPos from) {
+        settle(from, true);
+    }
+
+    private void settle(BlockPos from, boolean quiet) {
         for (Desk entry : desks) {
-            if (!ItemStack.isSameItemSameComponents(entry.before(), entry.desk().guide())) entry.desk().inscribed(from);
+            if (ItemStack.isSameItemSameComponents(entry.before(), entry.desk().guide())) continue;
+            if (quiet) {
+                entry.desk().guideChanged();
+            } else {
+                entry.desk().inscribed(from);
+            }
         }
         GuideNews.announce(player, before);
         before = GuideNews.Snapshot.of(guides);

@@ -68,6 +68,10 @@ public enum Ingredients {
     public static final int CRUSH_UNITS_PER_LEVEL = 8;
     public static final int MAX_CRUSH_UNITS = MAX_CRUSH * CRUSH_UNITS_PER_LEVEL;
 
+    public static int crushPercent(int units) {
+        return Math.round(100.0F * Math.max(0, Math.min(MAX_CRUSH_UNITS, units)) / MAX_CRUSH_UNITS);
+    }
+
     final IngredientType type;
     final IngredientAlignment primaryAlignment;
     final Rarity rarity;

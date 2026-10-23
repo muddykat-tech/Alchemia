@@ -8,7 +8,8 @@
           "plant": {
             "Name": "alchemia:herb_flameweed_seed",
             "Properties": {
-              "age": "0"
+              "age": "0",
+              "half": "lower"
             }
           }
         }
@@ -70,7 +71,8 @@
           "plant": {
             "Name": "alchemia:herb_flameweed_seed",
             "Properties": {
-              "age": "0"
+              "age": "0",
+              "half": "lower"
             }
           }
         }

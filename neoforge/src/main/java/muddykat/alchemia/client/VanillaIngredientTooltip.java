@@ -95,6 +95,7 @@ public class VanillaIngredientTooltip {
 
         double reached = PathGeometry.length(map.fixedDriftOffsets(drift.target(), ItemIngredient.crushOf(event.getItemStack())));
         event.getTooltipElements().add(Either.right(new IngredientPathTooltip(
-                offsets, reached, false, Component.translatable("alchemia.tooltip.label.path"))));
+                offsets, reached, false, Component.translatable("alchemia.tooltip.label.path"),
+                ItemIngredient.crushOf(event.getItemStack()))));
     }
 }

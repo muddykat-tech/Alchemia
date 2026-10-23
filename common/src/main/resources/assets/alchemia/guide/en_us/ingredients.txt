@@ -3,9 +3,9 @@ Ingredients
 @unlock advancement alchemia:cauldron
 Before you can brew a potion, you will need ingredients, ingredients can be found throughout the overworld, nether and the end.
 
-@photo size=square angle=2 align=right ingredients_herbs ingredients_roots ingredients_flowers ingredients_mushrooms ingredients_minerals
+@photo size=square angle=2 align=right title="Flame Weed|Terraria|Fire Bell|Witch Mushroom|Frost Sapphire" ingredients_herbs ingredients_roots ingredients_flowers ingredients_mushrooms ingredients_minerals
 There are five main ingredient types, herbs, roots, flowers, mushrooms and minerals.
 @page
 They're found throughout the world, each ingredient has its own preference for biome and substrate, all ingredients once harvested can be cultivated.
 
-@craft alchemia:firebell_seeds_from_ingredient alchemia:rainbow_cap_seeds_from_ingredient alchemia:druids_rosemary_seeds_from_ingredient alchemia:dreambeet_seeds_from_ingredient
+@craft style=compact alchemia:firebell_seeds_from_ingredient alchemia:rainbow_cap_seeds_from_ingredient alchemia:druids_rosemary_seeds_from_ingredient alchemia:dreambeet_seeds_from_ingredient

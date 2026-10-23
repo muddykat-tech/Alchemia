@@ -9,6 +9,13 @@
             "type": "minecraft:survives_explosion"
           },
           {
+            "type": "minecraft:match_block",
+            "blocks": "alchemia:herb_flameweed_seed",
+            "state": {
+              "half": "lower"
+            }
+          },
+          {
             "type": "minecraft:inverted",
             "term": {
               "type": "minecraft:match_block",
@@ -34,6 +41,13 @@
         "terms": [
           {
             "type": "minecraft:survives_explosion"
+          },
+          {
+            "type": "minecraft:match_block",
+            "blocks": "alchemia:herb_flameweed_seed",
+            "state": {
+              "half": "lower"
+            }
           },
           {
             "type": "minecraft:match_block",

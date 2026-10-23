@@ -50,15 +50,19 @@ A line starting with `@` places something on the page instead of text:
 
 | Directive | What it places |
 |---|---|
-| `@photo [size=..] [align=..] [angle=..] name name ...` | A framed picture from `textures/gui/guide/primer/<name>.png`. With more than one name, small arrows flip between them in order. See below for the options. |
+| `@photo [size=..] [align=..] [angle=..] [title=..] name name ...` | A framed picture from `textures/gui/guide/primer/<name>.png`. With more than one name, small arrows flip between them in order. See below for the options. |
 | `@items <align> slot slot ...` | A row of up to 4 item slots. `<align>` is `left`, `center` or `right` and can be left out (centre). Text flows beside a `left` or `right` row. |
-| `@craft recipe recipe ...` | A crafting grid filled in from the game's own crafting recipes, named by recipe id (`minecraft:glass_bottle`). Name several to flip between them. Ingredients that accept several items cycle through them. |
-| `@manual_craft result*count "row" "row" "row" K=item ...` | A crafting grid you lay out yourself. Rows are quoted, up to 3 characters each; each `K=item` says what a letter stands for. |
+| `@path [style=..] [align=..] [grind=true] <ingredient>` | An ingredient's path drawn on a framed chart, with the ingredient and its name on a banner across the top, such as `@path herb_mageberry`. Use its item registry name, with or without the `alchemia:` namespace. See below for the compact style. |
+| `@craft [style=compact] recipe recipe ...` | A crafting grid filled in from the game's own crafting recipes, named by recipe id (`minecraft:glass_bottle`). Name several to flip between them. Ingredients that accept several items cycle through them. |
+| `@manual_craft [style=compact] result*count "row" "row" "row" K=item ...` | A crafting grid you lay out yourself. Rows are quoted, up to 3 characters each; each `K=item` says what a letter stands for. |
 | `@break` | A break bar. |
 | `@page` | Starts a new page; everything below it goes there. |
 
 `@craft` and `@manual_craft` lines written one after another join into a single grid with arrows to flip between
-them, in the order written.
+them, in the order written. Lines with a different `style=` don't join.
+
+`style=compact` draws a 2×2 grid, for recipes that fit in the player's crafting grid. If any recipe in the group
+doesn't fit 2×2 the whole group is drawn as the usual 3×3.
 
 ### Photo options
 
@@ -67,6 +71,15 @@ them, in the order written.
 | `size=` | `wide` (the default, 256×144), `small` (192×108), `square` (144×144) or `portrait` (108×144). The image file must be that size. |
 | `align=` | `left`, `center` (the default) or `right`. Text flows beside a `left` or `right` photo. |
 | `angle=` | A tilt in degrees, from `-15` to `15`, turning the photo about its centre. Meant for decoration. |
+| `title=` | A paper banner lettered in Alagard, laid over the top edge of the photo and tilting with it. It doesn't change the photo's size, and keeps one width for the whole series, sized to the longest title. Give one per picture, in order, separated by `\|`; quote it if it has spaces: `title="Water\|Honey Mead"`. A blank entry leaves that picture untitled. |
+
+### Path options
+
+| Option | Values |
+|---|---|
+| `style=` | `default` (the framed chart) or `compact`: the ingredient in a holder with its path rolled up in a scroll underneath. Clicking it pulls the scroll open downwards over the text; clicking again rolls it back up. Turning the page rolls every scroll up. A compact path is moved to the next page if its open scroll wouldn't fit below it. |
+| `align=` | `left`, `center` (the default) or `right`, for `style=compact` only. Text flows beside a `left` or `right` one. |
+| `grind=true` | Default style only. Adds a slider along the bottom of the chart; dragging it from the whole ingredient to the mortar previews how far the ingredient travels as it's ground. |
 
 An item slot is an item id, such as `minecraft:cauldron`. Join ids with `|` to make the slot cycle through them:
 `minecraft:honey_block|minecraft:honey_bottle`. `#bases` fills in one slot per potion base, cycling through supported items.

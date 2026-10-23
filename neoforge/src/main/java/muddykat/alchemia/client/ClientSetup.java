@@ -5,7 +5,9 @@ import muddykat.alchemia.client.gui.AlchemicalScreen;
 import muddykat.alchemia.client.gui.AlchemyMachineScreen;
 import muddykat.alchemia.client.render.AlchemyMachineUpgradeRenderer;
 import muddykat.alchemia.client.gui.ClientIngredientPathTooltip;
+import muddykat.alchemia.client.gui.ClientInkTooltip;
 import muddykat.alchemia.client.gui.GrindOverlay;
+import muddykat.alchemia.client.gui.InkTooltip;
 import muddykat.alchemia.common.items.helper.GuideAccess;
 import muddykat.alchemia.common.items.helper.IngredientPathTooltip;
 import muddykat.alchemia.client.render.AlchemicalCauldronRenderer;
@@ -86,6 +88,7 @@ public class ClientSetup {
     @SubscribeEvent
     public static void onRegisterTooltipComponents(RegisterClientTooltipComponentFactoriesEvent event) {
         event.register(IngredientPathTooltip.class, ClientIngredientPathTooltip::new);
+        event.register(InkTooltip.class, ClientInkTooltip::new);
         GuideAccess.bindReader(() -> GuideAccess.carriedBy(Minecraft.getInstance().player)
                 || muddykat.alchemia.client.gui.AlchemicalScreen.readingAtDesk());
     }

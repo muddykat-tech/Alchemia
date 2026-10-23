@@ -38,10 +38,10 @@ public final class GuidePrimer {
     public static final List<Chapter> CHAPTERS = List.of(
             new Chapter("cauldron", List.of("cauldron", "facing")),
             new Chapter("bases", List.of("bases", "filling")),
-            new Chapter("ingredients", List.of("ingredients", "grinding")),
-            new Chapter("screen", List.of("screen", "map")),
-            new Chapter("stirring", List.of("stirring", "brewing")),
+            new Chapter("screen", List.of("screen")),
+            new Chapter("ingredients", List.of("ingredients", "map", "grinding")),
             new Chapter("effects", List.of("effects", "dead_space")),
+            new Chapter("brewing", List.of("brewing")),
             new Chapter("bottling", List.of("bottling", "glasses")),
             new Chapter("modifiers", List.of("modifiers", "lures", "imbuements", "bark", "finishing")),
             new Chapter("recording", List.of("recording", "desk")),
@@ -126,5 +126,29 @@ public final class GuidePrimer {
 
     public static Identifier arrows() {
         return photo("photo_arrows");
+    }
+
+    public static Identifier label() {
+        return photo("label");
+    }
+
+    public static Identifier chartPaper() {
+        return photo("chart_paper");
+    }
+
+    public static Identifier chartPlain() {
+        return photo("chart_plain");
+    }
+
+    public static Identifier pathScroll() {
+        return photo("path_scroll");
+    }
+
+    public static Identifier nameplate() {
+        return photo("nameplate");
+    }
+
+    public static Identifier grindKnob() {
+        return photo("grind_knob");
     }
 }

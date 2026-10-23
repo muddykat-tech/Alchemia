@@ -42,6 +42,7 @@ public class PotionMap {
     private static final int WALL_WINDOW = 6;
     private static final int WALL_GROWTH_STEPS = 16;
     private static final long WALL_SALT = 0x2545F4914F6CDD1DL;
+    private static final long WHIRL_SALT = 0x6A09E667F3BCC909L;
 
     private final BrewBase base;
     private final int size;
@@ -139,11 +140,24 @@ public class PotionMap {
 
         generateDeadzones(seed, rand);
         raiseWall(seed);
-        Alchemia.LOGGER.info("Potion map built for {}: {}px across, {} effects, {} dead tiles, {} effects need crystals",
-                base.id(), size, entries.size(), deadTileCount(), crystalGated);
+        whirlpools = Whirlpool.scatter(this, new Random(seed ^ WHIRL_SALT));
+        Alchemia.LOGGER.info("Potion map built for {}: {}px across, {} effects, {} dead tiles, {} effects need crystals, {} whirlpools",
+                base.id(), size, entries.size(), deadTileCount(), crystalGated, whirlpools.size());
     }
 
     private int crystalGated;
+    private List<Whirlpool> whirlpools = List.of();
+
+    public List<Whirlpool> whirlpools() {
+        return whirlpools;
+    }
+
+    public Whirlpool whirlpoolAt(PathPoint at) {
+        for (Whirlpool pool : whirlpools) {
+            if (pool.touches(at)) return pool;
+        }
+        return null;
+    }
     private double[] wall;
     private double wallMin;
     private double wallMax;
@@ -482,6 +496,35 @@ public class PotionMap {
         return project(x, y, offsets, false);
     }
 
+    public PotionPath walkFrom(double x, double y, ItemStack stack, double skip) {
+        List<PathPoint> offsets = walkingOffsets(stack);
+        if (offsets == null) return walk(x, y, stack);
+
+        List<PathPoint> line = new ArrayList<>(offsets.size() + 1);
+        line.add(PathPoint.ORIGIN);
+        line.addAll(offsets);
+        List<PathPoint> rest = PathGeometry.tail(line, skip);
+        if (rest.size() < 2) return stalledAt(x, y);
+
+        PathPoint first = rest.get(0);
+        List<PathPoint> shifted = new ArrayList<>(rest.size() - 1);
+        for (int index = 1; index < rest.size(); index++) shifted.add(rest.get(index).minus(first));
+        return trail(x, y, shifted);
+    }
+
+    private List<PathPoint> walkingOffsets(ItemStack stack) {
+        VanillaIngredients.Drift drift = VanillaIngredients.driftOf(stack);
+        if (drift != null) return drift.lure() ? null : fixedDriftOffsets(drift.target(), ItemIngredient.crushOf(stack));
+        if (!(stack.getItem() instanceof ItemIngredient ingredient)) return null;
+
+        int dx = Integer.signum(ingredient.getDriftX(stack));
+        int dy = Integer.signum(ingredient.getDriftY(stack));
+        IngredientPath shape = IngredientPath.of(ingredient.getIngredient());
+        if (shape.teleports() || (shape.needsDirection() && dx == 0 && dy == 0)) return null;
+        return IngredientPath.pathFor(ingredient.getIngredient(), dx, dy, ingredient.getPotency(stack),
+                ItemIngredient.trimOf(stack), ItemIngredient.rotationOf(stack));
+    }
+
     public PotionPath walk(double x, double y, ItemStack stack) {
         VanillaIngredients.Drift drift = VanillaIngredients.driftOf(stack);
         if (drift != null) return drift.lure() ? stalledAt(x, y) : fixedPath(x, y, drift.target(), ItemIngredient.crushOf(stack));
@@ -566,6 +609,11 @@ public class PotionMap {
 
     public List<RouteLeg> route(double startX, double startY, List<ItemStack> queue, List<Integer> anchors,
                                 List<Double> anchorFrom) {
+        return route(startX, startY, queue, anchors, anchorFrom, 0.0);
+    }
+
+    public List<RouteLeg> route(double startX, double startY, List<ItemStack> queue, List<Integer> anchors,
+                                List<Double> anchorFrom, double headSkip) {
         List<Span> spans = new ArrayList<>(queue.size());
         double x = startX;
         double y = startY;
@@ -586,7 +634,7 @@ public class PotionMap {
                 continue;
             }
 
-            PotionPath path = walk(x, y, stack);
+            PotionPath path = spans.isEmpty() && headSkip > 0.0 ? walkFrom(x, y, stack, headSkip) : walk(x, y, stack);
             spans.add(new Span(stack, false, path, path.teleport() ? teleportCurve(x, y, stack) : List.of()));
 
             PathPoint end = path.end(x, y);

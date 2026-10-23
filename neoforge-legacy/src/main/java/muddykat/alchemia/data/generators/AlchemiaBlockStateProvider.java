@@ -6,8 +6,10 @@ import muddykat.alchemia.common.blocks.BlockGeneric;
 import muddykat.alchemia.common.blocks.BlockInfectedLog;
 import muddykat.alchemia.common.blocks.BlockIngredient;
 import muddykat.alchemia.common.blocks.BlockIngredientBerry;
+import muddykat.alchemia.common.blocks.BlockIngredientKelp;
 import muddykat.alchemia.common.blocks.BlockIngredientPatch;
 import muddykat.alchemia.common.blocks.BlockIngredientShelf;
+import muddykat.alchemia.common.blocks.BlockIngredientTall;
 import muddykat.alchemia.common.blocks.BlockIngredientWild;
 import muddykat.alchemia.common.blocks.BlockKelpStalk;
 import muddykat.alchemia.common.blocks.BlockTangleBranch;
@@ -31,6 +33,7 @@ import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.TrapDoorBlock;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
 import net.neoforged.neoforge.client.model.generators.ModelFile;
@@ -45,6 +48,7 @@ import java.util.Map;
 public class AlchemiaBlockStateProvider extends BlockStateProvider {
 
     private final Map<ResourceLocation, ModelFile> crossModels = new HashMap<>();
+    private final Map<ResourceLocation, ModelFile> seagrassModels = new HashMap<>();
 
     public AlchemiaBlockStateProvider(PackOutput output, ExistingFileHelper existingFileHelper) {
         super(output, Alchemia.MODID, existingFileHelper);
@@ -153,6 +157,22 @@ public class AlchemiaBlockStateProvider extends BlockStateProvider {
     private void generateIngredientCrop(BlockIngredient block) {
         Ingredients ingredient = block.getIngredient();
 
+        if (block instanceof BlockIngredientKelp) {
+            getVariantBuilder(block).forAllStates(state -> {
+                int age = state.getValue(block.getAgeProperty());
+                if (age == block.getMaxAge()) {
+                    String part = state.getValue(BlockIngredientTall.HALF) == DoubleBlockHalf.LOWER ? "bottom" : "top";
+                    return ConfiguredModel.builder().modelFile(flameweedSeagrassModel(part)).build();
+                }
+
+                PlantGrowthTextures.Sprite sprite = PlantGrowthTextures.sprite(ingredient, age, block.getMaxAge(), false);
+                return ConfiguredModel.builder()
+                        .modelFile(crossModel(blockPath(sprite.model()), texturePath(sprite.texture())))
+                        .build();
+            });
+            return;
+        }
+
         if (PlantForm.of(ingredient) == PlantForm.BEET) {
             getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
                     .modelFile(beetModel(ingredient, state.getValue(block.getAgeProperty())))
@@ -172,6 +192,15 @@ public class AlchemiaBlockStateProvider extends BlockStateProvider {
                     .modelFile(crossModel(blockPath(sprite.model()), texturePath(sprite.texture())))
                     .build();
         });
+    }
+
+    private ModelFile flameweedSeagrassModel(String part) {
+        String name = "flameweed_" + part;
+        ResourceLocation id = modLoc(name);
+        return seagrassModels.computeIfAbsent(id, ignored -> models()
+                .withExistingParent(name, mcLoc("block/template_seagrass"))
+                .texture("texture", texturePath("herbs/" + name))
+                .renderType("cutout"));
     }
 
     private ModelFile beetModel(Ingredients ingredient, int age) {

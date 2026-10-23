@@ -24,6 +24,7 @@ public final class BrewCourse {
     private double originY;
     private int spent;
     private double progress;
+    private double headSkip;
 
     private PotionMap routedOn;
     private List<PotionMap.RouteLeg> routed = List.of();
@@ -40,6 +41,7 @@ public final class BrewCourse {
         twin.anchorFrom.addAll(anchorFrom);
         twin.spent = spent;
         twin.progress = progress;
+        twin.headSkip = headSkip;
         twin.routedOn = routedOn;
         twin.routed = routed;
         return twin;
@@ -53,6 +55,7 @@ public final class BrewCourse {
         originY = y;
         spent = 0;
         progress = 0.0;
+        headSkip = 0.0;
         routedOn = null;
     }
 
@@ -62,10 +65,15 @@ public final class BrewCourse {
 
     public void restore(double x, double y, List<ItemStack> stacks, List<Integer> pulls, List<Double> pullFrom,
                         int walked, double stirred) {
+        restore(x, y, stacks, pulls, pullFrom, walked, stirred, 0.0);
+    }
+
+    public void restore(double x, double y, List<ItemStack> stacks, List<Integer> pulls, List<Double> pullFrom,
+                        int walked, double stirred, double skip) {
         List<Double> partial = new ArrayList<>(stacks.size());
         for (int index = 0; index < stacks.size(); index++) partial.add(index < pullFrom.size() ? pullFrom.get(index) : 0.0);
 
-        boolean unchanged = x == originX && y == originY && pulls.equals(anchors) && partial.equals(anchorFrom)
+        boolean unchanged = x == originX && y == originY && skip == headSkip && pulls.equals(anchors) && partial.equals(anchorFrom)
                 && stacks.size() == entries.size();
         for (int index = 0; unchanged && index < stacks.size(); index++) {
             unchanged = ItemStack.matches(stacks.get(index), entries.get(index));
@@ -82,11 +90,60 @@ public final class BrewCourse {
             }
             originX = x;
             originY = y;
+            headSkip = Math.max(0.0, skip);
             routedOn = null;
         }
 
         spent = Math.max(0, Math.min(entries.size(), walked));
         progress = Math.max(0.0, stirred);
+    }
+
+    public void rebase(PotionMap map) {
+        PotionMap.RouteLeg leg = current(map);
+        boolean partway = leg != null && progress > EPSILON && !leg.path().teleport() && !leg.path().stalled();
+        if (spent == 0 && !partway) return;
+
+        PathPoint start = partway ? position(map) : legStart(map);
+        double skip = partway ? (spent == 0 ? headSkip : 0.0) + progress : 0.0;
+        double walked = partway ? progress : 0.0;
+
+        entries.subList(0, spent).clear();
+        for (int index = 0; index < anchors.size(); index++) {
+            int anchor = anchors.get(index);
+            if (anchor < spent) {
+                anchors.set(index, 0);
+                anchorFrom.set(index, 0.0);
+            } else if (anchor == spent) {
+                anchors.set(index, 0);
+                anchorFrom.set(index, Math.max(0.0, anchorFrom.get(index) - walked));
+            } else {
+                anchors.set(index, anchor - spent);
+            }
+        }
+        anchors.subList(0, spent).clear();
+        anchorFrom.subList(0, spent).clear();
+
+        originX = start.x();
+        originY = start.y();
+        spent = 0;
+        progress = 0.0;
+        headSkip = skip;
+        routedOn = null;
+    }
+
+    public PathPoint carry(PotionMap map, PathPoint target) {
+        rebase(map);
+        PathPoint now = position(map);
+        double dx = target.x() - now.x();
+        double dy = target.y() - now.y();
+        shift(dx, dy);
+        return new PathPoint(dx, dy);
+    }
+
+    public void shift(double dx, double dy) {
+        originX += dx;
+        originY += dy;
+        routedOn = null;
     }
 
     public double originX() {
@@ -122,7 +179,11 @@ public final class BrewCourse {
     }
 
     public boolean started() {
-        return progress > EPSILON;
+        return progress > EPSILON || (spent == 0 && headSkip > EPSILON);
+    }
+
+    public double headSkip() {
+        return headSkip;
     }
 
     public boolean canStir() {
@@ -181,7 +242,11 @@ public final class BrewCourse {
 
     public List<PotionMap.RouteLeg> legs(PotionMap map) {
         if (routedOn != map) {
+#if MC_VER >= 26100
+            routed = map.route(originX, originY, entries, anchors, anchorFrom, headSkip);
+#else
             routed = map.route(originX, originY, entries, anchors, anchorFrom);
+#endif
             routedOn = map;
         }
         return routed;
@@ -272,6 +337,7 @@ public final class BrewCourse {
         originX = start.x();
         originY = start.y();
         spent = 0;
+        headSkip = 0.0;
         routedOn = null;
     }
 }

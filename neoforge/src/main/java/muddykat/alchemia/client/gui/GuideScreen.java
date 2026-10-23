@@ -1,6 +1,5 @@
 package muddykat.alchemia.client.gui;
 
-import muddykat.alchemia.common.blocks.tileentity.TileEntityAlchemyCauldron;
 import muddykat.alchemia.common.items.ItemBark;
 import muddykat.alchemia.common.potion.Imbuements;
 import com.mojang.blaze3d.platform.InputConstants;
@@ -21,6 +20,8 @@ import muddykat.alchemia.common.items.ItemNigredo;
 import muddykat.alchemia.common.items.ItemRecipePage;
 import muddykat.alchemia.common.items.helper.IngredientAlignment;
 import muddykat.alchemia.common.items.helper.IngredientPath;
+import muddykat.alchemia.common.items.helper.IngredientPathTooltip;
+import muddykat.alchemia.common.items.helper.IngredientType;
 import muddykat.alchemia.common.items.helper.Ingredients;
 import muddykat.alchemia.common.items.helper.PathGeometry;
 import muddykat.alchemia.common.items.helper.PathPoint;
@@ -63,6 +64,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import org.jspecify.annotations.Nullable;
 
@@ -217,7 +219,8 @@ public class GuideScreen extends Screen {
     private static final float GLOWING_ART = 16.0F;
     private static final float GLOWING_CENTRE = 9.0F;
     private static final int GRID_ROWS = 6;
-    private static final int EFFECTS_PER_PAGE = GRID_COLUMNS * GRID_ROWS;
+    private static final int EFFECTS_ROWS = 7;
+    private static final int EFFECTS_PER_PAGE = GRID_COLUMNS * EFFECTS_ROWS;
     private static final int INDEX_ROWS = 7;
     private static final int INDEX_ROW_H = 22;
     private static final int RECENT_ROW_H = 20;
@@ -287,7 +290,7 @@ public class GuideScreen extends Screen {
     private record Spread(List<Part> left, List<Part> right, GuidePrimer.@Nullable Chapter chapter, boolean index) {
     }
 
-    private sealed interface Part permits HeadingPart, RulePart, PhotoPart, ItemsPart, CraftPart, LinePart, TailPart {
+    private sealed interface Part permits HeadingPart, RulePart, PhotoPart, ItemsPart, PathPart, CraftPart, LinePart, TailPart {
     }
 
     private record HeadingPart(int y, Component text, boolean chapter) implements Part {
@@ -315,7 +318,27 @@ public class GuideScreen extends Screen {
     private record ItemsPart(int y, int x, List<List<Identifier>> slots) implements Part {
     }
 
-    private record CraftPart(int y, String key, List<GuidePrimer.CraftSource> crafts) implements Part {
+    private record PathPart(int y, int x, String key, ItemStack item, PathPanel panel, Component label, boolean compact,
+                            double @Nullable [] grind) implements Part {
+        String name() {
+            return item.getHoverName().getString();
+        }
+    }
+
+    private record PathVisual(PathPanel panel, Component label) {
+    }
+
+    private record GrindDrag(String key, int x, int w) {
+    }
+
+    private record Unroll(boolean open, long since) {
+        float progress(long now) {
+            float t = Mth.clamp((now - since) / (float) SCROLL_MS, 0.0F, 1.0F);
+            return open ? t : 1.0F - t;
+        }
+    }
+
+    private record CraftPart(int y, String key, List<GuidePrimer.CraftSource> crafts, int size) implements Part {
     }
 
     private record LinePart(int y, int x, FormattedCharSequence line) implements Part {
@@ -327,6 +350,15 @@ public class GuideScreen extends Screen {
     private static final int FRAME_PAD_W = 5;
     private static final int FRAME_PAD_H = 5;
     private static final int PHOTO_MAT = 5;
+    private static final int LABEL_H = 13;
+    private static final int LABEL_CAP = 6;
+    private static final int LABEL_MID = 16;
+    private static final int LABEL_SHEET_W = LABEL_CAP * 2 + LABEL_MID;
+    private static final int LABEL_SHEET_H = LABEL_H + 1;
+    private static final int LABEL_PAD = 6;
+    private static final float LABEL_TEXT_TOP = 2.5F;
+    private static final float LABEL_SCALE = 0.75F;
+    private static final int PHOTO_LABEL_RISE = 1;
     private static final int PHOTO_MARGIN_TOP = 3;
     private static final int PHOTO_MARGIN_BOTTOM = 4;
     private static final int PHOTO_MARGIN_EDGE = 1;
@@ -364,6 +396,49 @@ public class GuideScreen extends Screen {
     private static final String PRIMER_AT = "primer:";
     private static final String EFFECTS_AT = "effects:";
     private static final int CRAFT_MARGIN = 3;
+    private static final int PATH_MARGIN_TOP = 1;
+    private static final int PATH_MARGIN_BOTTOM = 4;
+    private static final int PATH_LABEL = Math.round(TITLE_RULE * SUBTITLE_SCALE);
+    private static final int CHART_W = ScrollWidgetRenderer.CHART_W;
+    private static final int CHART_H = ScrollWidgetRenderer.CHART_H;
+    private static final int NAMEPLATE_H = 20;
+    private static final int NAMEPLATE_LEFT = 24;
+    private static final int NAMEPLATE_MID = 16;
+    private static final int NAMEPLATE_RIGHT = 7;
+    private static final int NAMEPLATE_SHEET_W = NAMEPLATE_LEFT + NAMEPLATE_MID + NAMEPLATE_RIGHT;
+    private static final int NAMEPLATE_SHEET_H = NAMEPLATE_H + 1;
+    private static final int NAMEPLATE_ITEM_X = 7;
+    private static final int NAMEPLATE_ITEM_Y = 2;
+    private static final int NAMEPLATE_TEXT_X = NAMEPLATE_LEFT;
+    private static final float NAMEPLATE_TEXT_TOP = 3.0F;
+    private static final int NAMEPLATE_TEXT_PAD = 3;
+    private static final float NAMEPLATE_SCALE = 1.0F;
+    private static final int PLATE_RISE = NAMEPLATE_H / 2;
+    private static final int PLATE_HEAD = 2;
+    private static final int PLATE_CORNER_CLEAR = 8;
+    private static final int GRIND_H = 14;
+    private static final int GRIND_ICON = 10;
+    private static final int GRIND_INSET = 9;
+    private static final int GRIND_KNOB_W = 7;
+    private static final int GRIND_KNOB_H = 9;
+    private static final int GRIND_TICK = 3;
+    private static final int ROLL_H = ScrollWidgetRenderer.ROLL_H;
+    private static final int ROLL_CAP = ScrollWidgetRenderer.ROLL_CAP;
+    private static final int ROLL_MID = ScrollWidgetRenderer.ROLL_MID;
+    private static final int ROLL_END = ScrollWidgetRenderer.ROLL_END;
+    private static final int SCROLL_SHEET_W = ScrollWidgetRenderer.SHEET_W;
+    private static final int SCROLL_SHEET_H = ScrollWidgetRenderer.SHEET_H;
+    private static final int PULL_U = ScrollWidgetRenderer.PULL_U;
+    private static final int PULL_W = ScrollWidgetRenderer.PULL_W;
+    private static final int PULL_H = ScrollWidgetRenderer.PULL_H;
+    private static final int PULL_TUCK = ScrollWidgetRenderer.PULL_TUCK;
+    private static final int SCROLL_REST_W = 30;
+    private static final int SCROLL_TUCK = 2;
+    private static final int SCROLL_PAD_W = ScrollWidgetRenderer.PAD_W;
+    private static final int SCROLL_PAD_H = ScrollWidgetRenderer.PAD_H;
+    private static final int SCROLL_MS = 260;
+    private static final int SCROLL_EDGE = ScrollWidgetRenderer.EDGE;
+    private static final int SCROLL_SHADE = ScrollWidgetRenderer.SHADE;
     private static final int PHOTO_FRAME_OUTER_W = 138;
     private static final int PHOTO_FRAME_OUTER_H = 82;
     private static final int PHOTO_FRAME_SLICE = 13;
@@ -404,8 +479,11 @@ public class GuideScreen extends Screen {
     private long marqueeStart;
     private boolean hoveredMarquee;
     private boolean reagentPage;
+    private int reagentSpread;
     private @Nullable Item selectedReagent;
     private double scroll;
+    private @Nullable String returnRecipe;
+    private double returnScroll;
     private double ingredientScroll;
     private int ingredientMax;
     private int ingredientPaneX;
@@ -439,6 +517,10 @@ public class GuideScreen extends Screen {
     private @Nullable String primerLayoutKey;
     private @Nullable String bookmark;
     private final Map<String, Integer> photoIndex = new HashMap<>();
+    private final Map<String, Unroll> unrolls = new HashMap<>();
+    private final Map<String, Integer> grinds = new HashMap<>();
+    private @Nullable GrindDrag grindDrag;
+    private final List<Runnable> overlays = new ArrayList<>();
 
     private ItemStack stack = ItemStack.EMPTY;
     private List<BrewRecipe> recipes = List.of();
@@ -662,6 +744,7 @@ public class GuideScreen extends Screen {
 
     private void goTo(Chapter next) {
         commitEdit();
+        returnRecipe = null;
         if (next == chapter) {
             if (openRecipe != null || primerSpread >= 0) turnPage();
             openRecipe = null;
@@ -837,7 +920,7 @@ public class GuideScreen extends Screen {
             case CONTENTS -> primerSpread >= 0 ? PRIMER_AT + primerSpread : "contents";
             case RECIPES -> openRecipe != null && currentRecipe() != null ? RECIPE_AT + openRecipe : RECIPES_AT + indexSpread;
             case EFFECTS -> EFFECTS_AT + effectPage;
-            case INGREDIENTS -> "ingredients";
+            case INGREDIENTS -> reagentPage ? "reagents:" + reagentSpread : "ingredients";
             case OPUS -> "opus";
         };
     }
@@ -858,7 +941,9 @@ public class GuideScreen extends Screen {
         return switch (place) {
             case "ingredients" -> 2.0E9;
             case "opus" -> 3.0E9;
-            default -> 0.0;
+            default -> place.startsWith("reagents:") ? 2.0E9 + (number(place, "reagents:") + 1) * 0.25
+                    : place.startsWith("ingredients:") ? 2.0E9
+                    : place.equals("reagents") ? 2.0E9 + 0.25 : 0.0;
         };
     }
 
@@ -889,6 +974,18 @@ public class GuideScreen extends Screen {
         if (place.startsWith(EFFECTS_AT)) {
             goTo(Chapter.EFFECTS);
             effectPage = Math.max(0, number(place, EFFECTS_AT));
+            return;
+        }
+        if (place.equals("ingredients") || place.startsWith("ingredients:")) {
+            goTo(Chapter.INGREDIENTS);
+            reagentPage = false;
+            reagentSpread = 0;
+            return;
+        }
+        if (place.equals("reagents") || place.startsWith("reagents:")) {
+            goTo(Chapter.INGREDIENTS);
+            reagentSpread = Mth.clamp(place.startsWith("reagents:") ? number(place, "reagents:") : 0, 0, 1);
+            reagentPage = true;
             return;
         }
         for (Chapter entry : Chapter.values()) {
@@ -1040,6 +1137,7 @@ public class GuideScreen extends Screen {
             hotspot(PAGE_RIGHT_EDGE + 1, y, TAB_W - TAB_REACH, TAB_H + drop, () -> {
                 if (tab != chapter) {
                     reagentPage = false;
+                    reagentSpread = 0;
                     machinePage = false;
                 }
                 goTo(tab);
@@ -1147,10 +1245,35 @@ public class GuideScreen extends Screen {
                     flow.parts.add(new ItemsPart(flow.y, x, slots.subList(0, count)));
                     flow.floatOrAdvance(items.align(), outer + ITEM_TEXT_GAP, h + ITEM_MARGIN_BOTTOM);
                 }
+                case PrimerBook.Path path -> {
+                    Ingredients ingredient = primerPathIngredient(path.itemName());
+                    if (ingredient == null) {
+                        Alchemia.LOGGER.warn("Guide section {} references an unknown ingredient path: {}", section.key(), path.itemName());
+                        break;
+                    }
+                    PathVisual visual = pathVisual(ingredient);
+                    if (visual == null || !visual.panel().drawable()) break;
+                    ItemStack item = new ItemStack(ItemRegistry.getItemFromRegistry(ingredient.getRegistryName()));
+                    double[] grind = path.grind() && !path.compact() ? grindTable(ingredient) : null;
+                    PathPart probe = new PathPart(0, 0, id, item, visual.panel(), visual.label(), path.compact(), grind);
+                    int width = path.compact() ? SCROLL_REST_W : plateWidth(probe);
+                    int height = PATH_MARGIN_TOP + (path.compact() ? scrollRestHeight() : plateHeight(probe));
+                    int reach = path.compact() ? PATH_MARGIN_TOP + scrollOpenExtent(probe) - (PAGE_BOTTOM_EDGE - 3 - PRIMER_BOTTOM) : 0;
+                    flow.place(Math.max(height, reach));
+                    PrimerBook.Align align = path.compact() ? path.align() : PrimerBook.Align.CENTER;
+                    int x = switch (align) {
+                        case LEFT -> 0;
+                        case RIGHT -> PAGE_W - width;
+                        case CENTER -> (PAGE_W - width) / 2;
+                    };
+                    flow.parts.add(new PathPart(flow.y + PATH_MARGIN_TOP, x, id, item, visual.panel(), visual.label(), path.compact(), grind));
+                    flow.floatOrAdvance(align, width + ITEM_TEXT_GAP, height + PATH_MARGIN_BOTTOM);
+                }
                 case PrimerBook.Crafts crafts -> {
-                    int h = CRAFT_GRID_PAD * 2 + CELL * 3 + CRAFT_MARGIN * 2 + (crafts.crafts().size() > 1 ? PHOTO_ARROW + 2 : 0);
+                    int size = crafts.compact() && crafts.crafts().stream().allMatch(source -> PrimerRecipes.view(source).fitsSmall()) ? PrimerRecipes.SMALL : 3;
+                    int h = CRAFT_GRID_PAD * 2 + CELL * size + CRAFT_MARGIN * 2 + (crafts.crafts().size() > 1 ? PHOTO_ARROW + 2 : 0);
                     flow.place(h);
-                    flow.parts.add(new CraftPart(flow.y, id, crafts.crafts()));
+                    flow.parts.add(new CraftPart(flow.y, id, crafts.crafts(), size));
                     flow.y += h + 4;
                 }
                 case PrimerBook.Rule rule -> {
@@ -1257,6 +1380,7 @@ public class GuideScreen extends Screen {
 
     private void openPrimer(int spread) {
         commitEdit();
+        unrolls.clear();
         primerSpread = spread;
         resetScroll();
         turnPage();
@@ -1292,6 +1416,13 @@ public class GuideScreen extends Screen {
     }
 
     private void primerParts(GuiGraphicsExtractor graphics, List<Part> parts, int pageX) {
+        overlays.clear();
+        primerPartsInner(graphics, parts, pageX);
+        for (Runnable overlay : overlays) overlay.run();
+        overlays.clear();
+    }
+
+    private void primerPartsInner(GuiGraphicsExtractor graphics, List<Part> parts, int pageX) {
         for (Part part : parts) {
             switch (part) {
                 case HeadingPart heading -> {
@@ -1304,7 +1435,8 @@ public class GuideScreen extends Screen {
                 case RulePart rule -> divider(graphics, pageX, rule.y(), PAGE_W - 6);
                 case PhotoPart photo -> photo(graphics, photo, pageX);
                 case ItemsPart items -> itemPanel(graphics, items.slots(), pageX + items.x() + FRAME_PAD_W, items.y() + FRAME_PAD_H);
-                case CraftPart craft -> craft(graphics, craft.key(), craft.crafts(), pageX, craft.y());
+                case PathPart path -> pathBlock(graphics, path, pageX);
+                case CraftPart craft -> craft(graphics, craft.key(), craft.crafts(), craft.size(), pageX, craft.y());
                 case LinePart line -> primerLine(graphics, line.line(), pageX + line.x(), line.y());
                 case TailPart tail -> tailpiece(graphics, pageX, tail.y());
             }
@@ -1391,6 +1523,249 @@ public class GuideScreen extends Screen {
         return count <= 1 ? 0 : (int) (net.minecraft.util.Util.getMillis() / PRIMER_CYCLE_MS % count);
     }
 
+    private float nameplateScale(PathPart part) {
+        int widest = PAGE_W - PLATE_CORNER_CLEAR * 2 - NAMEPLATE_TEXT_X - NAMEPLATE_RIGHT - NAMEPLATE_TEXT_PAD;
+        return Math.min(NAMEPLATE_SCALE, widest / (float) Math.max(1, letteredWidth(part.name())));
+    }
+
+    private int nameplateWidth(PathPart part) {
+        return NAMEPLATE_TEXT_X + Mth.ceil(letteredWidth(part.name()) * nameplateScale(part)) + NAMEPLATE_TEXT_PAD + NAMEPLATE_RIGHT;
+    }
+
+    private int plateInnerWidth(PathPart part) {
+        int widest = PAGE_W - PHOTO_MAT * 2;
+        return Math.min(widest, Math.max(part.panel().plainWidth(), nameplateWidth(part) + PLATE_CORNER_CLEAR * 2 - PHOTO_MAT * 2));
+    }
+
+    private int plateWidth(PathPart part) {
+        return plateInnerWidth(part) + PHOTO_MAT * 2;
+    }
+
+    private static int plateInnerHeight(PathPart part) {
+        return PLATE_HEAD + part.panel().plainHeight() + (part.grind() != null ? GRIND_H : 0);
+    }
+
+    private static int plateHeight(PathPart part) {
+        return PLATE_RISE + PHOTO_MAT * 2 + plateInnerHeight(part);
+    }
+
+    private void pathBlock(GuiGraphicsExtractor graphics, PathPart part, int pageX) {
+        if (part.compact()) {
+            pathScrollRest(graphics, part, pageX);
+        } else {
+            pathPlate(graphics, part, pageX);
+        }
+    }
+
+    private void pathPlate(GuiGraphicsExtractor graphics, PathPart part, int pageX) {
+        PathPanel panel = part.panel();
+        int x = pageX + part.x();
+        int frameY = part.y() + PLATE_RISE;
+        int innerX = x + PHOTO_MAT;
+        int innerY = frameY + PHOTO_MAT;
+        int innerW = plateInnerWidth(part);
+        int innerH = plateInnerHeight(part);
+        int frameW = innerW + PHOTO_MAT * 2;
+        int frameH = innerH + PHOTO_MAT * 2;
+        ScrollWidgetRenderer.chartPaper(graphics, innerX, innerY, innerW, innerH);
+        int pathX = innerX + (innerW - panel.plainWidth()) / 2;
+        int pathY = innerY + PLATE_HEAD;
+        if (part.grind() != null) {
+            int units = grinds.getOrDefault(part.key(), 0);
+            panel.drawPlain(graphics, pathX, pathY, part.grind()[units]);
+        } else {
+            panel.drawPlain(graphics, pathX, pathY);
+        }
+        paperFrame(graphics, GuidePrimer.frame(), PHOTO_FRAME_OUTER_W, PHOTO_FRAME_OUTER_H, PHOTO_FRAME_SLICE, x, frameY, frameW, frameH);
+        hotspot(x, frameY, frameW, frameH, null, () -> List.of(part.label()));
+        if (part.grind() != null) grindSlider(graphics, part, innerX, innerY + innerH - GRIND_H, innerW);
+        nameplate(graphics, part, x + (frameW - nameplateWidth(part)) / 2, part.y());
+    }
+
+    private void nameplate(GuiGraphicsExtractor graphics, PathPart part, int x, int y) {
+        int w = nameplateWidth(part);
+        Identifier sheet = GuidePrimer.nameplate();
+        graphics.blit(RenderPipelines.GUI_TEXTURED, sheet, x, y, 0, 0, NAMEPLATE_LEFT, NAMEPLATE_SHEET_H, NAMEPLATE_SHEET_W, NAMEPLATE_SHEET_H);
+        for (int at = NAMEPLATE_LEFT; at < w - NAMEPLATE_RIGHT; at += NAMEPLATE_MID) {
+            int piece = Math.min(NAMEPLATE_MID, w - NAMEPLATE_RIGHT - at);
+            graphics.blit(RenderPipelines.GUI_TEXTURED, sheet, x + at, y, NAMEPLATE_LEFT, 0, piece, NAMEPLATE_SHEET_H, NAMEPLATE_SHEET_W, NAMEPLATE_SHEET_H);
+        }
+        graphics.blit(RenderPipelines.GUI_TEXTURED, sheet, x + w - NAMEPLATE_RIGHT, y, NAMEPLATE_LEFT + NAMEPLATE_MID, 0,
+                NAMEPLATE_RIGHT, NAMEPLATE_SHEET_H, NAMEPLATE_SHEET_W, NAMEPLATE_SHEET_H);
+        float scale = nameplateScale(part);
+        inked(graphics, part.name(), x + NAMEPLATE_TEXT_X, y + NAMEPLATE_TEXT_TOP + (NAMEPLATE_SCALE - scale) * Lettering.HEIGHT / 2.0F, scale, INK, true);
+        graphics.item(part.item(), x + NAMEPLATE_ITEM_X, y + NAMEPLATE_ITEM_Y);
+        hotspot(x + NAMEPLATE_ITEM_X, y + NAMEPLATE_ITEM_Y, 16, 16, null, () -> List.of(part.item().getHoverName()));
+    }
+
+    private static double @Nullable [] grindTable(Ingredients ingredient) {
+        double[] taken = new double[Ingredients.MAX_CRUSH_UNITS + 1];
+        ItemStack stack = ingredientStack(ingredient);
+        if (!(stack.getItem() instanceof ItemIngredient item)) return null;
+        for (int units = 0; units <= Ingredients.MAX_CRUSH_UNITS; units++) {
+            taken[units] = PathGeometry.length(item.previewPath(ingredient.getPotencyForUnits(units), 0, 0));
+        }
+        return taken;
+    }
+
+    private void grindSlider(GuiGraphicsExtractor graphics, PathPart part, int x, int y, int w) {
+        grindSlider(graphics, part.key(), part.item(), x, y, w, true);
+    }
+
+    private void grindSlider(GuiGraphicsExtractor graphics, String key, ItemStack item, int x, int y, int w, boolean unclipped) {
+        int units = grinds.getOrDefault(key, 0);
+        int max = Ingredients.MAX_CRUSH_UNITS;
+        int iconY = y + (GRIND_H - GRIND_ICON) / 2;
+        float iconScale = GRIND_ICON / 16.0F;
+        graphics.pose().pushMatrix();
+        graphics.pose().translate(x + GRIND_INSET, iconY);
+        graphics.pose().scale(iconScale, iconScale);
+        GuideInk.item(graphics, item, 0, 0, GuideInk.PLAIN);
+        graphics.pose().popMatrix();
+        graphics.pose().pushMatrix();
+        graphics.pose().translate(x + w - GRIND_INSET - GRIND_ICON, iconY);
+        graphics.pose().scale(iconScale, iconScale);
+        GuideInk.item(graphics, new ItemStack(ItemRegistry.getItemFromRegistry("mortar_and_pestle")), 0, 0, GuideInk.PLAIN);
+        graphics.pose().popMatrix();
+
+        int trackX = x + GRIND_INSET + GRIND_ICON + 5;
+        int trackW = w - (GRIND_INSET + GRIND_ICON + 5) * 2;
+        int trackY = y + GRIND_H / 2;
+        int knobX = trackX + Math.round(trackW * units / (float) max);
+        graphics.fill(trackX, trackY, knobX, trackY + 1, INK);
+        graphics.fill(knobX, trackY, trackX + trackW + 1, trackY + 1, INK_FAINT);
+        graphics.fill(trackX, trackY + 1, trackX + trackW + 1, trackY + 2, 0x60F6EED6);
+        for (int level = 0; level <= Ingredients.MAX_CRUSH; level++) {
+            int tickX = trackX + Math.round(trackW * level / (float) Ingredients.MAX_CRUSH);
+            graphics.fill(tickX, trackY - GRIND_TICK + 1, tickX + 1, trackY + GRIND_TICK, level * Ingredients.CRUSH_UNITS_PER_LEVEL <= units ? INK_SOFT : INK_FAINT);
+        }
+        boolean over = grindDrag != null && grindDrag.key().equals(key) || hovered(trackX - 3, y, trackW + 7, GRIND_H);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, GuidePrimer.grindKnob(), knobX - GRIND_KNOB_W / 2, trackY - GRIND_KNOB_H / 2,
+                over ? GRIND_KNOB_W : 0, 0, GRIND_KNOB_W, GRIND_KNOB_H + 1, GRIND_KNOB_W * 2, GRIND_KNOB_H + 1);
+        GrindDrag drag = new GrindDrag(key, trackX, trackW);
+        Runnable press = () -> {
+            grindDrag = drag;
+            dragGrind(drag);
+        };
+        Supplier<List<Component>> tip = () -> List.of(Component.translatable("alchemia.guide.primer.grind", Ingredients.crushPercent(grinds.getOrDefault(key, 0))),
+                Component.translatable("alchemia.guide.primer.grind_hint").withStyle(ChatFormatting.GRAY));
+        if (unclipped) {
+            hotspot(trackX - 3, y, trackW + 7, GRIND_H, press, tip);
+        } else {
+            clippedHotspot(trackX - 3, y, trackW + 7, GRIND_H, press, tip);
+        }
+    }
+
+    private void dragGrind(GrindDrag drag) {
+        int max = Ingredients.MAX_CRUSH_UNITS;
+        int units = Mth.clamp(Math.round((float) ((bookMouseX - drag.x()) / Math.max(1, drag.w()) * max)), 0, max);
+        Integer before = grinds.put(drag.key(), units);
+        boolean detent = units % Ingredients.CRUSH_UNITS_PER_LEVEL == 0;
+        if (detent && (before == null || before != units) && this.minecraft != null) {
+            this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.GRINDSTONE_USE, 1.4F + units / (float) max * 0.4F, 0.2F));
+        }
+    }
+
+    private static int holderOuter() {
+        return CELL + HOLDER_MARGIN * 2 + ITEM_HOLDER_PAD * 2;
+    }
+
+    private static int scrollRollY() {
+        return holderOuter() - SCROLL_TUCK;
+    }
+
+    private static int scrollRestHeight() {
+        return scrollRollY() + ROLL_H - PULL_TUCK + PULL_H + 1;
+    }
+
+    private static int scrollSheetW(PathPart part) {
+        return part.panel().plainWidth() + SCROLL_PAD_W * 2;
+    }
+
+    private static int scrollSheetH(PathPart part) {
+        return PATH_LABEL + 2 + part.panel().plainHeight() + SCROLL_PAD_H * 2;
+    }
+
+    private static int scrollOpenExtent(PathPart part) {
+        return scrollRollY() + ROLL_H - 1 + scrollSheetH(part) + ROLL_H - PULL_TUCK + PULL_H + 1;
+    }
+
+    private float unrolled(String key) {
+        Unroll state = unrolls.get(key);
+        return state == null ? 0.0F : state.progress(net.minecraft.util.Util.getMillis());
+    }
+
+    private void toggleUnroll(String key) {
+        long now = net.minecraft.util.Util.getMillis();
+        float at = unrolled(key);
+        boolean open = at <= 0.0F || !unrolls.get(key).open();
+        long since = now - (long) ((open ? at : 1.0F - at) * SCROLL_MS);
+        unrolls.put(key, new Unroll(open, since));
+        turnPage();
+    }
+
+    private static float easeOut(float t) {
+        float inverse = 1.0F - t;
+        return 1.0F - inverse * inverse * inverse;
+    }
+
+    private void pathScrollRest(GuiGraphicsExtractor graphics, PathPart part, int pageX) {
+        int x = pageX + part.x();
+        int y = part.y();
+        int holder = holderOuter();
+        int holderX = x + (SCROLL_REST_W - holder) / 2;
+        float progress = unrolled(part.key());
+        boolean over = hovered(x, y, SCROLL_REST_W, scrollRestHeight());
+        itemHolder(graphics, part.item(), holderX, y);
+        if (progress <= 0.0F) {
+            int rollY = y + scrollRollY();
+            pull(graphics, x + (SCROLL_REST_W - PULL_W) / 2, rollY + ROLL_H - PULL_TUCK + (over ? 1 : 0), over);
+            ScrollWidgetRenderer.roll(graphics, x, rollY, SCROLL_REST_W);
+        } else {
+            overlays.add(() -> pathScrollOpen(graphics, part, pageX, progress));
+        }
+        Component hint = Component.translatable(progress > 0.0F ? "alchemia.guide.primer.path_close" : "alchemia.guide.primer.path_open")
+                .withStyle(ChatFormatting.GRAY);
+        hotspot(x, y, SCROLL_REST_W, scrollRestHeight(), () -> toggleUnroll(part.key()), () -> List.of(part.item().getHoverName(), hint));
+    }
+
+    private void pathScrollOpen(GuiGraphicsExtractor graphics, PathPart part, int pageX, float progress) {
+        PathPanel panel = part.panel();
+        float across = easeOut(Mth.clamp(progress / 0.35F, 0.0F, 1.0F));
+        float down = easeOut(Mth.clamp((progress - 0.15F) / 0.85F, 0.0F, 1.0F));
+        int sheetW = scrollSheetW(part);
+        int sheetH = scrollSheetH(part);
+        int fullW = sheetW + ROLL_END * 2;
+        float restCentre = pageX + part.x() + SCROLL_REST_W / 2.0F;
+        float openCentre = Mth.clamp(restCentre, pageX + fullW / 2.0F, pageX + PAGE_W - fullW / 2.0F);
+        int rollW = Math.round(Mth.lerp(across, SCROLL_REST_W, fullW));
+        int rollX = Math.round(Mth.lerp(across, restCentre, openCentre) - rollW / 2.0F);
+        int topY = part.y() + scrollRollY();
+        int sheetTop = topY + ROLL_H - 1;
+        int shown = Math.round(down * sheetH);
+        int bottomY = sheetTop + shown - ROLL_H + 1 + Math.round(down * (ROLL_H - 1));
+        int sheetX = rollX + ROLL_END;
+        int w = rollW - ROLL_END * 2;
+        int sheetBottom = Math.max(sheetTop, bottomY + 1);
+
+        ScrollWidgetRenderer.paper(graphics, sheetX, sheetTop, w, sheetBottom, () -> {
+            int contentX = sheetX + (w - sheetW) / 2 + SCROLL_PAD_W;
+            int pathTop = subtitle(graphics, part.label(), contentX, sheetTop + SCROLL_PAD_H, panel.plainWidth()) + 2;
+            panel.drawPlain(graphics, contentX, pathTop);
+        });
+        ScrollWidgetRenderer.roll(graphics, rollX, topY, rollW);
+        int pullY = bottomY + ROLL_H - PULL_TUCK;
+        boolean over = hovered(rollX, topY, rollW, pullY + PULL_H - topY);
+        pull(graphics, rollX + (rollW - PULL_W) / 2, pullY + (over ? 1 : 0), over);
+        ScrollWidgetRenderer.roll(graphics, rollX, bottomY, rollW);
+        hotspot(rollX, topY, rollW, pullY + PULL_H - topY, () -> toggleUnroll(part.key()),
+                () -> List.of(Component.translatable("alchemia.guide.primer.path_close")));
+    }
+
+    private void pull(GuiGraphicsExtractor graphics, int x, int y, boolean over) {
+        graphics.blit(RenderPipelines.GUI_TEXTURED, GuidePrimer.pathScroll(), x, y, PULL_U + (over ? PULL_W : 0), 0, PULL_W, PULL_H, SCROLL_SHEET_W, SCROLL_SHEET_H);
+    }
+
     private void itemPanel(GuiGraphicsExtractor graphics, List<List<Identifier>> slots, int gx, int gy) {
         int count = slots.size();
         int w = count * CELL + CRAFT_MARGIN * 2;
@@ -1408,22 +1783,22 @@ public class GuideScreen extends Screen {
         leatherFrame(graphics, gx, gy, w, h);
     }
 
-    private void craft(GuiGraphicsExtractor graphics, String section, List<GuidePrimer.CraftSource> crafts, int pageX, int y) {
+    private void craft(GuiGraphicsExtractor graphics, String section, List<GuidePrimer.CraftSource> crafts, int size, int pageX, int y) {
         String key = CRAFT_KEY + section;
         int shown = Mth.clamp(photoIndex.getOrDefault(key, 0), 0, crafts.size() - 1);
         PrimerRecipes.View view = PrimerRecipes.view(crafts.get(shown));
-        int grid = CELL * 3 + CRAFT_MARGIN * 2;
+        int grid = CELL * size + CRAFT_MARGIN * 2;
         int panel = grid + CRAFT_GRID_PAD * 2 + CRAFT_GAP * 2 + CRAFT_ARROW + CELL;
         int px = pageX + (PAGE_W - panel) / 2;
         int gx = px + CRAFT_GRID_PAD;
         int gy = y + CRAFT_GRID_PAD;
         graphics.fill(gx, gy, gx + grid, gy + grid, LEATHER_LIGHT);
-        for (int row = 0; row < 3; row++) {
-            for (int column = 0; column < 3; column++) {
+        for (int row = 0; row < size; row++) {
+            for (int column = 0; column < size; column++) {
                 int cx = gx + CRAFT_MARGIN + column * CELL;
                 int cy = gy + CRAFT_MARGIN + row * CELL;
                 cell(graphics, cx, cy, 0);
-                List<ItemStack> options = view.grid().get(row * 3 + column);
+                List<ItemStack> options = view.cells(size).get(row * size + column);
                 if (options.isEmpty()) continue;
                 ItemStack ingredient = options.get(cycle(options.size()));
                 graphics.item(ingredient, cx + 1, cy + 1);
@@ -1546,6 +1921,8 @@ public class GuideScreen extends Screen {
         graphics.blit(RenderPipelines.GUI_TEXTURED, GuidePrimer.photo(photos.get(shown)), 0, 0, 0, 0, w * scale, h * scale, w * scale, h * scale);
         graphics.pose().popMatrix();
         paperFrame(graphics, GuidePrimer.frame(), PHOTO_FRAME_OUTER_W, PHOTO_FRAME_OUTER_H, PHOTO_FRAME_SLICE, 0, 0, ow, oh);
+        String title = photo.title(shown);
+        if (!title.isEmpty()) label(graphics, title, widestTitle(photo), ow / 2.0F, -PHOTO_LABEL_RISE, ow - PHOTO_MAT * 4);
 
         if (photos.size() > 1) {
             int arrowY = PHOTO_MAT + h - PHOTO_ARROW - 2;
@@ -1561,6 +1938,32 @@ public class GuideScreen extends Screen {
             dots(graphics, PHOTO_MAT + w / 2, PHOTO_MAT + h + (PHOTO_MAT - PHOTO_DOT) / 2, shown, photos.size());
         }
         graphics.pose().popMatrix();
+    }
+
+    private int widestTitle(PrimerBook.Photo photo) {
+        int widest = 0;
+        for (String title : photo.titles()) widest = Math.max(widest, letteredWidth(title));
+        return widest;
+    }
+
+    private void label(GuiGraphicsExtractor graphics, String text, int widest, float centreX, int top, int maxW) {
+        int natural = letteredWidth(text);
+        int w = Math.max(LABEL_CAP * 2, Math.min(maxW, Mth.ceil(widest * LABEL_SCALE) + LABEL_PAD * 2));
+        float scale = Math.min(LABEL_SCALE, (w - LABEL_PAD * 2) / (float) Math.max(1, natural));
+        float textW = natural * scale;
+        int x = Math.round(centreX - w / 2.0F);
+        labelStrip(graphics, x, top, w);
+        inked(graphics, text, x + (w - textW) / 2.0F, top + LABEL_TEXT_TOP + (LABEL_SCALE - scale) * LABEL_H / 2.0F, scale, INK, true);
+    }
+
+    private void labelStrip(GuiGraphicsExtractor graphics, int x, int y, int w) {
+        Identifier sheet = GuidePrimer.label();
+        graphics.blit(RenderPipelines.GUI_TEXTURED, sheet, x, y, 0, 0, LABEL_CAP, LABEL_SHEET_H, LABEL_SHEET_W, LABEL_SHEET_H);
+        for (int at = LABEL_CAP; at < w - LABEL_CAP; at += LABEL_MID) {
+            int piece = Math.min(LABEL_MID, w - LABEL_CAP - at);
+            graphics.blit(RenderPipelines.GUI_TEXTURED, sheet, x + at, y, LABEL_CAP, 0, piece, LABEL_SHEET_H, LABEL_SHEET_W, LABEL_SHEET_H);
+        }
+        graphics.blit(RenderPipelines.GUI_TEXTURED, sheet, x + w - LABEL_CAP, y, LABEL_CAP + LABEL_MID, 0, LABEL_CAP, LABEL_SHEET_H, LABEL_SHEET_W, LABEL_SHEET_H);
     }
 
     private static int[] rotated(int localX, int localY, int ow, int oh, float centreX, float centreY, float radians) {
@@ -2080,7 +2483,7 @@ public class GuideScreen extends Screen {
 
             if (rowY + 8 >= paneTop && rowY + 8 <= paneBottom) {
                 hotspot(x - 1, Math.max(rowY - 1, paneTop), pitch, Math.min(rowY + 17, paneBottom) - Math.max(rowY - 1, paneTop),
-                        pageMode ? null : followItem(item), () -> ingredientTooltip(item, needed, held));
+                        pageMode ? null : followFromRecipe(item), () -> ingredientTooltip(item, needed, held));
             }
             x += pitch;
         }
@@ -2260,7 +2663,8 @@ public class GuideScreen extends Screen {
         selectedIngredient = ingredient;
         selectedReagent = null;
         goTo(Chapter.INGREDIENTS);
-        reagentPage = false;
+        reagentPage = ingredient.getType() == IngredientType.Mineral;
+        reagentSpread = 0;
     }
 
     private void followReagent(Item item) {
@@ -2268,7 +2672,33 @@ public class GuideScreen extends Screen {
         selectedReagent = item;
         selectedIngredient = null;
         goTo(Chapter.INGREDIENTS);
-        reagentPage = !directReagents().contains(item);
+        reagentPage = true;
+        reagentSpread = VanillaIngredients.MODIFIERS.contains(item) || Imbuements.isAttuner(new ItemStack(item)) ? 1 : 0;
+    }
+
+    private @Nullable Runnable followFromRecipe(ItemStack item) {
+        Runnable follow = followItem(item);
+        String from = openRecipe;
+        if (follow == null || from == null) return follow;
+        double at = scroll;
+        return () -> {
+            follow.run();
+            returnRecipe = from;
+            returnScroll = at;
+        };
+    }
+
+    private void backToRecipe() {
+        String target = returnRecipe;
+        returnRecipe = null;
+        for (BrewRecipe recipe : recipes) {
+            if (!recipe.id().equals(target)) continue;
+            openRecipe(recipe);
+            if (!pageMode) lastChapter = Chapter.RECIPES;
+            scroll = returnScroll;
+            return;
+        }
+        goTo(Chapter.RECIPES);
     }
 
     private @Nullable Runnable followItem(ItemStack item) {
@@ -2298,7 +2728,8 @@ public class GuideScreen extends Screen {
         return sortedReagents(true);
     }
 
-    private record GridEntry(@Nullable Ingredients ingredient, @Nullable Item reagent, ItemStack stack) {
+    private static List<Item> generalReagents() {
+        return directReagents();
     }
 
     private static String reagentKey(Item item) {
@@ -2472,11 +2903,13 @@ public class GuideScreen extends Screen {
                     Component text = treatment == null
                             ? Component.translatable("alchemia.guide.step.add", item.getHoverName())
                             : Component.translatable("alchemia.guide.step.add_treated", item.getHoverName(), treatment);
-                    steps.add(new Step(text, item, null, List.of(item.getHoverName()), pageMode ? null : followItem(item)));
+                    steps.add(new Step(text, item, null, List.of(item.getHoverName()), pageMode ? null : followFromRecipe(item)));
                 }
                 case BrewRecipe.STEP_STIR -> steps.add(stirStep(stirs(value), 1.0));
                 case BrewRecipe.STEP_FINE -> steps.add(stirStep(stirs(value), FINE_STIR));
                 case BrewRecipe.STEP_FINISH -> steps.add(new Step(Component.translatable("alchemia.guide.step.settle"), ItemStack.EMPTY, Icon.STIR, List.of()));
+                case BrewRecipe.STEP_WHIRL -> steps.add(new Step(Component.translatable("alchemia.guide.step.whirl"), ItemStack.EMPTY, Icon.BREW,
+                        List.of(Component.translatable("alchemia.guide.step.whirl.tip"))));
                 case BrewRecipe.STEP_BREW -> steps.add(new Step(Component.translatable("alchemia.guide.step.brew"), ItemStack.EMPTY, Icon.BREW,
                         List.of(Component.translatable("alchemia.guide.step.brew.tip"))));
                 case BrewRecipe.STEP_REDSTONE -> steps.add(new Step(Component.translatable("alchemia.guide.step.redstone"),
@@ -2686,7 +3119,7 @@ public class GuideScreen extends Screen {
             }, () -> List.of(effectName(chosen)));
         }
 
-        int legendY = gridY + GRID_ROWS * CELL + 8;
+        int legendY = gridY + EFFECTS_ROWS * CELL + 8;
         wrappedCentred(graphics, Component.translatable("alchemia.guide.effects.legend"), LEFT_X, legendY, INK_FAINT);
 
         if (pages > 1) {
@@ -3107,77 +3540,120 @@ public class GuideScreen extends Screen {
     private void extractIngredients(GuiGraphicsExtractor graphics) {
         if (reagentPage) {
             extractReagents(graphics);
+            returnCorner(graphics);
             return;
         }
-
-        List<GridEntry> entries = new ArrayList<>();
-        for (Ingredients ingredient : knownIngredients) entries.add(new GridEntry(ingredient, null, ingredientStack(ingredient)));
-        List<Item> direct = directReagents();
-        for (Item reagent : direct) {
-            if (knownReagents.contains(reagent)) entries.add(new GridEntry(null, reagent, new ItemStack(reagent)));
-        }
-        entries.sort(Comparator.comparing(entry -> entry.stack().getHoverName().getString()));
-        int total = IngredientDiscovery.total() + direct.size();
-
         int y = chapterHeading(graphics, Component.translatable("alchemia.guide.chapter.ingredients"), LEFT_X, TOP + 2);
-        centred(graphics, Component.translatable("alchemia.guide.ingredients.known", entries.size(), total), LEFT_X, y, INK_FAINT);
-
         int gridX = LEFT_X + (PAGE_W - GRID_COLUMNS * CELL) / 2;
-        int gridY = y + 14;
-        for (int slot = 0; slot < Math.min(total, GRID_COLUMNS * GRID_ROWS); slot++) {
-            int x = gridX + (slot % GRID_COLUMNS) * CELL;
-            int cy = gridY + (slot / GRID_COLUMNS) * CELL;
-            GridEntry entry = slot < entries.size() ? entries.get(slot) : null;
-            boolean chosen = entry != null && (entry.ingredient() != null ? entry.ingredient() == selectedIngredient : entry.reagent() == selectedReagent);
-            boolean over = entry != null && hovered(x, cy, CELL, CELL);
-            cell(graphics, x, cy, entry == null ? 3 : chosen ? 2 : over ? 1 : 0);
-
-            if (entry == null) {
-                icon(graphics, Icon.UNKNOWN, x + 3, cy + 3, true);
-                hotspot(x, cy, CELL, CELL, null, () -> List.of(Component.translatable("alchemia.guide.ingredients.undiscovered")));
-                continue;
-            }
-            graphics.item(entry.stack(), x + 1, cy + 1);
-            hotspot(x, cy, CELL, CELL, () -> {
-                selectedIngredient = entry.ingredient();
-                selectedReagent = entry.reagent();
-                resetScroll();
-            }, () -> List.of(entry.stack().getHoverName()));
-        }
-
-        int legendY = gridY + GRID_ROWS * CELL + 8;
-        wrappedCentred(graphics, Component.translatable("alchemia.guide.ingredients.legend"), LEFT_X, legendY, INK_FAINT);
+        y = ingredientGroup(graphics, IngredientType.Flower, "alchemia.guide.ingredients.flower", gridX, y);
+        y = ingredientGroup(graphics, IngredientType.Herb, "alchemia.guide.ingredients.herb", gridX, y);
+        y = ingredientGroup(graphics, IngredientType.Mushroom, "alchemia.guide.ingredients.mushroom", gridX, y);
+        ingredientGroup(graphics, IngredientType.Root, "alchemia.guide.ingredients.root", gridX, y);
 
         corner(graphics, true, () -> {
             reagentPage = true;
+            reagentSpread = 0;
             resetScroll();
             turnPage();
         }, Component.translatable("alchemia.guide.reagents.title"));
         scrollPanel(graphics, TOP, BOTTOM - 20, () -> selectedReagent != null ? reagentDetail(graphics) : ingredientDetail(graphics));
+        returnCorner(graphics);
+    }
+
+    private void returnCorner(GuiGraphicsExtractor graphics) {
+        if (returnRecipe == null) return;
+        topCorner(graphics, false, this::backToRecipe, Component.translatable("alchemia.guide.back_recipe"));
+    }
+
+    private int ingredientGroup(GuiGraphicsExtractor graphics, IngredientType type, String title, int gridX, int y) {
+        List<Ingredients> items = ingredientsOf(type);
+        centred(graphics, Component.translatable(title, knownIngredients(items), items.size()), LEFT_X, y, INK_HEAD);
+        return ingredientGrid(graphics, items, gridX, y + 10) + 1;
+    }
+
+    private List<Ingredients> ingredientsOf(IngredientType type) {
+        List<Ingredients> items = new ArrayList<>();
+        for (Ingredients ingredient : Ingredients.values()) {
+            if (ingredient.getType() == type) items.add(ingredient);
+        }
+        items.sort(Comparator.comparing(ingredient -> ingredientStack(ingredient).getHoverName().getString()));
+        return items;
+    }
+
+    private int knownIngredients(List<Ingredients> items) {
+        int count = 0;
+        for (Ingredients ingredient : items) {
+            if (knownIngredients.contains(ingredient)) count++;
+        }
+        return count;
+    }
+
+    private int ingredientGrid(GuiGraphicsExtractor graphics, List<Ingredients> items, int gridX, int gridY) {
+        List<Ingredients> shown = new ArrayList<>();
+        for (Ingredients ingredient : items) {
+            if (knownIngredients.contains(ingredient)) shown.add(ingredient);
+        }
+        for (int slot = 0; slot < items.size(); slot++) {
+            int x = gridX + (slot % GRID_COLUMNS) * CELL;
+            int cy = gridY + (slot / GRID_COLUMNS) * CELL;
+            Ingredients ingredient = slot < shown.size() ? shown.get(slot) : null;
+            boolean over = ingredient != null && hovered(x, cy, CELL, CELL);
+            cell(graphics, x, cy, ingredient == null ? 3 : ingredient == selectedIngredient ? 2 : over ? 1 : 0);
+            if (ingredient == null) {
+                icon(graphics, Icon.UNKNOWN, x + 3, cy + 3, true);
+                hotspot(x, cy, CELL, CELL, null, () -> List.of(Component.translatable("alchemia.guide.ingredients.undiscovered")));
+                continue;
+            }
+            ItemStack stackOf = ingredientStack(ingredient);
+            graphics.item(stackOf, x + 1, cy + 1);
+            hotspot(x, cy, CELL, CELL, () -> {
+                selectedIngredient = ingredient;
+                selectedReagent = null;
+                resetScroll();
+            }, () -> List.of(stackOf.getHoverName()));
+        }
+        return gridY + Mth.ceil(items.size() / (float) GRID_COLUMNS) * CELL;
     }
 
     private void extractReagents(GuiGraphicsExtractor graphics) {
         int y = chapterHeading(graphics, Component.translatable("alchemia.guide.reagents.title"), LEFT_X, TOP + 2);
         int gridX = LEFT_X + (PAGE_W - GRID_COLUMNS * CELL) / 2;
+        if (reagentSpread == 0) {
+            List<Item> reagents = generalReagents();
+            centred(graphics, Component.translatable("alchemia.guide.reagents.general", known(reagents), reagents.size()), LEFT_X, y, INK_HEAD);
+            int gridEnd = reagentGrid(graphics, reagents, gridX, y + 12);
+            List<Item> monsters = lureReagents();
+            centred(graphics, Component.translatable("alchemia.guide.reagents.monster_drops", known(monsters), monsters.size()), LEFT_X, gridEnd + 6, INK_HEAD);
+            gridEnd = reagentGrid(graphics, monsters, gridX, gridEnd + 18);
+            List<Ingredients> minerals = ingredientsOf(IngredientType.Mineral);
+            centred(graphics, Component.translatable("alchemia.guide.ingredients.mineral", knownIngredients(minerals), minerals.size()), LEFT_X, gridEnd + 6, INK_HEAD);
+            ingredientGrid(graphics, minerals, gridX, gridEnd + 18);
+        } else {
+            List<Item> modifiers = VanillaIngredients.MODIFIERS;
+            centred(graphics, Component.translatable("alchemia.guide.reagents.modifiers", known(modifiers), modifiers.size()), LEFT_X, y, INK_HEAD);
+            int gridEnd = reagentGrid(graphics, modifiers, gridX, y + 12);
+            List<Item> imbuements = Imbuements.items();
+            centred(graphics, Component.translatable("alchemia.guide.reagents.imbuements", known(imbuements), imbuements.size()), LEFT_X, gridEnd + 6, INK_HEAD);
+            reagentGrid(graphics, imbuements, gridX, gridEnd + 18);
+        }
 
-        List<Item> lures = lureReagents();
-        centred(graphics, Component.translatable("alchemia.guide.reagents.lures", known(lures), lures.size()), LEFT_X, y, INK_HEAD);
-        int gridY = reagentGrid(graphics, lures, gridX, y + 12);
-
-        List<Item> modifiers = VanillaIngredients.MODIFIERS;
-        centred(graphics, Component.translatable("alchemia.guide.reagents.modifiers", known(modifiers), modifiers.size()), LEFT_X, gridY + 6, INK_HEAD);
-        gridY = reagentGrid(graphics, modifiers, gridX, gridY + 18);
-
-        List<Item> imbuements = Imbuements.items();
-        centred(graphics, Component.translatable("alchemia.guide.reagents.imbuements", known(imbuements), imbuements.size()), LEFT_X, gridY + 6, INK_HEAD);
-        reagentGrid(graphics, imbuements, gridX, gridY + 18);
-
-        corner(graphics, false, () -> {
+        if (reagentSpread == 0) corner(graphics, false, () -> {
             reagentPage = false;
+            reagentSpread = 0;
             resetScroll();
             turnPage();
         }, Component.translatable("alchemia.guide.chapter.ingredients"));
-        scrollPanel(graphics, TOP, BOTTOM - 20, () -> reagentDetail(graphics));
+        else corner(graphics, false, () -> {
+            reagentSpread = 0;
+            resetScroll();
+            turnPage();
+        }, Component.translatable("alchemia.guide.previous"));
+        if (reagentSpread == 0) corner(graphics, true, () -> {
+            reagentSpread = 1;
+            resetScroll();
+            turnPage();
+        }, Component.translatable("alchemia.guide.next"));
+        scrollPanel(graphics, TOP, BOTTOM - 20, () -> selectedReagent != null ? reagentDetail(graphics) : ingredientDetail(graphics));
     }
 
     private int imbuementDetail(GuiGraphicsExtractor graphics, Item item, int y, int width) {
@@ -3257,12 +3733,7 @@ public class GuideScreen extends Screen {
             PathPanel panel = drift.lure() || !PotionMap.isReady() ? null : driftPanel(drift);
             if (panel != null && panel.drawable()) {
                 y = subtitle(graphics, Component.translatable("alchemia.tooltip.label.path"), y + 2, width) + 6;
-                int pathW = panel.plainWidth();
-                int pathH = panel.plainHeight();
-                int pathX = RIGHT_X + (width - pathW) / 2;
-                inkCorners(graphics, pathX - 4, y - 2, pathW + 8, pathH + 4);
-                panel.drawPlain(graphics, pathX, y);
-                y += pathH + 8;
+                y = pathScroll(graphics, panel, driftGrindTable(drift), "reagent:" + reagentKey(selectedReagent), item, y, width) + 6;
             }
         } else if (attuning) {
             y = imbuementDetail(graphics, selectedReagent, y, width);
@@ -3299,6 +3770,34 @@ public class GuideScreen extends Screen {
         return new PathPanel(Component.translatable("alchemia.tooltip.label.path"), full, base, false, 96, 44);
     }
 
+    private int pathScroll(GuiGraphicsExtractor graphics, PathPanel panel, double @Nullable [] grind, String key, ItemStack item, int y, int width) {
+        int pathW = panel.plainWidth();
+        int pathH = panel.plainHeight();
+        int sliderH = grind != null ? GRIND_H : 0;
+        int sheetW = pathW + SCROLL_PAD_W * 2;
+        int sheetH = pathH + sliderH + SCROLL_PAD_H * 2;
+        int sheetX = RIGHT_X + (width - sheetW) / 2;
+        return ScrollWidgetRenderer.open(graphics, RIGHT_X + (width - ScrollWidgetRenderer.outerWidth(sheetW)) / 2, y, sheetW, sheetH, () -> {
+            int pathX = sheetX + SCROLL_PAD_W;
+            int pathY = y + ROLL_H - 1 + SCROLL_PAD_H;
+            if (grind != null) {
+                panel.drawPlain(graphics, pathX, pathY, grind[grinds.getOrDefault(key, 0)]);
+                grindSlider(graphics, key, item, sheetX, pathY + pathH, sheetW, false);
+            } else {
+                panel.drawPlain(graphics, pathX, pathY);
+            }
+        });
+    }
+
+    private static double @Nullable [] driftGrindTable(VanillaIngredients.Drift drift) {
+        PotionMap map = PotionMap.get(muddykat.alchemia.common.potion.BrewBases.defaultBase());
+        double[] taken = new double[Ingredients.MAX_CRUSH_UNITS + 1];
+        for (int units = 0; units <= Ingredients.MAX_CRUSH_UNITS; units++) {
+            taken[units] = PathGeometry.length(map.fixedDriftOffsets(drift.target(), units));
+        }
+        return taken;
+    }
+
     private int ingredientDetail(GuiGraphicsExtractor graphics) {
         int width = PAGE_W - TRACK_W - 4;
         int y = TOP - (int) scroll;
@@ -3314,12 +3813,8 @@ public class GuideScreen extends Screen {
         if (panel != null && panel.drawable()) {
             boolean teleports = IngredientPath.of(selectedIngredient).teleports();
             y = subtitle(graphics, Component.translatable(teleports ? "alchemia.tooltip.label.teleport" : "alchemia.tooltip.label.path"), y + 2, width) + 6;
-            int pathW = panel.plainWidth();
-            int pathH = panel.plainHeight();
-            int pathX = RIGHT_X + (width - pathW) / 2;
-            inkCorners(graphics, pathX - 4, y - 2, pathW + 8, pathH + 4);
-            panel.drawPlain(graphics, pathX, y);
-            y += pathH + 8;
+            y = pathScroll(graphics, panel, grindTable(selectedIngredient), "ingredient:" + selectedIngredient.name(),
+                    ingredientStack(selectedIngredient), y, width) + 6;
         }
 
         y = scrolledHeading(graphics, Component.translatable("alchemia.guide.your_notes"), y, width);
@@ -3381,11 +3876,25 @@ public class GuideScreen extends Screen {
     }
 
     private static @Nullable PathPanel pathPanel(Ingredients ingredient) {
+        PathVisual visual = pathVisual(ingredient);
+        return visual == null ? null : visual.panel();
+    }
+
+    private static @Nullable PathVisual pathVisual(Ingredients ingredient) {
         IngredientPath shape = IngredientPath.of(ingredient);
         int dx = Integer.signum(ingredient.getPrimaryAlignment().getX() + ingredient.getSecondaryAlignment().getX());
         int dy = Integer.signum(ingredient.getPrimaryAlignment().getY() + ingredient.getSecondaryAlignment().getY());
-        if (shape.needsDirection() && dx == 0 && dy == 0) return null;
+        Component label = Component.translatable(shape.teleports() ? "alchemia.tooltip.label.teleport" : "alchemia.tooltip.label.path");
+        ItemStack stack = ingredientStack(ingredient);
+        if (stack.getItem() instanceof ItemIngredient item) {
+            Optional<TooltipComponent> tooltip = item.getTooltipImage(stack);
+            if (tooltip.orElse(null) instanceof IngredientPathTooltip path) {
+                PathPanel panel = new PathPanel(path.label(), path.points(), path.taken(), path.teleport(), 96, 44);
+                if (panel.drawable()) return new PathVisual(panel, path.label());
+            }
+        }
 
+        if (shape.needsDirection() && dx == 0 && dy == 0) return null;
         double ceiling = IngredientPath.teleportCeiling(ingredient);
         List<PathPoint> full = shape.teleports()
                 ? shape.teleportPreview(dx, dy, ceiling, ceiling)
@@ -3393,9 +3902,21 @@ public class GuideScreen extends Screen {
         List<PathPoint> base = shape.teleports()
                 ? shape.teleportPreview(dx, dy, ceiling, IngredientPath.reachFor(ingredient.getPotency(0), 0))
                 : IngredientPath.pathFor(ingredient, dx, dy, ingredient.getPotency(0));
+        PathPanel panel = new PathPanel(label, full, PathGeometry.length(base), shape.teleports(), 96, 44);
+        return panel.drawable() ? new PathVisual(panel, label) : null;
+    }
 
-        Component label = Component.translatable(shape.teleports() ? "alchemia.tooltip.label.teleport" : "alchemia.tooltip.label.path");
-        return new PathPanel(label, full, PathGeometry.length(base), shape.teleports(), 96, 44);
+    private static @Nullable Ingredients primerPathIngredient(String itemName) {
+        String name = itemName;
+        int separator = name.indexOf(':');
+        if (separator >= 0) {
+            if (!name.substring(0, separator).equals(Alchemia.MODID)) return null;
+            name = name.substring(separator + 1);
+        }
+        for (Ingredients ingredient : Ingredients.values()) {
+            if (ingredient.getRegistryName().equalsIgnoreCase(name)) return ingredient;
+        }
+        return null;
     }
 
     private int countHeld(ItemStack wanted) {
@@ -3471,6 +3992,11 @@ public class GuideScreen extends Screen {
 
     @Override
     public boolean mouseDragged(MouseButtonEvent event, double dx, double dy) {
+        if (grindDrag != null) {
+            toBook(event.x(), event.y());
+            dragGrind(grindDrag);
+            return true;
+        }
         if (!dragging) return super.mouseDragged(event, dx, dy);
         toBook(event.x(), event.y());
         int height = viewBottom - viewTop;
@@ -3483,6 +4009,7 @@ public class GuideScreen extends Screen {
     @Override
     public boolean mouseReleased(MouseButtonEvent event) {
         dragging = false;
+        grindDrag = null;
         return super.mouseReleased(event);
     }
 

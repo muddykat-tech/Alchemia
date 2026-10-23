@@ -20,6 +20,7 @@ import muddykat.alchemia.common.items.ItemNigredo;
 import muddykat.alchemia.common.items.ItemRecipePage;
 import muddykat.alchemia.common.items.helper.IngredientAlignment;
 import muddykat.alchemia.common.items.helper.IngredientPath;
+import muddykat.alchemia.common.items.helper.IngredientType;
 import muddykat.alchemia.common.items.helper.Ingredients;
 import muddykat.alchemia.common.items.helper.PathGeometry;
 import muddykat.alchemia.common.items.helper.PathPoint;
@@ -210,6 +211,7 @@ public class GuideScreen extends Screen {
     private static final float GLOWING_ART = 16.0F;
     private static final float GLOWING_CENTRE = 9.0F;
     private static final int GRID_ROWS = 6;
+    private static final int EFFECTS_ROWS = 7;
     private static final int INDEX_ROWS = 7;
     private static final int INDEX_ROW_H = 24;
     private static final int RECENT_ROW_H = 22;
@@ -298,6 +300,7 @@ public class GuideScreen extends Screen {
     private long marqueeStart;
     private boolean hoveredMarquee;
     private boolean reagentPage;
+    private int reagentSpread;
     private @Nullable Item selectedReagent;
     private double scroll;
     private double ingredientScroll;
@@ -828,6 +831,7 @@ public class GuideScreen extends Screen {
             hotspot(PAGE_RIGHT_EDGE + 1, y, TAB_W - TAB_REACH, TAB_H + drop, () -> {
                 if (tab != chapter) {
                     reagentPage = false;
+                    reagentSpread = 0;
                     machinePage = false;
                 }
                 goTo(tab);
@@ -1431,7 +1435,8 @@ public class GuideScreen extends Screen {
         selectedIngredient = ingredient;
         selectedReagent = null;
         goTo(Chapter.INGREDIENTS);
-        reagentPage = false;
+        reagentPage = ingredient.getType() == IngredientType.Mineral;
+        reagentSpread = 0;
     }
 
     private void followReagent(Item item) {
@@ -1439,7 +1444,8 @@ public class GuideScreen extends Screen {
         selectedReagent = item;
         selectedIngredient = null;
         goTo(Chapter.INGREDIENTS);
-        reagentPage = !directReagents().contains(item);
+        reagentPage = true;
+        reagentSpread = VanillaIngredients.MODIFIERS.contains(item) || Imbuements.isAttuner(new ItemStack(item)) ? 1 : 0;
     }
 
     private @Nullable Runnable followItem(ItemStack item) {
@@ -1469,7 +1475,8 @@ public class GuideScreen extends Screen {
         return sortedReagents(true);
     }
 
-    private record GridEntry(@Nullable Ingredients ingredient, @Nullable Item reagent, ItemStack stack) {
+    private static List<Item> generalReagents() {
+        return directReagents();
     }
 
     private static String reagentKey(Item item) {
@@ -1850,7 +1857,7 @@ public class GuideScreen extends Screen {
         int gridX = LEFT_X + (PAGE_W - GRID_COLUMNS * CELL) / 2;
         int gridY = y + 14;
         int total = RecipeDiscovery.total();
-        for (int slot = 0; slot < Math.min(total, GRID_COLUMNS * GRID_ROWS); slot++) {
+        for (int slot = 0; slot < Math.min(total, GRID_COLUMNS * EFFECTS_ROWS); slot++) {
             int x = gridX + (slot % GRID_COLUMNS) * CELL;
             int cy = gridY + (slot / GRID_COLUMNS) * CELL;
             PotionEnum potion = slot < known.size() ? known.get(slot)
@@ -1876,7 +1883,7 @@ public class GuideScreen extends Screen {
             }, () -> List.of(effectName(chosen)));
         }
 
-        int legendY = gridY + GRID_ROWS * CELL + 8;
+        int legendY = gridY + EFFECTS_ROWS * CELL + 8;
         wrappedCentred(graphics, Component.translatable("alchemia.guide.effects.legend"), LEFT_X, legendY, INK_FAINT);
 
         scrollPanel(graphics, TOP, BOTTOM, () -> effectDetail(graphics));
@@ -2259,75 +2266,111 @@ public class GuideScreen extends Screen {
             extractReagents(graphics);
             return;
         }
-
-        List<GridEntry> entries = new ArrayList<>();
-        for (Ingredients ingredient : knownIngredients) entries.add(new GridEntry(ingredient, null, ingredientStack(ingredient)));
-        List<Item> direct = directReagents();
-        for (Item reagent : direct) {
-            if (knownReagents.contains(reagent)) entries.add(new GridEntry(null, reagent, new ItemStack(reagent)));
-        }
-        entries.sort(Comparator.comparing(entry -> entry.stack().getHoverName().getString()));
-        int total = IngredientDiscovery.total() + direct.size();
-
         int y = chapterHeading(graphics, Component.translatable("alchemia.guide.chapter.ingredients"), LEFT_X, TOP + 2);
-        centred(graphics, Component.translatable("alchemia.guide.ingredients.known", entries.size(), total), LEFT_X, y, INK_FAINT);
-
         int gridX = LEFT_X + (PAGE_W - GRID_COLUMNS * CELL) / 2;
-        int gridY = y + 14;
-        for (int slot = 0; slot < Math.min(total, GRID_COLUMNS * GRID_ROWS); slot++) {
-            int x = gridX + (slot % GRID_COLUMNS) * CELL;
-            int cy = gridY + (slot / GRID_COLUMNS) * CELL;
-            GridEntry entry = slot < entries.size() ? entries.get(slot) : null;
-            boolean chosen = entry != null && (entry.ingredient() != null ? entry.ingredient() == selectedIngredient : entry.reagent() == selectedReagent);
-            boolean over = entry != null && hovered(x, cy, CELL, CELL);
-            cell(graphics, x, cy, entry == null ? 3 : chosen ? 2 : over ? 1 : 0);
-
-            if (entry == null) {
-                icon(graphics, Icon.UNKNOWN, x + 3, cy + 3, true);
-                hotspot(x, cy, CELL, CELL, null, () -> List.of(Component.translatable("alchemia.guide.ingredients.undiscovered")));
-                continue;
-            }
-            graphics.renderItem(entry.stack(), x + 1, cy + 1);
-            hotspot(x, cy, CELL, CELL, () -> {
-                selectedIngredient = entry.ingredient();
-                selectedReagent = entry.reagent();
-                resetScroll();
-            }, () -> List.of(entry.stack().getHoverName()));
-        }
-
-        int legendY = gridY + GRID_ROWS * CELL + 8;
-        wrappedCentred(graphics, Component.translatable("alchemia.guide.ingredients.legend"), LEFT_X, legendY, INK_FAINT);
+        y = ingredientGroup(graphics, IngredientType.Flower, "alchemia.guide.ingredients.flower", gridX, y);
+        y = ingredientGroup(graphics, IngredientType.Herb, "alchemia.guide.ingredients.herb", gridX, y);
+        y = ingredientGroup(graphics, IngredientType.Mushroom, "alchemia.guide.ingredients.mushroom", gridX, y);
+        ingredientGroup(graphics, IngredientType.Root, "alchemia.guide.ingredients.root", gridX, y);
 
         corner(graphics, true, () -> {
             reagentPage = true;
+            reagentSpread = 0;
             resetScroll();
             turnPage();
         }, Component.translatable("alchemia.guide.reagents.title"));
         scrollPanel(graphics, TOP, BOTTOM - 20, () -> selectedReagent != null ? reagentDetail(graphics) : ingredientDetail(graphics));
     }
 
+    private int ingredientGroup(GuiGraphics graphics, IngredientType type, String title, int gridX, int y) {
+        List<Ingredients> items = ingredientsOf(type);
+        centred(graphics, Component.translatable(title, knownIngredients(items), items.size()), LEFT_X, y, INK_HEAD);
+        return ingredientGrid(graphics, items, gridX, y + 10) + 1;
+    }
+
+    private List<Ingredients> ingredientsOf(IngredientType type) {
+        List<Ingredients> items = new ArrayList<>();
+        for (Ingredients ingredient : Ingredients.values()) {
+            if (ingredient.getType() == type) items.add(ingredient);
+        }
+        items.sort(Comparator.comparing(ingredient -> ingredientStack(ingredient).getHoverName().getString()));
+        return items;
+    }
+
+    private int knownIngredients(List<Ingredients> items) {
+        int count = 0;
+        for (Ingredients ingredient : items) {
+            if (knownIngredients.contains(ingredient)) count++;
+        }
+        return count;
+    }
+
+    private int ingredientGrid(GuiGraphics graphics, List<Ingredients> items, int gridX, int gridY) {
+        List<Ingredients> shown = new ArrayList<>();
+        for (Ingredients ingredient : items) {
+            if (knownIngredients.contains(ingredient)) shown.add(ingredient);
+        }
+        for (int slot = 0; slot < items.size(); slot++) {
+            int x = gridX + (slot % GRID_COLUMNS) * CELL;
+            int cy = gridY + (slot / GRID_COLUMNS) * CELL;
+            Ingredients ingredient = slot < shown.size() ? shown.get(slot) : null;
+            boolean over = ingredient != null && hovered(x, cy, CELL, CELL);
+            cell(graphics, x, cy, ingredient == null ? 3 : ingredient == selectedIngredient ? 2 : over ? 1 : 0);
+            if (ingredient == null) {
+                icon(graphics, Icon.UNKNOWN, x + 3, cy + 3, true);
+                hotspot(x, cy, CELL, CELL, null, () -> List.of(Component.translatable("alchemia.guide.ingredients.undiscovered")));
+                continue;
+            }
+            ItemStack stackOf = ingredientStack(ingredient);
+            graphics.renderItem(stackOf, x + 1, cy + 1);
+            hotspot(x, cy, CELL, CELL, () -> {
+                selectedIngredient = ingredient;
+                selectedReagent = null;
+                resetScroll();
+            }, () -> List.of(stackOf.getHoverName()));
+        }
+        return gridY + Mth.ceil(items.size() / (float) GRID_COLUMNS) * CELL;
+    }
+
     private void extractReagents(GuiGraphics graphics) {
         int y = chapterHeading(graphics, Component.translatable("alchemia.guide.reagents.title"), LEFT_X, TOP + 2);
         int gridX = LEFT_X + (PAGE_W - GRID_COLUMNS * CELL) / 2;
+        if (reagentSpread == 0) {
+            List<Item> reagents = generalReagents();
+            centred(graphics, Component.translatable("alchemia.guide.reagents.general", known(reagents), reagents.size()), LEFT_X, y, INK_HEAD);
+            int gridEnd = reagentGrid(graphics, reagents, gridX, y + 12);
+            List<Item> monsters = lureReagents();
+            centred(graphics, Component.translatable("alchemia.guide.reagents.monster_drops", known(monsters), monsters.size()), LEFT_X, gridEnd + 6, INK_HEAD);
+            gridEnd = reagentGrid(graphics, monsters, gridX, gridEnd + 18);
+            List<Ingredients> minerals = ingredientsOf(IngredientType.Mineral);
+            centred(graphics, Component.translatable("alchemia.guide.ingredients.mineral", knownIngredients(minerals), minerals.size()), LEFT_X, gridEnd + 6, INK_HEAD);
+            ingredientGrid(graphics, minerals, gridX, gridEnd + 18);
+        } else {
+            List<Item> modifiers = VanillaIngredients.MODIFIERS;
+            centred(graphics, Component.translatable("alchemia.guide.reagents.modifiers", known(modifiers), modifiers.size()), LEFT_X, y, INK_HEAD);
+            int gridEnd = reagentGrid(graphics, modifiers, gridX, y + 12);
+            List<Item> imbuements = Imbuements.items();
+            centred(graphics, Component.translatable("alchemia.guide.reagents.imbuements", known(imbuements), imbuements.size()), LEFT_X, gridEnd + 6, INK_HEAD);
+            reagentGrid(graphics, imbuements, gridX, gridEnd + 18);
+        }
 
-        List<Item> lures = lureReagents();
-        centred(graphics, Component.translatable("alchemia.guide.reagents.lures", known(lures), lures.size()), LEFT_X, y, INK_HEAD);
-        int gridY = reagentGrid(graphics, lures, gridX, y + 12);
-
-        List<Item> modifiers = VanillaIngredients.MODIFIERS;
-        centred(graphics, Component.translatable("alchemia.guide.reagents.modifiers", known(modifiers), modifiers.size()), LEFT_X, gridY + 6, INK_HEAD);
-        gridY = reagentGrid(graphics, modifiers, gridX, gridY + 18);
-
-        List<Item> imbuements = Imbuements.items();
-        centred(graphics, Component.translatable("alchemia.guide.reagents.imbuements", known(imbuements), imbuements.size()), LEFT_X, gridY + 6, INK_HEAD);
-        reagentGrid(graphics, imbuements, gridX, gridY + 18);
-
-        corner(graphics, false, () -> {
+        if (reagentSpread == 0) corner(graphics, false, () -> {
             reagentPage = false;
+            reagentSpread = 0;
             resetScroll();
             turnPage();
         }, Component.translatable("alchemia.guide.chapter.ingredients"));
-        scrollPanel(graphics, TOP, BOTTOM - 20, () -> reagentDetail(graphics));
+        else corner(graphics, false, () -> {
+            reagentSpread = 0;
+            resetScroll();
+            turnPage();
+        }, Component.translatable("alchemia.guide.previous"));
+        if (reagentSpread == 0) corner(graphics, true, () -> {
+            reagentSpread = 1;
+            resetScroll();
+            turnPage();
+        }, Component.translatable("alchemia.guide.next"));
+        scrollPanel(graphics, TOP, BOTTOM - 20, () -> selectedReagent != null ? reagentDetail(graphics) : ingredientDetail(graphics));
     }
 
     private int imbuementDetail(GuiGraphics graphics, Item item, int y, int width) {

@@ -4,7 +4,9 @@ import muddykat.alchemia.common.items.ItemIngredient;
 import muddykat.alchemia.common.potion.BrewRecipe;
 import muddykat.alchemia.common.potion.BrewRecipeBook;
 import muddykat.alchemia.common.potion.IngredientDiscovery;
+import muddykat.alchemia.common.potion.MapReveals;
 import muddykat.alchemia.common.potion.RecipeDiscovery;
+import muddykat.alchemia.common.potion.WhirlNotes;
 import muddykat.alchemia.common.potion.WorldEffects;
 import net.minecraft.world.item.ItemStack;
 
@@ -44,6 +46,8 @@ public final class GuideResearch {
         RecipeDiscovery.learn(List.of(into), RecipeDiscovery.stored(from));
         IngredientDiscovery.learnKeys(into, IngredientDiscovery.stored(from));
         WorldEffects.learnNotes(into, WorldEffects.notesIn(from));
+        WhirlNotes.learn(into, WhirlNotes.exitsIn(from));
+        MapReveals.learn(into, from);
         GreatWork.learn(into, GreatWork.stored(from));
         int learned = discoveries(into) - before;
         java.util.Map<String, String> theirs = BrewRecipeBook.ingredientNotes(from);
@@ -67,7 +71,7 @@ public final class GuideResearch {
 
     private static int discoveries(ItemStack guide) {
         return RecipeDiscovery.stored(guide).size() + IngredientDiscovery.stored(guide).size()
-                + WorldEffects.notesIn(guide).size() + GreatWork.stored(guide).size();
+                + WorldEffects.notesIn(guide).size() + WhirlNotes.exitsIn(guide).size() + GreatWork.stored(guide).size();
     }
 
     public static int secrets(ItemStack guide) {

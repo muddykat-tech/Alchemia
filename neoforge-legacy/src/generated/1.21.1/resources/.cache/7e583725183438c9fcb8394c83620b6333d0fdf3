@@ -1,4 +1,4 @@
-// 1.21.1	2026-10-20T08:05:57.901412492	Block States: alchemia
+// 1.21.1	2026-10-22T20:27:00.37295664	Block States: alchemia
 ee5f0d53113f98606f1c160006f557252175cb66 assets/alchemia/blockstates/ancient_oak_button.json
 5240b14be799e364926c199aae3d8111fe5badf4 assets/alchemia/blockstates/ancient_oak_door.json
 15120318e236e4494d8163b856d768055c04fb73 assets/alchemia/blockstates/ancient_oak_fence.json
@@ -61,7 +61,7 @@ df89e9915b04514eb97a8e91088593a20957bb96 assets/alchemia/blockstates/herb_bloodt
 39566334097d1ad16cb4ba4f3e4e716327de1879 assets/alchemia/blockstates/herb_dragon_pepper_seed.json
 d3e2c63e1703bf79bada727df304aff144df18c2 assets/alchemia/blockstates/herb_druids_rosemary_seed.json
 e8ab64ab1a959b8aceb953120b9dba11448e1661 assets/alchemia/blockstates/herb_evergreen_fern_seed.json
-ef7f6e4e0d9fae67c389b1238efbdf2d233b27ff assets/alchemia/blockstates/herb_flameweed_seed.json
+964ff2f8968352fbd76f8cfba92deaadeb9dbb37 assets/alchemia/blockstates/herb_flameweed_seed.json
 4c6cf45add8d38ee22d2f248c2e04910bdb3cdcf assets/alchemia/blockstates/herb_flameweed_stalk.json
 a9f4a421b46d6dfb5c48bd6a0a411ffe8bae4697 assets/alchemia/blockstates/herb_goldthorn_seed.json
 bcafd5a3fbb9a29c13bed2f444e0c40ea15cc52b assets/alchemia/blockstates/herb_goodberry_seed.json
@@ -185,8 +185,9 @@ dc630f2a91ff49b49365be5ee061c9e8c69fcb7b assets/alchemia/models/block/fire_citri
 8f1cef2ad805bd9e6873521b4d3b4db563faaf33 assets/alchemia/models/block/fire_citrine_geode.json
 08885a83f7e07f83a79c1190cd564793b70993ad assets/alchemia/models/block/firebell.json
 50cb8140ffb6304630dceb7029c188061a735c30 assets/alchemia/models/block/firebell_wild.json
-2b5280346e24eec48d46e56af89041986258684b assets/alchemia/models/block/flameweed.json
+0dea01a9b7b4828e477147d66c996ba547e35a63 assets/alchemia/models/block/flameweed_bottom.json
 2b5280346e24eec48d46e56af89041986258684b assets/alchemia/models/block/flameweed_stalk.json
+6e081f5b6030518eb004ede464d8b3722449185b assets/alchemia/models/block/flameweed_top.json
 45294313b3ae07d5e70ee5bcdcd18160b77bcf16 assets/alchemia/models/block/fluffbloom.json
 cd764a2fcfcff2f861530bf597df59f4cc6cef68 assets/alchemia/models/block/fluffbloom_wild.json
 847c7b6c491d60978d6f44e0b9bf31eeaf6d3a63 assets/alchemia/models/block/frost_sapphire_bud_large.json

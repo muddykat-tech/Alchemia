@@ -1,4 +1,4 @@
-// 26.3	2026-10-20T04:21:41.240810801	Model Definitions - alchemia
+// 26.3	2026-10-22T20:29:01.307957939	Model Definitions - alchemia
 ee5f0d53113f98606f1c160006f557252175cb66 assets/alchemia/blockstates/ancient_oak_button.json
 5240b14be799e364926c199aae3d8111fe5badf4 assets/alchemia/blockstates/ancient_oak_door.json
 014bc42f849fe2c4e87ff4cb3a393856c1f373cd assets/alchemia/blockstates/ancient_oak_fence.json
@@ -61,7 +61,7 @@ b9cf7d3fd5c74e0ff5eebc803c21af91379f7d72 assets/alchemia/blockstates/herb_coldle
 1be3fbb2f08923510fe9223d63a586c385a89e76 assets/alchemia/blockstates/herb_dragon_pepper_seed.json
 6d82bcca127d7fc8ff1c6d7da00a02cfb0981799 assets/alchemia/blockstates/herb_druids_rosemary_seed.json
 83b348d34e82233df2d8b1590b0ccfa0d2c2f658 assets/alchemia/blockstates/herb_evergreen_fern_seed.json
-7d1b9ea3831349b3617dc68867c9fe6bb8f36ec1 assets/alchemia/blockstates/herb_flameweed_seed.json
+c26705f49906397c53d84d1d443a7e0abf9eec3e assets/alchemia/blockstates/herb_flameweed_seed.json
 4c6cf45add8d38ee22d2f248c2e04910bdb3cdcf assets/alchemia/blockstates/herb_flameweed_stalk.json
 5d5df8761ad140cae948a8b4982374c4dc10147e assets/alchemia/blockstates/herb_goldthorn_seed.json
 d88856e28fbb91e3a3299e42021a2be354d334dd assets/alchemia/blockstates/herb_goodberry_seed.json
@@ -332,8 +332,9 @@ df0e892f247570bd619434a099c0015a3c08c547 assets/alchemia/models/block/fire_citri
 8f1cef2ad805bd9e6873521b4d3b4db563faaf33 assets/alchemia/models/block/fire_citrine_geode.json
 d2ed18c7acd061661a841e9e3382e6540aa0ab71 assets/alchemia/models/block/firebell.json
 62e4e242daa3f31b7771dc33ff993975583fd463 assets/alchemia/models/block/firebell_wild.json
-0b71db5ed11572704cde2eedc1d159941a51a972 assets/alchemia/models/block/flameweed.json
+2601de17f2b2836b106cb23f549377a5232ada7a assets/alchemia/models/block/flameweed_bottom.json
 0b71db5ed11572704cde2eedc1d159941a51a972 assets/alchemia/models/block/flameweed_stalk.json
+388cb961680c3d000364cdda4f53c386949ea7e8 assets/alchemia/models/block/flameweed_top.json
 d2f40e4974736ccf82fd068f28ce9065fff1dec8 assets/alchemia/models/block/flowers/boombloom/boombloom_growth_0.json
 2a8da254b14b2d11b4d007cff44f72cd3f6fa028 assets/alchemia/models/block/flowers/boombloom/boombloom_growth_1.json
 2d1e56a1e2246e9a54a80eeed79c78e1b6c9bc3c assets/alchemia/models/block/flowers/boombloom/boombloom_growth_2.json

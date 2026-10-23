@@ -30,8 +30,20 @@ import java.util.List;
 public final class PrimerRecipes {
 
     private static final int GRID = 3;
+    static final int SMALL = 2;
 
-    record View(List<List<ItemStack>> grid, ItemStack result, @Nullable Identifier missing) {
+    record View(List<List<ItemStack>> grid, ItemStack result, @Nullable Identifier missing, @Nullable List<List<ItemStack>> compact) {
+        View(List<List<ItemStack>> grid, ItemStack result, @Nullable Identifier missing) {
+            this(grid, result, missing, squeeze(grid));
+        }
+
+        boolean fitsSmall() {
+            return compact != null;
+        }
+
+        List<List<ItemStack>> cells(int size) {
+            return size == SMALL && compact != null ? compact : grid;
+        }
     }
 
     private static volatile RecipeMap recipes = RecipeMap.EMPTY;
@@ -89,10 +101,14 @@ public final class PrimerRecipes {
             }
             if (display instanceof ShapelessCraftingRecipeDisplay shapeless) {
                 List<List<ItemStack>> grid = empty();
+                List<List<ItemStack>> compact = shapeless.ingredients().size() <= SMALL * SMALL ? new ArrayList<>() : null;
                 for (int index = 0; index < Math.min(shapeless.ingredients().size(), GRID * GRID); index++) {
-                    grid.set(index, stacks(shapeless.ingredients().get(index), context));
+                    List<ItemStack> options = stacks(shapeless.ingredients().get(index), context);
+                    grid.set(index, options);
+                    if (compact != null) compact.add(options);
                 }
-                return new View(grid, shapeless.result().resolveForFirstStack(context), null);
+                while (compact != null && compact.size() < SMALL * SMALL) compact.add(List.of());
+                return new View(grid, shapeless.result().resolveForFirstStack(context), null, compact);
             }
         }
         return new View(empty(), ItemStack.EMPTY, id);
@@ -104,6 +120,29 @@ public final class PrimerRecipes {
             if (!stack.isEmpty()) stacks.add(stack);
         }
         return stacks;
+    }
+
+    private static @Nullable List<List<ItemStack>> squeeze(List<List<ItemStack>> grid) {
+        int top = GRID;
+        int left = GRID;
+        int bottom = -1;
+        int right = -1;
+        for (int index = 0; index < grid.size(); index++) {
+            if (grid.get(index).isEmpty()) continue;
+            top = Math.min(top, index / GRID);
+            bottom = Math.max(bottom, index / GRID);
+            left = Math.min(left, index % GRID);
+            right = Math.max(right, index % GRID);
+        }
+        if (bottom - top >= SMALL || right - left >= SMALL) return null;
+        List<List<ItemStack>> compact = new ArrayList<>();
+        for (int row = 0; row < SMALL; row++) {
+            for (int column = 0; column < SMALL; column++) {
+                int source = (top + row) * GRID + left + column;
+                compact.add(bottom < 0 || top + row > bottom || left + column > right ? List.of() : grid.get(source));
+            }
+        }
+        return compact;
     }
 
     private static List<List<ItemStack>> empty() {

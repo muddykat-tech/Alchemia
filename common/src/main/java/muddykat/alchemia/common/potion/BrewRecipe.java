@@ -35,6 +35,7 @@ public record BrewRecipe(String id, String name, String base, List<BrewRecipe.Br
     public static final char STEP_BARK = '%';
     public static final char STEP_GLOW = '#';
     public static final char STEP_BOTTLE = '&';
+    public static final char STEP_WHIRL = '@';
 
     private static final int LEGACY_CRUSH_SCALE = 2;
 

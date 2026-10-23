@@ -1,4 +1,9 @@
 The Potion Map
 
-@photo map
-TODO explain how the potion map works.
+@photo map map_2 map_3 map_4 map_5 map_6 map_7
+Once you have ingredients you can start to brew basic potions, by adding them to the cauldron.
+@page
+
+Each ingredient has its own unique path, to view them check the [[ingredients|the Ingredients chapter]].
+
+@path herb_mageberry

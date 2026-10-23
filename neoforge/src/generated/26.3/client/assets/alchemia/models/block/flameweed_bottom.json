@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/template_seagrass",
+  "textures": {
+    "texture": "alchemia:block/herbs/flameweed_bottom"
+  }
+}

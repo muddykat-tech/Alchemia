@@ -193,7 +193,7 @@ public class GrindOverlay {
 
     private static void drawLure(GuiGraphicsExtractor graphics, float fade) {
         Minecraft minecraft = Minecraft.getInstance();
-        Component progress = Component.translatable("alchemia.tooltip.grind", cachedCrush, Ingredients.MAX_CRUSH_UNITS);
+        Component progress = Component.translatable("alchemia.tooltip.grind", Ingredients.crushPercent(cachedCrush));
         Component pull = Component.translatable("alchemia.gui.queue.lure.strength",
                 String.format(java.util.Locale.ROOT, "%.1f", VanillaIngredients.grindScale(cachedCrush)));
 
@@ -230,7 +230,7 @@ public class GrindOverlay {
 
         Component progress = cachedProgressKey != null
                 ? Component.translatable(cachedProgressKey, cachedProgressValue, cachedUsesLeft)
-                : Component.translatable("alchemia.tooltip.grind", cachedCrush, Ingredients.MAX_CRUSH_UNITS);
+                : Component.translatable("alchemia.tooltip.grind", Ingredients.crushPercent(cachedCrush));
 
         int textW = Math.max(minecraft.font.width(cachedName), minecraft.font.width(progress));
         int panelW = Math.max(shapeWidth, textW) + PADDING * 2;

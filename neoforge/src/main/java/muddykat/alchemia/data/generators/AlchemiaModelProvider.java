@@ -13,6 +13,7 @@ import muddykat.alchemia.common.blocks.helper.PlantForm;
 import muddykat.alchemia.common.blocks.BlockInfectedLog;
 import muddykat.alchemia.common.blocks.BlockIngredient;
 import muddykat.alchemia.common.blocks.BlockIngredientBerry;
+import muddykat.alchemia.common.blocks.BlockIngredientKelp;
 import muddykat.alchemia.common.blocks.BlockIngredientPatch;
 import muddykat.alchemia.common.blocks.BlockIngredientShelf;
 import muddykat.alchemia.common.blocks.BlockIngredientTall;
@@ -64,6 +65,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.FoliageColor;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 
 import java.util.List;
 
@@ -164,6 +166,19 @@ public class AlchemiaModelProvider extends ModelProvider {
             return;
         }
 
+        if (block instanceof BlockIngredientKelp) {
+            blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block)
+                    .with(PropertyDispatch.initial(block.getAgeProperty(), BlockIngredientTall.HALF)
+                            .generate((age, half) -> {
+                                if (age == block.getMaxAge()) {
+                                    String part = half == DoubleBlockHalf.LOWER ? "bottom" : "top";
+                                    return BlockModelGenerators.plainVariant(flameweedSeagrassModel(blockModels, part));
+                                }
+                                return BlockModelGenerators.plainVariant(cropModel(blockModels, block, age, false));
+                            })));
+            return;
+        }
+
         if (block instanceof BlockIngredientBerry) {
             blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block)
                     .with(PropertyDispatch.initial(block.getAgeProperty(), BlockIngredientTall.HALF, BlockIngredientBerry.FRUITING)
@@ -204,9 +219,22 @@ public class AlchemiaModelProvider extends ModelProvider {
     }
 
     private MultiVariant cropVariant(BlockModelGenerators blockModels, BlockIngredient block, int age, boolean wild) {
+        return BlockModelGenerators.plainVariant(cropModel(blockModels, block, age, wild));
+    }
+
+    private Identifier cropModel(BlockModelGenerators blockModels, BlockIngredient block, int age, boolean wild) {
         PlantGrowthTextures.Sprite sprite = PlantGrowthTextures.sprite(block.getIngredient(), age, block.getMaxAge(), wild);
-        return BlockModelGenerators.plainVariant(
-                crossModelOnce(blockModels, blockModel(sprite.model()), blockTexture(sprite.texture())));
+        return crossModelOnce(blockModels, blockModel(sprite.model()), blockTexture(sprite.texture()));
+    }
+
+    private Identifier flameweedSeagrassModel(BlockModelGenerators blockModels, String part) {
+        Identifier model = blockModel("flameweed_" + part);
+        if (emittedModels.add(model)) {
+            Identifier texture = blockTexture("herbs/flameweed_" + part);
+            TextureMapping mapping = TextureMapping.singleSlot(TextureSlot.TEXTURE, new Material(texture));
+            ModelTemplates.SEAGRASS.create(model, mapping, blockModels.modelOutput);
+        }
+        return model;
     }
 
     private static final TextureSlot SHELF = TextureSlot.create("shelf");

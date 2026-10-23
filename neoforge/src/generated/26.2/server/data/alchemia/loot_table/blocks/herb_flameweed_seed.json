@@ -7,6 +7,13 @@
           "condition": "minecraft:survives_explosion"
         },
         {
+          "block": "alchemia:herb_flameweed_seed",
+          "condition": "minecraft:block_state_property",
+          "properties": {
+            "half": "lower"
+          }
+        },
+        {
           "condition": "minecraft:inverted",
           "term": {
             "block": "alchemia:herb_flameweed_seed",
@@ -29,6 +36,13 @@
       "conditions": [
         {
           "condition": "minecraft:survives_explosion"
+        },
+        {
+          "block": "alchemia:herb_flameweed_seed",
+          "condition": "minecraft:block_state_property",
+          "properties": {
+            "half": "lower"
+          }
         },
         {
           "block": "alchemia:herb_flameweed_seed",

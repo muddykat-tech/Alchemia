@@ -6,7 +6,7 @@ import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import java.util.List;
 
 public record IngredientPathTooltip(List<PathPoint> points, double taken, boolean teleport,
-                                    Component label) implements TooltipComponent {
+                                    Component label, int crush) implements TooltipComponent {
 
     public List<PathPoint> reached() {
         return PathGeometry.truncate(points, taken);

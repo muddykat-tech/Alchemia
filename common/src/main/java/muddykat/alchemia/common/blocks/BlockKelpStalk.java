@@ -62,7 +62,10 @@ public class BlockKelpStalk extends Block {
     @Override
     public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
         BlockState below = level.getBlockState(pos.below());
-        return below.is(this) || below.is(BlockRegistry.getBlock(ingredient).get());
+        if (below.is(this)) return true;
+
+        Block base = BlockRegistry.getBlock(ingredient).get();
+        return below.is(base) && (!(base instanceof BlockIngredientTall) || BlockIngredientTall.isLower(below));
     }
 
 #if MC_VER >= 26102
