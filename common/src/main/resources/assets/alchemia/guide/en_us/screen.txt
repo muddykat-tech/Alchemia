@@ -2,4 +2,10 @@ The Interface
 
 @unlock advancement alchemia:cauldron
 @photo screen
-TODO go over the interface in more detail
+The Cauldron Interface has multiple sections, to assist you with brewing your potion.
+@page
+@photo size=portrait align=right angle=6 screen_2 screen_3
+The scroll to the right of the map will show you information on the state of the brew.
+
+
+This will showcase the current Potion Base, the bound effects, how stable the potion is and the effect nearby the potion marker.

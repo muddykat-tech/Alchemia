@@ -16,6 +16,7 @@ public class CommonSetup {
     public static void init(final FMLCommonSetupEvent event) {
         Alchemia.LOGGER.info(MOD_NAME + " Common Setup");
         event.enqueueWork(() -> {
+            muddykat.alchemia.common.config.EffectConfig.load();
             BrewBaseConfig.load();
             ImbuementConfig.load();
             PotionMap.scramble(0L);

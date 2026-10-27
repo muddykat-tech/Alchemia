@@ -1,0 +1,21 @@
+{
+  "render_type": "minecraft:cutout",
+  "loader": "neoforge:obj",
+  "model": "alchemia:models/ruined_alchemy_machine_core.obj",
+  "flip_v": true,
+  "automatic_culling": false,
+  "emissive_ambient": false,
+  "transform": {
+    "translation": [
+      0.5,
+      0.0,
+      0.5
+    ]
+  },
+  "textures": {
+    "alchemy_machine": "alchemia:block/alchemy/ruined_alchemy_machine",
+    "alchemy_machine_lit": "alchemia:block/alchemy/ruined_alchemy_machine_lit",
+    "particle": "minecraft:block/bricks",
+    "moss": "alchemia:block/alchemy/ruined_alchemy_machine_moss"
+  }
+}

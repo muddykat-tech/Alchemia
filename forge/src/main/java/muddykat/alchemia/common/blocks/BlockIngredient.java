@@ -1,5 +1,6 @@
 package muddykat.alchemia.common.blocks;
 
+import muddykat.alchemia.common.blocks.helper.GrowthClimate;
 import muddykat.alchemia.common.items.helper.IngredientAlignment;
 import muddykat.alchemia.common.items.helper.IngredientType;
 import muddykat.alchemia.common.items.helper.Ingredients;
@@ -63,7 +64,7 @@ public class BlockIngredient extends CropBlock {
 
     @Override
     public boolean isValidBonemealTarget(LevelReader level, BlockPos pos, BlockState state, boolean isClient) {
-        return !isMaxAge(state);
+        return !isMaxAge(state) && GrowthClimate.allows(ingredientData, level, pos);
     }
 
     @Override
@@ -133,6 +134,7 @@ public class BlockIngredient extends CropBlock {
 
     @Override
     public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        if (!GrowthClimate.allows(ingredientData, level, pos)) return;
         super.randomTick(state, level, pos, random);
 
         BlockState now = level.getBlockState(pos);

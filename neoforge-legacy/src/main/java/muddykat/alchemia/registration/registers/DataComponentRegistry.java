@@ -46,6 +46,18 @@ public class DataComponentRegistry {
                     .networkSynchronized(ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.collection(ArrayList::new)))
                     .build());
 
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<List<String>>> WHIRL_EXITS = DATA_COMPONENTS.register("whirl_exits",
+            () -> DataComponentType.<List<String>>builder()
+                    .persistent(Codec.STRING.listOf())
+                    .networkSynchronized(ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.collection(ArrayList::new)))
+                    .build());
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Map<String, List<Long>>>> MAP_REVEALS = DATA_COMPONENTS.register("map_reveals",
+            () -> DataComponentType.<Map<String, List<Long>>>builder()
+                    .persistent(Codec.unboundedMap(Codec.STRING, Codec.LONG.listOf()))
+                    .networkSynchronized(ByteBufCodecs.map(HashMap::new, ByteBufCodecs.STRING_UTF8, ByteBufCodecs.VAR_LONG.apply(ByteBufCodecs.list())))
+                    .build());
+
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<List<BrewRecipe>>> BREW_RECIPES = DATA_COMPONENTS.register("brew_recipes",
             () -> DataComponentType.<List<BrewRecipe>>builder()
                     .persistent(BrewRecipe.CODEC.listOf())
@@ -77,6 +89,12 @@ public class DataComponentRegistry {
                     .build());
 
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<String>> SELECTED_RECIPE = DATA_COMPONENTS.register("selected_recipe",
+            () -> DataComponentType.<String>builder()
+                    .persistent(Codec.STRING)
+                    .networkSynchronized(ByteBufCodecs.STRING_UTF8)
+                    .build());
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<String>> GUIDE_BOOKMARK = DATA_COMPONENTS.register("guide_bookmark",
             () -> DataComponentType.<String>builder()
                     .persistent(Codec.STRING)
                     .networkSynchronized(ByteBufCodecs.STRING_UTF8)

@@ -45,6 +45,7 @@ public enum Ingredients {
     Healers_Heather(Herb, IngredientAlignment.Earth, IngredientAlignment.Water, MobEffects.REGENERATION, 1, Rarity.COMMON),
     Terrorbud(Herb, IngredientAlignment.Earth, IngredientAlignment.Water, MobEffects.BLINDNESS, 1, Rarity.COMMON),
     Thornstick(Herb, IngredientAlignment.Fire, IngredientAlignment.Earth, MobEffects.POISON, 1, Rarity.COMMON),
+    Hairy_Banana(Herb, IngredientAlignment.Earth, IngredientAlignment.Air, MobEffects.JUMP, 1, Rarity.COMMON),
     Lava_Root(Root, IngredientAlignment.Fire, MobEffects.HARM, 1, Rarity.COMMON),
     Terraria(Root, IngredientAlignment.Earth, MobEffects.DIG_SPEED, 1, Rarity.COMMON),
     Dreambeet(Root, IngredientAlignment.Air, IngredientAlignment.Water, MobEffects.LUCK, 1, Rarity.COMMON),
@@ -65,6 +66,10 @@ public enum Ingredients {
     public static final int MAX_CRUSH = 3;
     public static final int CRUSH_UNITS_PER_LEVEL = 8;
     public static final int MAX_CRUSH_UNITS = MAX_CRUSH * CRUSH_UNITS_PER_LEVEL;
+
+    public static int crushPercent(int units) {
+        return Math.round(100.0F * Math.max(0, Math.min(MAX_CRUSH_UNITS, units)) / MAX_CRUSH_UNITS);
+    }
 
     final IngredientType type;
     final IngredientAlignment primaryAlignment;

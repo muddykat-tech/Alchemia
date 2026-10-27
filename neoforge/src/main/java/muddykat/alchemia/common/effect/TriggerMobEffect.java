@@ -40,6 +40,10 @@ public abstract class TriggerMobEffect extends InstantenousMobEffect implements 
         }
     }
 
+    public void struck(ServerLevel level, LivingEntity mob, int amplifier) {
+        drunk(level, mob, amplifier);
+    }
+
     public boolean lingers() {
         return false;
     }

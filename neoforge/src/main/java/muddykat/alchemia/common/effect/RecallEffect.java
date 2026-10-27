@@ -23,12 +23,12 @@ public class RecallEffect extends TriggerMobEffect {
 
     @Override
     protected void drunk(ServerLevel level, LivingEntity drinker, int amplifier) {
-        TeleportSearch.recall(drinker);
+        TeleportSearch.recall(drinker, amplifier + 1);
     }
 
     @Override
     protected void splashed(ServerLevel level, @Nullable Entity owner, LivingEntity mob, int amplifier, double scale) {
-        TeleportSearch.recall(mob);
+        TeleportSearch.recall(mob, amplifier + 1);
     }
 
     @Override

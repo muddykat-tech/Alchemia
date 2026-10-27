@@ -1,0 +1,6 @@
+Whirlpools
+
+@unlock advancement alchemia:cauldron
+@photo align=left angle=-1 size=square stirring_1 stirring_2 stirring_3 stirring_4
+
+You can stir the brew along the path by holding the "Stir" button, however, keep an eye out for Whirlpools, these are areas of the potion map that when heated can move you around, and if swallowed by a whirlpool teleport you to another location on the map.

@@ -1,4 +1,4 @@
-// 1.20.1	2026-10-22T20:26:37.989223677	Block States: alchemia
+// 1.20.1	2026-10-27T15:16:47.493123211	Block States: alchemia
 ee5f0d53113f98606f1c160006f557252175cb66 assets/alchemia/blockstates/ancient_oak_button.json
 5240b14be799e364926c199aae3d8111fe5badf4 assets/alchemia/blockstates/ancient_oak_door.json
 15120318e236e4494d8163b856d768055c04fb73 assets/alchemia/blockstates/ancient_oak_fence.json
@@ -65,6 +65,7 @@ e8ab64ab1a959b8aceb953120b9dba11448e1661 assets/alchemia/blockstates/herb_evergr
 4c6cf45add8d38ee22d2f248c2e04910bdb3cdcf assets/alchemia/blockstates/herb_flameweed_stalk.json
 a9f4a421b46d6dfb5c48bd6a0a411ffe8bae4697 assets/alchemia/blockstates/herb_goldthorn_seed.json
 bcafd5a3fbb9a29c13bed2f444e0c40ea15cc52b assets/alchemia/blockstates/herb_goodberry_seed.json
+97928f0203990705cd5716c8eb77ff4974288307 assets/alchemia/blockstates/herb_hairy_banana_seed.json
 84a4266e5c2a27fea5d5ba3a9b2b008797972f2d assets/alchemia/blockstates/herb_healers_heather_seed.json
 6880919ddc9ab500b6bb62ed60cb57857c30026b assets/alchemia/blockstates/herb_icefruit_seed.json
 dc28abb22190b733653d46cf8e8b1ea907717d8c assets/alchemia/blockstates/herb_lifeleaf_seed.json
@@ -199,6 +200,7 @@ b99f93b97298314c20e6ae1af62f9d0a461af2c7 assets/alchemia/models/block/frost_sapp
 315c8a51ec51ef6f40ee5e30cbb1f2692e903874 assets/alchemia/models/block/goldthorn.json
 a9c02e3583a41dac1b297f03f5c6b18f910c6221 assets/alchemia/models/block/goodberry.json
 42e2e70648cb0f613de7afe95fef4da35e42125d assets/alchemia/models/block/grasping_root.json
+ecd337f403591d03c1efebae546ba2543c256e7f assets/alchemia/models/block/hairy_banana.json
 deb8b82f86dd9e8610d26f978c2d737fe3daaaba assets/alchemia/models/block/healers_heather.json
 cbd5cb662fdbc0d6dfc396cac1383e83c93c885b assets/alchemia/models/block/icefruit.json
 d36d695d63baabef9a33822ed48d566ae8342dcd assets/alchemia/models/block/lava_root.json

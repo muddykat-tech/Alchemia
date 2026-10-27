@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "alchemia:herb_hairy_banana",
+    "minecraft:shears"
+  ],
+  "result": {
+    "id": "alchemia:herb_hairy_banana_seed"
+  },
+  "show_notification": false
+}

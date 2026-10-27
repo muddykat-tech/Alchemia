@@ -1,6 +1,7 @@
 package muddykat.alchemia.common.guide;
 
 import muddykat.alchemia.Alchemia;
+import muddykat.alchemia.common.blocks.helper.MachineOwner;
 import muddykat.alchemia.common.potion.BrewBase;
 import muddykat.alchemia.common.potion.BrewBases;
 import muddykat.alchemia.common.potion.IngredientDiscovery;
@@ -31,6 +32,30 @@ public final class GuideMastery {
         award(player, "all_ingredients", ingredients);
         award(player, "all_stages", stages);
         award(player, "complete_guide", effects && secrets && ingredients && stages);
+    }
+
+    public static void checkShack(ServerPlayer player) {
+        if (!(player.level() instanceof net.minecraft.server.level.ServerLevel level)) return;
+        for (net.minecraft.world.level.levelgen.structure.Structure structure : level.structureManager().getAllStructuresAt(player.blockPosition()).keySet()) {
+            if (structure instanceof muddykat.alchemia.common.world.structure.ForgottenShackStructure) {
+                award(player, "forgotten_shack", true);
+                return;
+            }
+        }
+    }
+
+    public static String restoredName(MachineOwner owner) {
+        return "restored_" + owner.getSerializedName();
+    }
+
+    public static void restored(ServerPlayer player, MachineOwner owner) {
+        award(player, restoredName(owner), true);
+    }
+
+    public static boolean hasRestored(ServerPlayer player, MachineOwner owner) {
+        if (player.level().getServer() == null) return false;
+        AdvancementHolder advancement = player.level().getServer().getAdvancements().get(Identifier.fromNamespaceAndPath(Alchemia.MODID, restoredName(owner)));
+        return advancement != null && player.getAdvancements().getOrStartProgress(advancement).isDone();
     }
 
     private static Set<AlchemiaEffect> brewable() {

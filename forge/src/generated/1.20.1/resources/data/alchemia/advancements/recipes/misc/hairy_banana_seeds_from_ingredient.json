@@ -1,0 +1,35 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_hairy_banana_ingredient": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "alchemia:herb_hairy_banana"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "alchemia:hairy_banana_seeds_from_ingredient"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_hairy_banana_ingredient",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "alchemia:hairy_banana_seeds_from_ingredient"
+    ]
+  },
+  "sends_telemetry_event": false
+}

@@ -28,6 +28,7 @@ import java.util.function.Consumer;
 public class ItemMortarPestle extends Item implements IngredientTool {
 
     public static final int TICKS_PER_STEP = 4;
+    private static final int SOUND_GAP = 10;
     private static final int USE_DURATION = TICKS_PER_STEP * Ingredients.MAX_CRUSH_UNITS;
 
     public ItemMortarPestle(Properties properties) {
@@ -51,8 +52,18 @@ public class ItemMortarPestle extends Item implements IngredientTool {
 
     @Override
     public void playStep(Level level, BlockPos pos) {
-        level.playSound(null, pos, SoundEvents.GRINDSTONE_USE, SoundSource.BLOCKS,
-                0.6F, 0.9F + level.getRandom().nextFloat() * 0.2F);
+        level.playSound(null, pos, SoundEvents.BRUSH_GRAVEL, SoundSource.BLOCKS,
+                0.55F, 0.85F + level.getRandom().nextFloat() * 0.2F);
+    }
+
+    @Override
+    public int soundGap() {
+        return SOUND_GAP;
+    }
+
+    @Override
+    public void playDone(Level level, BlockPos pos) {
+        level.playSound(null, pos, SoundEvents.BRUSH_GRAVEL_COMPLETED, SoundSource.BLOCKS, 0.7F, 1.0F);
     }
 
     @Override
@@ -99,11 +110,14 @@ public class ItemMortarPestle extends Item implements IngredientTool {
             ItemIngredient.crush(target);
         }
 
-        level.playSound(null, user.getX(), user.getY(), user.getZ(),
-                SoundEvents.GRINDSTONE_USE, SoundSource.PLAYERS, 0.6F, 0.9F + level.getRandom().nextFloat() * 0.2F);
-
-        if (!ItemIngredient.canCrush(target)) {
+        boolean done = !ItemIngredient.canCrush(target);
+        if (done) {
+            level.playSound(null, user.getX(), user.getY(), user.getZ(),
+                    SoundEvents.BRUSH_GRAVEL_COMPLETED, SoundSource.PLAYERS, 0.7F, 1.0F);
             user.stopUsingItem();
+        } else if ((elapsed / TICKS_PER_STEP) % 2 == 1) {
+            level.playSound(null, user.getX(), user.getY(), user.getZ(),
+                    SoundEvents.BRUSH_GRAVEL, SoundSource.PLAYERS, 0.55F, 0.85F + level.getRandom().nextFloat() * 0.2F);
         }
     }
 

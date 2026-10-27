@@ -1,10 +1,11 @@
 package muddykat.alchemia.common.blocks.tileentity.container;
 
 import muddykat.alchemia.common.blocks.tileentity.TileEntityAlchemyCauldron;
+import muddykat.alchemia.common.items.ItemIngredient;
 import muddykat.alchemia.common.items.helper.IngredientTool;
 import muddykat.alchemia.registration.registers.BlockRegistry;
 import muddykat.alchemia.registration.registers.MenuTypeRegistry;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -25,14 +26,14 @@ public class AlchemicalCauldronMenu extends AbstractContainerMenu {
     private static final int MENU_ACTIVE_SLOT = 0;
     private static final int MENU_TOOL_SLOT = 1;
 
-    public static final int ACTIVE_SLOT_X = 57;
-    public static final int TOOL_SLOT_X = 322;
-    public static final int TOOL_SLOT_Y = 143;
+    public static final int ACTIVE_SLOT_X = 18;
+    public static final int TOOL_SLOT_X = 40;
+    public static final int TOOL_SLOT_Y = 184;
 
-    public static final int SLOT_ROW_Y = 181;
-    private static final int INVENTORY_X = 74;
-    private static final int INVENTORY_Y = 222;
-    private static final int HOTBAR_Y = 280;
+    public static final int SLOT_ROW_Y = 184;
+    public static final int INVENTORY_X = 105;
+    public static final int INVENTORY_Y = 258;
+    public static final int HOTBAR_Y = 316;
 
     private final ContainerData cauldronData;
     private final TileEntityAlchemyCauldron alchemyCauldron;
@@ -49,7 +50,7 @@ public class AlchemicalCauldronMenu extends AbstractContainerMenu {
                 ACTIVE_SLOT_X + 1, SLOT_ROW_Y + 1) {
             @Override
             public boolean mayPlace(ItemStack stack) {
-                return TileEntityAlchemyCauldron.isAddable(stack);
+                return cauldron.getWaterLevel() > 0 && TileEntityAlchemyCauldron.isAddable(stack);
             }
         });
 
@@ -72,13 +73,14 @@ public class AlchemicalCauldronMenu extends AbstractContainerMenu {
         }
 
         addDataSlots(cauldronData);
+        if (!playerInventory.player.level().isClientSide()) cauldron.revealFor(playerInventory.player);
     }
 
-    public AlchemicalCauldronMenu(final int windowID, final Inventory playerInventory, final FriendlyByteBuf data) {
-        this(windowID, playerInventory, getBlockEntity(playerInventory, data), new SimpleContainerData(3));
+    public AlchemicalCauldronMenu(final int windowID, final Inventory playerInventory, final RegistryFriendlyByteBuf data) {
+        this(windowID, playerInventory, getBlockEntity(playerInventory, data), new SimpleContainerData(TileEntityAlchemyCauldron.DATA_COUNT));
     }
 
-    private static TileEntityAlchemyCauldron getBlockEntity(final Inventory playerInventory, final FriendlyByteBuf data) {
+    private static TileEntityAlchemyCauldron getBlockEntity(final Inventory playerInventory, final RegistryFriendlyByteBuf data) {
         Objects.requireNonNull(playerInventory, "playerInventory cannot be null");
         Objects.requireNonNull(data, "data cannot be null");
         final BlockEntity blockEntity = playerInventory.player.level().getBlockEntity(data.readBlockPos());
@@ -98,7 +100,7 @@ public class AlchemicalCauldronMenu extends AbstractContainerMenu {
 
         if (slotIndex < CAULDRON_SLOTS) {
             if (!moveItemStackTo(stack, CAULDRON_SLOTS, this.slots.size(), true)) return ItemStack.EMPTY;
-        } else if (TileEntityAlchemyCauldron.isAddable(stack)) {
+        } else if (alchemyCauldron.getWaterLevel() > 0 && TileEntityAlchemyCauldron.isAddable(stack)) {
             if (!moveItemStackTo(stack, MENU_ACTIVE_SLOT, MENU_ACTIVE_SLOT + 1, false)) return ItemStack.EMPTY;
         } else if (IngredientTool.of(stack) != null) {
             if (!moveItemStackTo(stack, MENU_TOOL_SLOT, MENU_TOOL_SLOT + 1, false)) return ItemStack.EMPTY;
@@ -121,6 +123,10 @@ public class AlchemicalCauldronMenu extends AbstractContainerMenu {
     public static final int BUTTON_STIR = 3;
     public static final int BUTTON_STIR_FAST = 4;
     public static final int BUTTON_UNQUEUE = 5;
+    public static final int BUTTON_APPLY_TOOL_FAST = 64;
+    public static final int BUTTON_STIR_MANY = 80;
+    public static final int BUTTON_HEAT = 90;
+    public static final int MAX_STIRS_PER_CLICK = 5;
 
     @Override
     public boolean clickMenuButton(Player player, int buttonId) {
@@ -132,12 +138,20 @@ public class AlchemicalCauldronMenu extends AbstractContainerMenu {
             alchemyCauldron.stir(player, buttonId == BUTTON_STIR_FAST ? TileEntityAlchemyCauldron.FAST_STIRS : 1);
             return true;
         }
+        if (buttonId > BUTTON_STIR_MANY && buttonId <= BUTTON_STIR_MANY + MAX_STIRS_PER_CLICK) {
+            alchemyCauldron.stir(player, buttonId - BUTTON_STIR_MANY);
+            return true;
+        }
+        if (buttonId == BUTTON_HEAT) {
+            alchemyCauldron.stoke(player);
+            return true;
+        }
         if (buttonId == BUTTON_ADD) {
             alchemyCauldron.queueActive(player);
             return true;
         }
-        if (buttonId == BUTTON_APPLY_TOOL) {
-            alchemyCauldron.applyTool(player);
+        if (buttonId == BUTTON_APPLY_TOOL || buttonId == BUTTON_APPLY_TOOL_FAST) {
+            alchemyCauldron.applyTool(player, buttonId == BUTTON_APPLY_TOOL_FAST);
             return true;
         }
         if (buttonId >= BUTTON_UNQUEUE && buttonId < BUTTON_UNQUEUE + TileEntityAlchemyCauldron.MAX_QUEUE) {

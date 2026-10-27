@@ -1,6 +1,11 @@
 Beyond
 
 @unlock advancement alchemia:cauldron
-@photo tablets_shack tablets_brushing tablets_reading
-@items left alchemia:alchemy_tablet
-TODO go over finding Alchemy Tablets in forgotten shacks and ruins, Testing Links to the [[opus|the Great Work chapter]].
+@unlock advancement alchemia:forgotten_shack
+@photo tablets_shack basement
+In an old shack, a strange device can be found in a hidden basement, the hurried notes indicate that [[opus|the Great Work]] is possible.
+@pagesss
+@items alchemia:alchemy_tablet
+Tablets can be found in the rubble of the basement, these contain information on a process to create the vaunted philosopher's stone said to allow a player to cheat death itself.
+
+It should be possible to repair the machine to resume the work.

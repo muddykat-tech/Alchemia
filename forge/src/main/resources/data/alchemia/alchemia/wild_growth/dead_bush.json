@@ -1,0 +1,6 @@
+{
+  "from": "minecraft:dead_bush",
+  "kind": "plant",
+  "tier": 1,
+  "to": "minecraft:grass"
+}

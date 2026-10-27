@@ -57,6 +57,7 @@ public class Alchemia {
 
         LOGGER.info(MOD_NAME + " Registering Event Handlers");
         NeoForge.EVENT_BUS.register(WorldEventHandler.class);
+        NeoForge.EVENT_BUS.register(muddykat.alchemia.common.world.structure.ShackOvergrowth.class);
         NeoForge.EVENT_BUS.register(muddykat.alchemia.common.PhilosopherStoneHandler.class);
         NeoForge.EVENT_BUS.register(muddykat.alchemia.common.guide.GuideNews.class);
         NeoForge.EVENT_BUS.register(muddykat.alchemia.common.guide.PrimerSync.class);

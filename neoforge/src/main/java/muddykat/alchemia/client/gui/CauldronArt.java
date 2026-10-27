@@ -4,6 +4,7 @@ import muddykat.alchemia.Alchemia;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 
@@ -76,7 +77,7 @@ public final class CauldronArt {
     public static final Identifier LEG_PROGRESS = sprite("leg_progress");
 
     public enum Icon {
-        INGREDIENTS(3), COPY(5), UNKNOWN(8), EYE(10), STIR(11), BREW(12), REDSTONE(13), SPLASH(14), TOOL(15), EYE_CLOSED(16);
+        COPY(5), UNKNOWN(8), EYE(10), STIR(11), BREW(12), REDSTONE(13), SPLASH(14), EYE_CLOSED(16);
 
         private final int column;
 
@@ -177,6 +178,12 @@ public final class CauldronArt {
         lettered(graphics, font, text, x + scale, y + scale, scale, INK_SHADOW);
         lettered(graphics, font, initial, x, y, scale, INK_RED);
         lettered(graphics, font, rest, x + letteredWidth(font, initial) * scale, y, scale, INK);
+    }
+
+    public static String clip(Font font, Component text, int width) {
+        String plain = text.getString();
+        if (font.width(plain) <= width) return plain;
+        return font.plainSubstrByWidth(plain, width - font.width("…")) + "…";
     }
 
     private static void widget(GuiGraphicsExtractor graphics, int x, int y, int u, int v, int w, int h, int colour) {

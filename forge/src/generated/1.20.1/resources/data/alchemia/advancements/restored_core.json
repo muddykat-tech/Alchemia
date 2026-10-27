@@ -1,0 +1,29 @@
+{
+  "parent": "alchemia:forgotten_shack",
+  "criteria": {
+    "unlocked": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.alchemia.restored_core.description"
+    },
+    "frame": "task",
+    "hidden": false,
+    "icon": {
+      "item": "alchemia:alchemy_machine_core"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.alchemia.restored_core.title"
+    }
+  },
+  "requirements": [
+    [
+      "unlocked"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

@@ -1,5 +1,11 @@
 The Research Desk
 
-@photo desk
-@items center alchemia:research_desk
-TODO provide information on how the guide tracks progress, recipes and how to share this with other players or make backups.
+@photo desk_1 desk_2
+A Research Desk can be used to place the guide down and have it keep track of the cauldrons and players nearby radius
+
+@page
+@craft alchemia:research_desk
+
+This desk can also allow the sharing of research, simply right-click a guide onto a desk with another guide, this will share research.
+
+You can also place the guidebook inworld using shift right-click.

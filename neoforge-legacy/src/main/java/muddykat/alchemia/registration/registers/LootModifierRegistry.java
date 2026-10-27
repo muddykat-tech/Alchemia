@@ -2,6 +2,7 @@ package muddykat.alchemia.registration.registers;
 
 import com.mojang.serialization.MapCodec;
 import muddykat.alchemia.Alchemia;
+import muddykat.alchemia.common.loot.AlchemicalPotionModifier;
 import muddykat.alchemia.common.loot.BuriedTabletModifier;
 import net.neoforged.neoforge.common.loot.IGlobalLootModifier;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -15,4 +16,7 @@ public class LootModifierRegistry {
 
     public static final DeferredHolder<MapCodec<? extends IGlobalLootModifier>, MapCodec<BuriedTabletModifier>> BURIED_TABLET =
             LOOT_MODIFIERS.register("buried_tablet", () -> BuriedTabletModifier.CODEC);
+
+    public static final DeferredHolder<MapCodec<? extends IGlobalLootModifier>, MapCodec<AlchemicalPotionModifier>> ALCHEMICAL_POTION =
+            LOOT_MODIFIERS.register("alchemical_potion", () -> AlchemicalPotionModifier.CODEC);
 }

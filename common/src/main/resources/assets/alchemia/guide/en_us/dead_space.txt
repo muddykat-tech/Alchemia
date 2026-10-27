@@ -1,4 +1,10 @@
 Dead Space
 
 @photo dead_space
-TODO explain what Dead Space is and what Instability does.
+While exploring the Potion Map, you can encounter red areas, these are zones that potions are instable in.
+@page
+@photo align=left angle=-1 size=square dead_space_2 dead_space_3
+Movement within this area will turn the indication zone around the potion red.
+
+
+If it turns fully red the potion is ruined, this can be recovered by normal movement outside the deadzone.

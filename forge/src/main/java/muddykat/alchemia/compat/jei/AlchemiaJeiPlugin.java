@@ -4,6 +4,7 @@ import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.client.gui.AlchemiaSprites;
 import muddykat.alchemia.client.gui.AlchemyMachineScreen;
 import muddykat.alchemia.common.blocks.helper.UpgradeSide;
+import muddykat.alchemia.common.effect.WildGrowth;
 import muddykat.alchemia.registration.registers.BlockRegistry;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
@@ -11,9 +12,11 @@ import mezz.jei.api.gui.handlers.IGuiContainerHandler;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
+import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.runtime.IJeiRuntime;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
 
 import java.util.ArrayList;
@@ -30,6 +33,12 @@ public class AlchemiaJeiPlugin implements IModPlugin {
     @Override
     public void registerCategories(IRecipeCategoryRegistration registration) {
         registration.addRecipeCategories(new AlchemyMachineRecipeCategory(registration.getJeiHelpers().getGuiHelper()));
+        registration.addRecipeCategories(new WildGrowthCategory(registration.getJeiHelpers().getGuiHelper()));
+    }
+
+    @Override
+    public void registerRecipes(IRecipeRegistration registration) {
+        registration.addRecipes(WildGrowthCategory.TYPE, WildGrowthCategory.entries());
     }
 
     @Override
@@ -50,6 +59,7 @@ public class AlchemiaJeiPlugin implements IModPlugin {
             stations.add(BlockRegistry.BLOCK_REGISTRY.get(side.registryName()).get());
         }
         registration.addRecipeCatalysts(AlchemyMachineRecipeCategory.TYPE, stations.toArray(ItemLike[]::new));
+        for (ItemStack potion : WildGrowthCategory.potions(WildGrowth.MAX_STRENGTH)) registration.addRecipeCatalyst(potion, WildGrowthCategory.TYPE);
     }
 
     @Override

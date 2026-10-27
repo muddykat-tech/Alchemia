@@ -1,7 +1,11 @@
 package muddykat.alchemia.common.items;
 
+import muddykat.alchemia.common.config.Configuration;
+import muddykat.alchemia.common.potion.MapReveals;
+
 import muddykat.alchemia.common.guide.GuideShelf;
-import muddykat.alchemia.common.potion.PotionEnum;
+import muddykat.alchemia.common.potion.AlchemiaEffect;
+import muddykat.alchemia.common.potion.AlchemiaEffects;
 import muddykat.alchemia.common.potion.WorldEffects;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -48,13 +52,14 @@ public class ItemAlchemistNotes extends Item {
             return InteractionResultHolder.fail(notes);
         }
 
-        PotionEnum secret = unnoted(WorldEffects.notesIn(shelf.iterator().next()), level);
+        AlchemiaEffect secret = unnoted(WorldEffects.notesIn(shelf.iterator().next()), level);
         if (secret == null) {
             message(player, "alchemia.notes.known");
             return InteractionResultHolder.fail(notes);
         }
 
         WorldEffects.note(shelf, secret);
+        if (Configuration.fogOfWar()) MapReveals.revealEffect(shelf, secret);
         shelf.settle(at);
 
         level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.BOOK_PAGE_TURN, SoundSource.PLAYERS, 1.0F, 0.8F);
@@ -66,9 +71,9 @@ public class ItemAlchemistNotes extends Item {
         return InteractionResultHolder.consume(notes);
     }
 
-    private static PotionEnum unnoted(Set<String> notes, Level level) {
-        List<PotionEnum> hidden = new ArrayList<>();
-        for (PotionEnum potion : PotionEnum.values()) {
+    private static AlchemiaEffect unnoted(Set<String> notes, Level level) {
+        List<AlchemiaEffect> hidden = new ArrayList<>();
+        for (AlchemiaEffect potion : AlchemiaEffects.values()) {
             if (WorldEffects.requirement(potion) != null && !WorldEffects.wakeVisible(notes, potion)) hidden.add(potion);
         }
         return hidden.isEmpty() ? null : hidden.get(level.getRandom().nextInt(hidden.size()));

@@ -1,0 +1,26 @@
+{
+  "render_type": "minecraft:cutout",
+  "loader": "forge:obj",
+  "model": "alchemia:models/ruined_alchemy_machine_right_upgrade.obj",
+  "emissive_ambient": false,
+  "flip_v": true,
+  "automatic_culling": false,
+  "gui_light": "side",
+  "transform": {
+    "translation": [1.674, -1.132088, -0.0625]
+  },
+  "textures": {
+    "alchemy_machine": "alchemia:block/alchemy/ruined_alchemy_machine",
+    "moss": "alchemia:block/alchemy/ruined_alchemy_machine_moss",
+    "particle": "alchemia:block/alchemy/ruined_alchemy_machine"
+  },
+  "display": {
+    "gui": { "rotation": [30, 225, 0], "translation": [0, 0, 0], "scale": [0.191, 0.191, 0.191] },
+    "ground": { "rotation": [0, 0, 0], "translation": [0, 3, 0], "scale": [0.077, 0.077, 0.077] },
+    "fixed": { "rotation": [0, 0, 0], "translation": [0, 0, 0], "scale": [0.153, 0.153, 0.153] },
+    "thirdperson_righthand": { "rotation": [75, 45, 0], "translation": [0, 2.5, 0], "scale": [0.115, 0.115, 0.115] },
+    "thirdperson_lefthand": { "rotation": [75, 45, 0], "translation": [0, 2.5, 0], "scale": [0.115, 0.115, 0.115] },
+    "firstperson_righthand": { "rotation": [0, 45, 0], "translation": [0, 0, 0], "scale": [0.123, 0.123, 0.123] },
+    "firstperson_lefthand": { "rotation": [0, 225, 0], "translation": [0, 0, 0], "scale": [0.123, 0.123, 0.123] }
+  }
+}

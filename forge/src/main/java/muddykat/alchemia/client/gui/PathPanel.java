@@ -5,7 +5,6 @@ import net.minecraft.world.item.ItemStack;
 import muddykat.alchemia.common.items.helper.PathGeometry;
 import muddykat.alchemia.common.items.helper.PathPoint;
 import net.minecraft.client.gui.Font;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 
@@ -20,6 +19,8 @@ public final class PathPanel {
     private static final int THICKNESS = 2;
     private static final int INK_ICON = 16;
     private static final int INK_MARGIN = INK_ICON / 2 + 1;
+    private static final double ICON_CELLS = 2.0;
+    private static final float ICON_MIN = 8.0F;
 
     private static final int TITLE_INK = 0xFF4A2E1C;
     private static final int RULE_DARK = 0xFF9A7448;
@@ -69,8 +70,7 @@ public final class PathPanel {
     public void draw(GuiGraphics graphics, Font font, int left, int y) {
         int width = width(font);
 
-        RenderSystem.enableBlend();
-        AlchemiaSprites.PATH_TOOLTIP_PANEL.blit(graphics, left, y, width, height());
+        GuiDraw.sprite(graphics, AlchemiaSprites.PATH_TOOLTIP_PANEL, left, y, width, height());
         graphics.drawString(font, label, left + (width - font.width(label)) / 2, y + INSET, TITLE_INK, false);
 
         int ruleY = y + INSET + TITLE_H;
@@ -89,10 +89,22 @@ public final class PathPanel {
     }
 
     public void drawPlain(GuiGraphics graphics, int left, int top) {
-        drawPath(graphics, left + (previewWidth() - Math.ceil(fit.width())) / 2.0, top + INK_MARGIN);
+        drawPath(graphics, left + (previewWidth() - Math.ceil(fit.width())) / 2.0, top + INK_MARGIN, reached);
+    }
+
+    public void drawPlain(GuiGraphics graphics, int left, int top, double taken) {
+        drawPath(graphics, left + (previewWidth() - Math.ceil(fit.width())) / 2.0, top + INK_MARGIN, PathGeometry.truncate(points, taken));
+    }
+
+    private float iconSize() {
+        return (float) Math.max(ICON_MIN, Math.min(INK_ICON, ICON_CELLS * PathGeometry.CELL * fit.scale()));
     }
 
     private void drawPath(GuiGraphics graphics, double originX, double originY) {
+        drawPath(graphics, originX, originY, reached);
+    }
+
+    private void drawPath(GuiGraphics graphics, double originX, double originY, List<PathPoint> reached) {
         List<PathPoint> full = PathGeometry.translate(fit.apply(points), originX, originY);
         List<PathPoint> taken = PathGeometry.translate(fit.apply(reached), originX, originY);
         double walked = PathGeometry.length(taken);
@@ -103,10 +115,11 @@ public final class PathPanel {
 
         PathPoint origin = fit.apply(PathPoint.ORIGIN).plus(originX, originY);
         PathPoint ending = full.get(full.size() - 1);
-        GuideInk.waterBottle(graphics, centred(origin.x()), centred(origin.y()), GuideInk.PLAIN);
+        float size = iconSize();
+        icon(graphics, origin, size, () -> GuideInk.waterBottle(graphics, 0, 0, GuideInk.PLAIN));
         if (!complete) {
-            GuideInk.item(graphics, new ItemStack(ItemRegistry.getItemFromRegistry("mortar_and_pestle")),
-                    centred(ending.x()), centred(ending.y()), GuideInk.PLAIN);
+            icon(graphics, ending, size, () -> GuideInk.item(graphics, new ItemStack(ItemRegistry.getItemFromRegistry("mortar_and_pestle")),
+                    0, 0, GuideInk.PLAIN));
         }
 
         if (taken.size() > 1) {
@@ -119,7 +132,12 @@ public final class PathPanel {
         }
     }
 
-    private static int centred(double at) {
-        return (int) Math.round(at) - INK_ICON / 2;
+    private static void icon(GuiGraphics graphics, PathPoint at, float size, Runnable draw) {
+        float scale = size / INK_ICON;
+        graphics.pose().pushPose();
+        graphics.pose().translate((float) Math.round(at.x() - size / 2.0), (float) Math.round(at.y() - size / 2.0), 0.0F);
+        graphics.pose().scale(scale, scale, 1.0F);
+        draw.run();
+        graphics.pose().popPose();
     }
 }

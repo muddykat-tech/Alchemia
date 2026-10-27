@@ -3,7 +3,8 @@ package muddykat.alchemia.client.gui;
 import com.mojang.blaze3d.systems.RenderSystem;
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.guide.GuideNews;
-import muddykat.alchemia.common.potion.PotionEnum;
+import muddykat.alchemia.common.potion.AlchemiaEffect;
+import muddykat.alchemia.common.potion.AlchemiaEffects;
 import muddykat.alchemia.common.potion.RecipeDiscovery;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -42,6 +43,9 @@ public class DiscoveryToast implements Toast {
     private static final int NAME_Y = 19;
     private static final int TEXT_RIGHT = 140;
     private static final float TITLE_SCALE = 0.75F;
+    private static final float NUMERAL_SCALE = 1.25F;
+    private static final int NUMERAL_INSET = 3;
+    private static final int NUMERAL_CAP = 11;
     private static final int INK = 0xFF3B2A1E;
     private static final int INK_RED = 0xFF8E2A22;
     private static final int INK_SHADOW = 0xFFB7A27B;
@@ -63,6 +67,7 @@ public class DiscoveryToast implements Toast {
             case SECRET -> "secret";
             case RECIPE -> "recipe";
             case OPUS -> "opus";
+            case CHAPTER -> "contents";
         });
     }
 
@@ -75,7 +80,7 @@ public class DiscoveryToast implements Toast {
         boolean brewing = minecraft.screen instanceof AlchemicalScreen;
         ToastComponent toasts = minecraft.getToasts();
         for (GuideNews.Entry entry : news) {
-            if (brewing && entry.kind() != GuideNews.Kind.RECIPE) continue;
+            if (brewing && entry.kind() != GuideNews.Kind.RECIPE && entry.kind() != GuideNews.Kind.CHAPTER) continue;
 
             DiscoveryToast toast = toasts.getToast(DiscoveryToast.class, entry.kind());
             if (toast == null) {
@@ -148,33 +153,43 @@ public class DiscoveryToast implements Toast {
     private void icon(GuiGraphics graphics, GuideNews.Entry entry) {
         switch (entry.kind()) {
             case EFFECT -> {
-                PotionEnum recipe = RecipeDiscovery.byName(entry.key());
+                AlchemiaEffect recipe = RecipeDiscovery.byName(entry.key());
                 if (recipe != null) {
-                    TextureAtlasSprite sprite = Minecraft.getInstance().getMobEffectTextures().get(recipe.getEffect());
+                    TextureAtlasSprite sprite = Minecraft.getInstance().getMobEffectTextures().get(recipe.effect());
                     graphics.blit(SLOT_X + EFFECT_INSET, SLOT_Y + EFFECT_INSET, 0,
                             SLOT - 2 * EFFECT_INSET, SLOT - 2 * EFFECT_INSET, sprite);
                 }
             }
+            case CHAPTER -> numeral(graphics, Minecraft.getInstance().font, entry.key());
             case SECRET -> graphics.blit(WIDGETS, SLOT_X + (SLOT - EYE) / 2, SLOT_Y + (SLOT - EYE) / 2,
                     EYE_U, 0, EYE, EYE, SHEET, SHEET);
             default -> graphics.renderFakeItem(entry.icon(), SLOT_X + ITEM_INSET, SLOT_Y + ITEM_INSET);
         }
     }
 
+    private static void numeral(GuiGraphics graphics, Font font, String numeral) {
+        int width = font.width(Lettering.of(numeral));
+        float scale = Math.min(NUMERAL_SCALE, (SLOT - 2 * NUMERAL_INSET) / (float) Math.max(1, width));
+        float x = SLOT_X + (SLOT - width * scale) / 2.0F;
+        float y = SLOT_Y + (SLOT - NUMERAL_CAP * scale) / 2.0F;
+        lettered(graphics, font, numeral, x + scale, y + scale, scale, INK_SHADOW);
+        lettered(graphics, font, numeral, x, y, scale, INK_RED);
+    }
+
     private void title(GuiGraphics graphics, Font font, String text) {
         if (text.isEmpty()) return;
         String initial = text.substring(0, text.offsetByCodePoints(0, 1));
         String rest = text.substring(initial.length());
-        lettered(graphics, font, text, TEXT_X + TITLE_SCALE, TITLE_Y + TITLE_SCALE, INK_SHADOW);
-        lettered(graphics, font, initial, TEXT_X, TITLE_Y, INK_RED);
-        lettered(graphics, font, rest, TEXT_X + font.width(Lettering.of(initial)) * TITLE_SCALE, TITLE_Y, INK);
+        lettered(graphics, font, text, TEXT_X + TITLE_SCALE, TITLE_Y + TITLE_SCALE, TITLE_SCALE, INK_SHADOW);
+        lettered(graphics, font, initial, TEXT_X, TITLE_Y, TITLE_SCALE, INK_RED);
+        lettered(graphics, font, rest, TEXT_X + font.width(Lettering.of(initial)) * TITLE_SCALE, TITLE_Y, TITLE_SCALE, INK);
     }
 
-    private static void lettered(GuiGraphics graphics, Font font, String text, float x, float capTop, int colour) {
+    private static void lettered(GuiGraphics graphics, Font font, String text, float x, float capTop, float scale, int colour) {
         if (text.isEmpty()) return;
         graphics.pose().pushPose();
         graphics.pose().translate(x, capTop, 0);
-        graphics.pose().scale(TITLE_SCALE, TITLE_SCALE, 1.0F);
+        graphics.pose().scale(scale, scale, 1.0F);
         graphics.drawString(font, Lettering.of(text), 0, Lettering.RISE, colour, false);
         graphics.pose().popPose();
     }

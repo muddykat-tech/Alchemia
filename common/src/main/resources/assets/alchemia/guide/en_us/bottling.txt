@@ -1,6 +1,6 @@
 Bottling
 
 @unlock advancement alchemia:cauldron
-@photo bottling_1 bottling_2
-@items left minecraft:glass_bottle|alchemia:potion_phial|alchemia:square_phial
-TODO explain how bottling a potion works, and what potion vials are available.
+@photo size=square bottling_1
+To bottle a potion, right-click an empty glass bottle or phial on the potion.
+You can also place them in world using shift right click.

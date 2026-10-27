@@ -19,7 +19,7 @@ public final class GuideShelf implements Iterable<ItemStack> {
 
     public static final int DESK_REACH = 16;
 
-    private record Desk(TileEntityResearchDesk desk, ItemStack before) {
+    private record Desk(GuideHolder desk, ItemStack before) {
     }
 
     private final List<ItemStack> guides = new ArrayList<>();
@@ -42,7 +42,7 @@ public final class GuideShelf implements Iterable<ItemStack> {
         GuideShelf shelf = of(player);
         if (level.isClientSide()) return shelf;
 
-        for (TileEntityResearchDesk desk : desksNear(level, pos)) {
+        for (GuideHolder desk : holdersNear(level, pos)) {
             ItemStack guide = desk.guide();
             if (guide.isEmpty()) continue;
             shelf.guides.add(guide);
@@ -54,14 +54,22 @@ public final class GuideShelf implements Iterable<ItemStack> {
 
     public static List<ItemStack> readable(@Nullable Player player, Level level, BlockPos pos) {
         List<ItemStack> guides = new ArrayList<>(RecipeDiscovery.guidesOf(player));
-        for (TileEntityResearchDesk desk : desksNear(level, pos)) {
-            if (desk.hasGuide()) guides.add(desk.guide());
+        for (GuideHolder desk : holdersNear(level, pos)) {
+            if (!desk.guide().isEmpty()) guides.add(desk.guide());
         }
         return guides;
     }
 
     public static List<TileEntityResearchDesk> desksNear(Level level, BlockPos pos) {
         List<TileEntityResearchDesk> found = new ArrayList<>();
+        for (GuideHolder holder : holdersNear(level, pos)) {
+            if (holder instanceof TileEntityResearchDesk desk) found.add(desk);
+        }
+        return found;
+    }
+
+    public static List<GuideHolder> holdersNear(Level level, BlockPos pos) {
+        List<GuideHolder> found = new ArrayList<>();
         int minX = SectionPos.blockToSectionCoord(pos.getX() - DESK_REACH);
         int maxX = SectionPos.blockToSectionCoord(pos.getX() + DESK_REACH);
         int minZ = SectionPos.blockToSectionCoord(pos.getZ() - DESK_REACH);
@@ -73,9 +81,9 @@ public final class GuideShelf implements Iterable<ItemStack> {
                 if (chunk == null) continue;
 
                 for (BlockEntity entity : chunk.getBlockEntities().values()) {
-                    if (entity instanceof TileEntityResearchDesk desk && !desk.isRemoved()
-                            && desk.getBlockPos().closerThan(pos, DESK_REACH)) {
-                        found.add(desk);
+                    if (entity instanceof GuideHolder holder && !entity.isRemoved()
+                            && entity.getBlockPos().closerThan(pos, DESK_REACH)) {
+                        found.add(holder);
                     }
                 }
             }
@@ -88,8 +96,21 @@ public final class GuideShelf implements Iterable<ItemStack> {
     }
 
     public void settle(BlockPos from) {
+        settle(from, false);
+    }
+
+    public void settleQuietly(BlockPos from) {
+        settle(from, true);
+    }
+
+    private void settle(BlockPos from, boolean quiet) {
         for (Desk entry : desks) {
-            if (!ItemStack.isSameItemSameTags(entry.before(), entry.desk().guide())) entry.desk().inscribed(from);
+            if (ItemStack.isSameItemSameTags(entry.before(), entry.desk().guide())) continue;
+            if (!quiet && entry.desk() instanceof TileEntityResearchDesk desk) {
+                desk.inscribed(from);
+            } else {
+                entry.desk().guideChanged();
+            }
         }
         GuideNews.announce(player, before);
         before = GuideNews.Snapshot.of(guides);

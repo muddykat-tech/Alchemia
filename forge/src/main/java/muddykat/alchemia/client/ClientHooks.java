@@ -3,6 +3,8 @@ package muddykat.alchemia.client;
 import muddykat.alchemia.client.gui.GuideScreen;
 import muddykat.alchemia.common.guide.GuideSource;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.world.InteractionHand;
 
@@ -17,6 +19,10 @@ public class ClientHooks {
 
     public static void openPage(InteractionHand hand) {
         show(GuideScreen.page(GuideSource.hand(hand)));
+    }
+
+    public static void repairHint(BlockPos pos, ItemStack item) {
+        muddykat.alchemia.client.gui.RepairHint.show(pos, item);
     }
 
     private static void show(Screen screen) {

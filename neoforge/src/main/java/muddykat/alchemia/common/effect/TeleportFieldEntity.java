@@ -109,7 +109,7 @@ public class TeleportFieldEntity extends Entity {
             cooldowns.put(target.getUUID(), now + COOLDOWN);
             if (TeleportSearch.active(target)) continue;
             if (recall) {
-                TeleportSearch.recall(target);
+                TeleportSearch.recall(target, strength);
             } else {
                 TeleportSearch.begin(target, strength);
             }

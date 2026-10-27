@@ -18,6 +18,10 @@ public class AlchemiaRegistry {
         BlockRegistry.BLOCKS.register(modEventBus);
         ItemRegistry.ITEMS.register(modEventBus);
         BiomeFeatureRegistry.FEATURES.register(modEventBus);
+        StructureRegistry.STRUCTURE_TYPES.register(modEventBus);
+        MobEffectRegistry.MOB_EFFECTS.register(modEventBus);
+        EntityTypeRegistry.ENTITY_TYPES.register(modEventBus);
+        StructureRegistry.STRUCTURE_PIECES.register(modEventBus);
         PlacementModifierRegistry.PLACEMENT_MODIFIERS.register(modEventBus);
         BlockEntityTypeRegistry.TILES.register(modEventBus);
         MenuTypeRegistry.MENU_TYPES.register(modEventBus);

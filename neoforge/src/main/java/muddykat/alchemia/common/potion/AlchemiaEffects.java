@@ -44,7 +44,7 @@ public final class AlchemiaEffects {
     }
 
     static {
-        install(defaults());
+        install(present(defaults()));
     }
 
     public static List<AlchemiaEffect> defaults() {
@@ -67,7 +67,7 @@ public final class AlchemiaEffects {
                 alchemia("Dangersense", "dangersense", Fire, Void, UNCOMMON, 2, 120, "water"),
                 alchemia("Flames", "flames", Fire, Earth, UNCOMMON, 3, 1, "honey"),
                 alchemia("Thorns", "thorns", Earth, Void, RARE, 4, 120, "honey"),
-                alchemia("Recall", "recall", Void, Water, RARE, 1, 1, "water"),
+                alchemia("Recall", "recall", Void, Water, RARE, 3, 1, "water"),
                 alchemia("Wild_Growth", "wild_growth", Earth, Water, UNCOMMON, 4, 120, "honey"));
     }
 

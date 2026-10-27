@@ -47,7 +47,7 @@ public final class TeleportSearch {
     private static final int RANGE_PER_LEVEL = 500;
     private static final double MIN_FRACTION = 0.1;
     private static final int ATTEMPTS = 8;
-    private static final int MIN_CHARGE = RiftEntity.CHARGE_TICKS;
+    private static final float RECALL_BASE_CHARGE_RATE = 2.0F / 3.0F;
     private static final int VIEW_OPEN_TICKS = TeleportViewState.OPEN_TICKS;
     private static final int MAX_TICKS = 400;
     private static final int COLUMNS = 4;
@@ -64,13 +64,14 @@ public final class TeleportSearch {
 
     public static void begin(LivingEntity entity, int level) {
         if (!(entity.level() instanceof ServerLevel server)) return;
-        start(entity, server, new Job(server.dimension(), entity.position(), level * RANGE_PER_LEVEL));
+        start(entity, server, new Job(server.dimension(), entity.position(), level * RANGE_PER_LEVEL, 1.0F));
     }
 
-    public static void recall(LivingEntity entity) {
+    public static void recall(LivingEntity entity, int strength) {
         if (!(entity.level() instanceof ServerLevel server)) return;
         TeleportTransition home = home(entity, server);
-        Job job = new Job(server.dimension(), entity.position(), 0);
+        float chargeRate = Math.max(1, strength) * RECALL_BASE_CHARGE_RATE;
+        Job job = new Job(server.dimension(), entity.position(), 0, chargeRate);
         job.found = home.position();
         job.target = home.newLevel().dimension();
         job.targetYaw = home.yRot();
@@ -96,7 +97,7 @@ public final class TeleportSearch {
         job.rift = rift(server, entity.position(), RiftEntity.CHARGE, entity.getId());
         server.playSound(null, entity.getX(), entity.getY(), entity.getZ(), SoundEvents.AMETHYST_BLOCK_RESONATE, entity.getSoundSource(), 1.0F, 0.7F);
         JOBS.put(entity.getUUID(), job);
-        view(entity, TeleportViewState.CHARGE);
+        view(entity, TeleportViewState.CHARGE, job.chargeRate);
     }
 
     private static RiftEntity rift(ServerLevel level, Vec3 at, int mode, int owner) {
@@ -132,6 +133,7 @@ public final class TeleportSearch {
     private static boolean tick(LivingEntity entity, Job job) {
         ServerLevel level = (ServerLevel) entity.level();
         job.ticks++;
+        if (!job.teleported) job.chargeTicks += job.chargeRate;
 
         if (job.teleported) {
             if (++job.arrivalTicks >= RiftEntity.ARRIVE_HOLD) {
@@ -144,7 +146,7 @@ public final class TeleportSearch {
         if (job.rift != null) job.rift.setPos(entity.getX(), entity.getY(), entity.getZ());
 
         if (job.found != null) {
-            if (job.ticks < MIN_CHARGE) return false;
+            if (job.chargeTicks < RiftEntity.CHARGE_TICKS) return false;
             if (!job.opening) {
                 job.opening = true;
                 if (job.rift != null) job.rift.startOpening();
@@ -217,7 +219,11 @@ public final class TeleportSearch {
     }
 
     private static void view(LivingEntity entity, int phase) {
-        if (entity instanceof ServerPlayer player) NetworkHandler.sendToPlayer(new PacketTeleportView(phase), player);
+        view(entity, phase, 1.0F);
+    }
+
+    private static void view(LivingEntity entity, int phase, float chargeRate) {
+        if (entity instanceof ServerPlayer player) NetworkHandler.sendToPlayer(new PacketTeleportView(phase, chargeRate), player);
     }
 
     private static @Nullable Vec3 landing(ServerLevel level, int x, int z) {
@@ -281,8 +287,10 @@ public final class TeleportSearch {
         private boolean recall;
         private final Vec3 origin;
         private final int range;
+        private final float chargeRate;
         private int attempts = ATTEMPTS;
         private int ticks;
+        private float chargeTicks;
         private int targetX;
         private int targetZ;
         private @Nullable CompletableFuture<ChunkResult<ChunkAccess>> pending;
@@ -293,10 +301,11 @@ public final class TeleportSearch {
         private boolean teleported;
         private int arrivalTicks;
 
-        private Job(ResourceKey<Level> dimension, Vec3 origin, int range) {
+        private Job(ResourceKey<Level> dimension, Vec3 origin, int range, float chargeRate) {
             this.dimension = dimension;
             this.origin = origin;
             this.range = range;
+            this.chargeRate = chargeRate;
         }
 
         private void end() {

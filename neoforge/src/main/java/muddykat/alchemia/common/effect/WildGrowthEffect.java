@@ -12,6 +12,7 @@ import org.jspecify.annotations.Nullable;
 
 public class WildGrowthEffect extends MobEffect implements ShatterEffect {
 
+    private static final int ARROW_RADIUS = 1;
     private static final int PULSE_TICKS = 10;
     private static final int REACH = 4;
     private static final int TICKS_PER_LEVEL = 12;
@@ -37,6 +38,12 @@ public class WildGrowthEffect extends MobEffect implements ShatterEffect {
             WildGrowth.quicken(level, mob.blockPosition(), REACH + strength, TICKS_PER_LEVEL * strength, mob.getRandom());
         }
         return true;
+    }
+
+    @Override
+    public void arrowLanded(ServerLevel level, Vec3 at, @Nullable Entity owner, int amplifier) {
+        int strength = amplifier + 1;
+        WildGrowth.overflow(level, at, strength, ARROW_RADIUS + strength, level.getRandom());
     }
 
     @Override

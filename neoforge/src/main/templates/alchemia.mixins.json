@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "muddykat.alchemia.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+${mixin_list}
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -1,8 +1,9 @@
-// 1.21.1	2026-10-20T08:05:57.902484963	Tags for minecraft:worldgen/biome mod id alchemia
+// 1.21.1	2026-10-27T20:23:24.23424553	Tags for minecraft:worldgen/biome mod id alchemia
 1b2b042fcad8a5c66e3c4c246dce37a63737e71e data/alchemia/tags/worldgen/biome/has_air_plants.json
 ac0b026bda1b5d4ecc7a40db27fbd5e0bebb1c4a data/alchemia/tags/worldgen/biome/has_ancient_oak.json
 8d00d39ea1e8e47fedab7ab418f9ec17a1bd20dc data/alchemia/tags/worldgen/biome/has_dreambeet.json
 4925da483f1d7739926bb1cc0bb430729d876495 data/alchemia/tags/worldgen/biome/has_earth_plants.json
+17d3c0498a363c3becdfb81fdbf04937db6c883b data/alchemia/tags/worldgen/biome/has_end_crystal.json
 d863d726aa56f8b20de8793e25831b162d6212b8 data/alchemia/tags/worldgen/biome/has_fire_plants.json
 5b782cebcf6d3e5b1f522f489f474b0983ff960a data/alchemia/tags/worldgen/biome/has_frost_sapphire.json
 961d0791c5ee1ae578c6f4f868cdee53ce4f36b6 data/alchemia/tags/worldgen/biome/has_grasping_root.json

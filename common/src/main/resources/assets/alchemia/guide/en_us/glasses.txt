@@ -1,3 +1,4 @@
 Potion Glasses
 
 @craft minecraft:glass_bottle alchemia:potion_phial alchemia:square_phial
+There are multiple styles of potion glasses, the smaller phials are often a bit quicker to drink from.

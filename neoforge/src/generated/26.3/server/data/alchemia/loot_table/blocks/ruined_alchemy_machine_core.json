@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "condition": {
+        "type": "minecraft:survives_explosion"
+      },
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "alchemia:ruined_alchemy_machine_core"
+        }
+      ],
+      "modifier": {
+        "type": "minecraft:copy_state",
+        "block": "alchemia:ruined_alchemy_machine_core",
+        "properties": [
+          "repair"
+        ]
+      },
+      "rolls": 1
+    }
+  ],
+  "random_sequence": "alchemia:blocks/ruined_alchemy_machine_core"
+}

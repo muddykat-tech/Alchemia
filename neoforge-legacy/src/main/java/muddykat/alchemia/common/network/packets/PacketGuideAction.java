@@ -27,6 +27,7 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import muddykat.alchemia.common.crafting.MagnumOpus;
 import muddykat.alchemia.common.crafting.PotionEffectIngredient;
 import muddykat.alchemia.common.guide.GreatWork;
+import muddykat.alchemia.registration.registers.DataComponentRegistry;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.item.alchemy.PotionContents;
@@ -40,6 +41,7 @@ public record PacketGuideAction(GuideSource source, Action action, String argume
 
     public static final int MAX_ARGUMENT = 512;
     public static final int MAX_NOTE = 256;
+    public static final int MAX_BOOKMARK = 128;
     public static final char NAME_SEPARATOR = '\n';
 
     public static String renaming(String id, String name) {
@@ -57,7 +59,8 @@ public record PacketGuideAction(GuideSource source, Action action, String argume
         RENAME,
         NOTE,
         NOTE_INGREDIENT,
-        SUMMON_FLASK;
+        SUMMON_FLASK,
+        BOOKMARK;
 
         static Action byId(int id) {
             Action[] all = values();
@@ -133,6 +136,15 @@ public record PacketGuideAction(GuideSource source, Action action, String argume
             case SUMMON_FLASK -> {
                 summonFlask(player, guide, argument);
                 yield false;
+            }
+            case BOOKMARK -> {
+                if (argument.length() > MAX_BOOKMARK) yield false;
+                if (argument.isEmpty()) {
+                    guide.remove(DataComponentRegistry.GUIDE_BOOKMARK.get());
+                } else {
+                    guide.set(DataComponentRegistry.GUIDE_BOOKMARK.get(), argument);
+                }
+                yield true;
             }
             case LEARN_EFFECT -> GuideResearch.linksEffect(guide, argument)
                     && RecipeDiscovery.learn(List.of(guide), List.of(argument)) > 0;

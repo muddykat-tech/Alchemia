@@ -367,6 +367,19 @@ public enum IngredientPath {
                 straights(corners(BOOMBLOOM_LAUNCH))), rise.get(rise.size() - 1));
     }
 
+    private static final double[][] HAIRY_BANANA_ROUTE = {
+            {0, 0}, {-0.3, 1.5}, {-0.6, 2.5}, {-1, 3.5}, {-1.3, 4.4}, {-1.8, 5.4}, {-2.4, 6.2}, {-3.6, 7.2},
+            {-5.1, 7}, {-6, 6.9}, {-7, 6.6}, {-8.1, 6.3}, {-9.1, 6}, {-10, 5.6}, {-10.6, 4.9},
+            {-9.8, 4.7}, {-8.8, 4.7}, {-7.8, 4.7}, {-6.7, 4.7}, {-5.7, 4.7}, {-4.5, 4.6}
+    };
+    private static final int HAIRY_BANANA_MARK = 7;
+
+    private static final double[][] DRUIDS_ROSEMARY_ROUTE = {
+            {0, 0}, {0.2, 1.8}, {0.6, 3}, {1.2, 4.5}, {1.7, 5.6}, {2.5, 6.4}, {3.5, 7.4}, {4.3, 8.2},
+            {5.4, 8.9}, {6.5, 9.5}, {7.7, 9.9}, {9, 10.3}, {10.3, 10.4}
+    };
+    private static final int DRUIDS_ROSEMARY_MARK = 3;
+
     private static final Map<Ingredients, Curve> CURVES = Map.ofEntries(
             Map.entry(Ingredients.Waterbloom, routed(WATERBLOOM_ROUTE, WATERBLOOM_MARK)),
             Map.entry(Ingredients.Tangleweed, routed(TANGLEWEED_ROUTE, TANGLEWEED_MARK)),
@@ -397,7 +410,9 @@ public enum IngredientPath {
             Map.entry(Ingredients.Windbloom, routed(WINDBLOOM_ROUTE, WINDBLOOM_MARK)),
             Map.entry(Ingredients.Terraria, routed(TERRARIA_ROUTE, TERRARIA_MARK)),
             Map.entry(Ingredients.Lava_Root, routed(LAVA_ROOT_ROUTE, LAVA_ROOT_MARK)),
-            Map.entry(Ingredients.Mageberry, mageberryLoop())
+            Map.entry(Ingredients.Mageberry, mageberryLoop()),
+            Map.entry(Ingredients.Hairy_Banana, routed(HAIRY_BANANA_ROUTE, HAIRY_BANANA_MARK)),
+            Map.entry(Ingredients.Druids_Rosemary, routed(DRUIDS_ROSEMARY_ROUTE, DRUIDS_ROSEMARY_MARK))
     );
 
     private static List<PathPoint> curvePath(Ingredients ingredient, double potency) {
@@ -529,9 +544,9 @@ public enum IngredientPath {
     private static final double SPIRAL_SAMPLE_STEP = Math.PI / 96;
     private static final double TELEPORT_BASE = 10.0 * PathGeometry.CELL;
     private static final double TELEPORT_PER_CRUSH = 4.0 * PathGeometry.CELL;
-    private static final int SQUARE_SPIRAL_TURNS = 3;
-    private static final int SQUARE_SPIRAL_LEGS = 4 * SQUARE_SPIRAL_TURNS;
-    private static final double SQUARE_SPIRAL_SCALE = 0.6;
+    private static final double[] SQUARE_SPIRAL_ARMS = {1, 1, 2, 2, 3, 3, 4, 4, 4, 0.75};
+    private static final double SQUARE_SPIRAL_UNIT = 0.225;
+    private static final double SQUARE_SPIRAL_MARK = 0.85;
 
     private double sway(double travelled) {
         return switch (this) {
@@ -564,8 +579,12 @@ public enum IngredientPath {
 
     private static final int[][] SQUARE_SPIRAL_HEADINGS = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
 
+    private static double squareSpiralUnit(double radius) {
+        return Math.max(PathGeometry.SAMPLE_SPACING, radius * SQUARE_SPIRAL_UNIT);
+    }
+
     public static List<PathPoint> squareSpiral(double radius) {
-        double step = Math.max(PathGeometry.SAMPLE_SPACING, radius * SQUARE_SPIRAL_SCALE / SQUARE_SPIRAL_TURNS);
+        double unit = squareSpiralUnit(radius);
 
         List<PathPoint> corners = new ArrayList<>();
         corners.add(PathPoint.ORIGIN);
@@ -573,9 +592,9 @@ public enum IngredientPath {
         double x = 0.0;
         double y = 0.0;
 
-        for (int leg = 0; leg < SQUARE_SPIRAL_LEGS; leg++) {
+        for (int leg = 0; leg < SQUARE_SPIRAL_ARMS.length; leg++) {
             int[] heading = SQUARE_SPIRAL_HEADINGS[leg % SQUARE_SPIRAL_HEADINGS.length];
-            double length = step * (leg / 2 + 1);
+            double length = unit * SQUARE_SPIRAL_ARMS[leg];
 
             x += heading[0] * length;
             y += heading[1] * length;
@@ -674,6 +693,9 @@ public enum IngredientPath {
         if (ceiling <= 0.0) return shape;
 
         double total = PathGeometry.length(shape);
+        if (this == SPIRAL_TELEPORT) {
+            return PathGeometry.truncate(shape, markedWalk(squareSpiralUnit(ceiling) * SQUARE_SPIRAL_MARK, total, ceiling, reach));
+        }
         MarkedFlight marked = markedFlight();
         if (marked != null) {
             double lead = PathGeometry.length(markedLead(marked, dx, dy, ceiling));

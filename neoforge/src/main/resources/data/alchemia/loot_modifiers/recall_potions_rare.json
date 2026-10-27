@@ -4,7 +4,8 @@
   "loot_tables": [
     "minecraft:chests/nether_bridge",
     "minecraft:chests/bastion_treasure",
-    "minecraft:chests/bastion_other"
+    "minecraft:chests/bastion_other",
+    "minecraft:chests/abandoned_mineshaft"
   ],
   "chance": 0.03
 }

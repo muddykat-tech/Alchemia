@@ -1,0 +1,29 @@
+{
+  "parent": "alchemia:restored_core",
+  "criteria": {
+    "unlocked": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.alchemia.restored_right.description"
+    },
+    "frame": "task",
+    "hidden": false,
+    "icon": {
+      "item": "alchemia:alchemy_machine_right_upgrade"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.alchemia.restored_right.title"
+    }
+  },
+  "requirements": [
+    [
+      "unlocked"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

@@ -152,8 +152,8 @@ public class BrewRecipeBook {
 
         List<BrewRecipe.BrewEffect> produced = new ArrayList<>();
         for (MobEffectInstance instance : effects) {
-            PotionEnum recipe = RecipeDiscovery.byEffect(instance.getEffect());
-            if (recipe != null) produced.add(new BrewRecipe.BrewEffect(recipe.name(), instance.getAmplifier() + 1));
+            AlchemiaEffect recipe = RecipeDiscovery.byEffect(instance.getEffect());
+            if (recipe != null) produced.add(new BrewRecipe.BrewEffect(recipe.id(), instance.getAmplifier() + 1));
         }
         if (produced.isEmpty()) return null;
 

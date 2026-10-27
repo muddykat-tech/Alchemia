@@ -55,6 +55,15 @@ public class StackData {
     public static final StackComponent<Map<String, String>> INGREDIENT_NOTES =
             StackComponent.of("ingredient_notes", Codec.unboundedMap(Codec.STRING, Codec.STRING));
 
+    public static final StackComponent<List<String>> WHIRL_EXITS =
+            StackComponent.of("whirl_exits", Codec.STRING.listOf());
+
+    public static final StackComponent<Map<String, List<Long>>> MAP_REVEALS =
+            StackComponent.of("map_reveals", Codec.unboundedMap(Codec.STRING, Codec.LONG.listOf()));
+
+    public static final StackComponent<String> GUIDE_BOOKMARK =
+            StackComponent.of("guide_bookmark", Codec.STRING);
+
     public static final StackComponent<ResourceKey<Biome>> BARK_BIOME =
             StackComponent.of("bark_biome", ResourceKey.codec(Registries.BIOME));
 }

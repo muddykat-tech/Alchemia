@@ -1,0 +1,95 @@
+package muddykat.alchemia.client.gui.guide;
+
+import muddykat.alchemia.Alchemia;
+import muddykat.alchemia.client.gui.ScrollWidgetRenderer;
+import net.minecraft.resources.ResourceLocation;
+
+public final class GuideLayout {
+
+    public static final ResourceLocation BOOK = new ResourceLocation(Alchemia.MODID, "textures/gui/guide/book.png");
+    public static final int BOOK_SHEET_W = 512;
+    public static final int BOOK_SHEET_H = 256;
+    public static final int BOOK_W = 376;
+    public static final int BOOK_H = 232;
+    public static final int RIBBON_SHOWN = 15;
+    public static final int PAGE_RIGHT_EDGE = 363;
+    public static final int PAGE_TOP_EDGE = 7;
+    public static final int PAGE_BOTTOM_EDGE = 218;
+    public static final int LEFT_X = 22;
+    public static final int RIGHT_X = 199;
+    public static final int PAGE_W = 155;
+    public static final int TOP = 17;
+    public static final int BOTTOM = 211;
+    public static final int TAB_W = 48;
+    public static final int ICON = 12;
+    public static final int SMALL = 16;
+    public static final int TRACK_W = 7;
+    public static final int CELL = 18;
+    public static final int DIVIDER_H = 7;
+    public static final int ROSETTE_U = 0;
+    public static final int ROSETTE_V = 140;
+    public static final int ROSETTE = 12;
+    public static final int VINE_U = 14;
+    public static final int VINE_RIGHT_U = 50;
+    public static final int VINE_V = 140;
+    public static final int VINE_W = 34;
+    public static final int VINE_H = 9;
+    public static final int DIAMOND_U = 86;
+    public static final int DIAMOND_V = 140;
+    public static final int DIAMOND = 5;
+    public static final int INGREDIENT_ROW = 20;
+    public static final int SEAL = 18;
+    public static final int PREPARED_V = 180;
+    public static final int EMPTY_SEAL_U = 73;
+    public static final int TITLE_W = 98;
+    public static final int TITLE_LINE = 15;
+    public static final int TITLE_CAP = 11;
+    public static final int TITLE_RULE = 14;
+    public static final float SUBTITLE_SCALE = 0.75F;
+    public static final int EFFECT_SLOTS = 5;
+    public static final int EFFECT_SLOT = 13;
+    public static final int RULE = 0xFFB8A27A;
+    public static final int GRID_COLUMNS = 8;
+    public static final float GLOWING_ART = 16.0F;
+    public static final int EFFECTS_ROWS = 7;
+    public static final int EFFECTS_PER_PAGE = GRID_COLUMNS * EFFECTS_ROWS;
+    public static final int INDEX_ROWS = 7;
+    public static final int LINE = 10;
+    public static final int STEP_ROW = 18;
+    public static final int INK = 0xFF3B2A1E;
+    public static final int INK_HEAD = 0xFF2A1D13;
+    public static final int INK_SOFT = 0xFF604A34;
+    public static final int INK_FAINT = 0xFF967E5C;
+    public static final int INK_RED = 0xFF8E2A22;
+    public static final int INK_LINK = 0xFF2C5F63;
+    public static final int FRAME_PAD_W = 5;
+    public static final int FRAME_PAD_H = 5;
+    public static final int PHOTO_MAT = 5;
+    public static final int PHOTO_ARROW = 10;
+    public static final int PHOTO_DOT = 2;
+    public static final int FOLIO_LIFT = 13;
+    public static final int CRAFT_MARGIN = 3;
+    public static final int NAMEPLATE_H = 20;
+    public static final int NAMEPLATE_LEFT = 24;
+    public static final int NAMEPLATE_RIGHT = 7;
+    public static final int NAMEPLATE_TEXT_X = NAMEPLATE_LEFT;
+    public static final float NAMEPLATE_SCALE = 1.0F;
+    public static final int PLATE_RISE = NAMEPLATE_H / 2;
+    public static final int PLATE_HEAD = 2;
+    public static final int GRIND_H = 14;
+    public static final int ROLL_H = ScrollWidgetRenderer.ROLL_H;
+    public static final int PULL_H = ScrollWidgetRenderer.PULL_H;
+    public static final int PULL_TUCK = ScrollWidgetRenderer.PULL_TUCK;
+    public static final int SCROLL_REST_W = 30;
+    public static final int SCROLL_PAD_W = ScrollWidgetRenderer.PAD_W;
+    public static final int SCROLL_PAD_H = ScrollWidgetRenderer.PAD_H;
+    public static final int HOLDER_MARGIN = 1;
+    public static final int ITEM_HOLDER_PAD = 3;
+    public static final int CRAFT_GRID_PAD = 3;
+    public static final int LEATHER_LIGHT = 0xFFD1BE97;
+    public static final int SEAL_RISE = 5;
+    public static final String PRIMER_LINK_TAG = "alchemia-link:";
+
+    private GuideLayout() {
+    }
+}

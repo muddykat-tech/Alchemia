@@ -23,7 +23,7 @@ public class CreativeTabRegistry {
                     .icon(() -> new ItemStack(BlockRegistry.BLOCK_REGISTRY.get("alchemical_cauldron").get()))
                     .displayItems((parameters, output) -> {
                         ItemRegistry.ITEM_REGISTRY.values().forEach(output::accept);
-                        for (Item bottle : List.of(Items.POTION, Items.SPLASH_POTION, Items.LINGERING_POTION)) {
+                        for (Item bottle : List.of(Items.POTION, Items.SPLASH_POTION, Items.LINGERING_POTION, Items.TIPPED_ARROW)) {
                             for (DeferredHolder<MobEffect, ? extends MobEffect> effect : MobEffectRegistry.MOB_EFFECTS.getEntries()) {
                                 output.accept(AlchemicalPotions.of(bottle, effect, 1));
                             }

@@ -19,6 +19,7 @@ public final class FlameBurst {
     public static final ResourceKey<DamageType> FLAME_BURST = ResourceKey.create(Registries.DAMAGE_TYPE,
             Identifier.fromNamespaceAndPath(Alchemia.MODID, "flame_burst"));
 
+    private static final double ARROW_SCALE = 0.55;
     private static final double BASE_RADIUS = 1.5;
     private static final double RADIUS_PER_LEVEL = 1.25;
     private static final int BASE_DURATION = 60;
@@ -45,6 +46,15 @@ public final class FlameBurst {
         level.playSound(null, ground.x, ground.y, ground.z, SoundEvents.FIRECHARGE_USE, SoundSource.PLAYERS, 0.9F, 0.6F);
         level.playSound(null, ground.x, ground.y, ground.z, SoundEvents.BLAZE_SHOOT, SoundSource.PLAYERS, 0.7F, 0.5F);
         if (lingering) level.playSound(null, ground.x, ground.y, ground.z, SoundEvents.FIRE_AMBIENT, SoundSource.PLAYERS, 1.2F, 0.7F);
+    }
+
+    public static void arrowBurst(ServerLevel level, Vec3 at, @Nullable Entity cause, int strength) {
+        Vec3 ground = ground(level, at);
+        FlameCloudEntity cloud = new FlameCloudEntity(EntityTypeRegistry.FLAME_CLOUD.get(), level);
+        cloud.setPos(ground.x, ground.y, ground.z);
+        cloud.configure(cause == null ? null : cause.getUUID(), strength, (float) (radius(strength) * ARROW_SCALE), FlameCloudEntity.BLAST_TICKS, false);
+        level.addFreshEntity(cloud);
+        level.playSound(null, ground.x, ground.y, ground.z, SoundEvents.FIRECHARGE_USE, SoundSource.PLAYERS, 0.7F, 0.8F);
     }
 
     static Vec3 ground(ServerLevel level, Vec3 at) {

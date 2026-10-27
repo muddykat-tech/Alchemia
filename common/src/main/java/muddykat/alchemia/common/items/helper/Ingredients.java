@@ -47,6 +47,7 @@ public enum Ingredients {
     Healers_Heather(Herb, IngredientAlignment.Earth, IngredientAlignment.Water, MobEffects.REGENERATION, 1, Rarity.COMMON),
     Terrorbud(Herb, IngredientAlignment.Earth, IngredientAlignment.Water, MobEffects.BLINDNESS, 1, Rarity.COMMON),
     Thornstick(Herb, IngredientAlignment.Fire, IngredientAlignment.Earth, MobEffects.POISON, 1, Rarity.COMMON),
+    Hairy_Banana(Herb, IngredientAlignment.Earth, IngredientAlignment.Air, MobEffects.JUMP_BOOST, 1, Rarity.COMMON),
     Lava_Root(Root, IngredientAlignment.Fire, MobEffects.INSTANT_DAMAGE, 1, Rarity.COMMON),
     Terraria(Root, IngredientAlignment.Earth, MobEffects.HASTE, 1, Rarity.COMMON),
     Dreambeet(Root, IngredientAlignment.Air, IngredientAlignment.Water, MobEffects.LUCK, 1, Rarity.COMMON),

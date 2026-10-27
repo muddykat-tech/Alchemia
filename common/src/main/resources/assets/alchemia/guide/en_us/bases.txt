@@ -2,4 +2,4 @@ Potion Bases
 
 @unlock advancement alchemia:cauldron
 @photo bases_water bases_honey
-You can fill an Alchemical Cauldron with different bases, these bases will change which potions you can brew and how you brew them.
+An Alchemical Cauldron can be used with different fluid bases, these will change the potions that can be created and how the map functions.

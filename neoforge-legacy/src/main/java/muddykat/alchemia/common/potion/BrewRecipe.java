@@ -35,6 +35,7 @@ public record BrewRecipe(String id, String name, String base, List<BrewRecipe.Br
     public static final char STEP_BARK = '%';
     public static final char STEP_GLOW = '#';
     public static final char STEP_BOTTLE = '&';
+    public static final char STEP_WHIRL = '@';
 
     private static final int LEGACY_CRUSH_SCALE = 2;
 
@@ -136,13 +137,13 @@ public record BrewRecipe(String id, String name, String base, List<BrewRecipe.Br
                 ByteBufCodecs.VAR_INT, BrewEffect::potency,
                 BrewEffect::new);
 
-        public PotionEnum asPotion() {
+        public AlchemiaEffect asPotion() {
             return RecipeDiscovery.byName(recipe);
         }
 
         public Component displayName() {
-            PotionEnum potion = asPotion();
-            return potion != null ? potion.getEffect().value().getDisplayName() : Component.literal(recipe);
+            AlchemiaEffect potion = asPotion();
+            return potion != null ? potion.displayName() : Component.literal(recipe);
         }
     }
 

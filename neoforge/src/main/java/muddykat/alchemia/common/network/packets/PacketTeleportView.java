@@ -9,12 +9,13 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-public record PacketTeleportView(int phase) implements CustomPacketPayload {
+public record PacketTeleportView(int phase, float chargeRate) implements CustomPacketPayload {
 
     public static final Type<PacketTeleportView> TYPE = new Type<>(Identifier.fromNamespaceAndPath(Alchemia.MODID, "teleport_view"));
 
     public static final StreamCodec<ByteBuf, PacketTeleportView> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.VAR_INT, PacketTeleportView::phase,
+            ByteBufCodecs.FLOAT, PacketTeleportView::chargeRate,
             PacketTeleportView::new);
 
     @Override
@@ -23,6 +24,6 @@ public record PacketTeleportView(int phase) implements CustomPacketPayload {
     }
 
     public static void handle(PacketTeleportView payload, IPayloadContext context) {
-        context.enqueueWork(() -> TeleportViewState.setPhase(payload.phase()));
+        context.enqueueWork(() -> TeleportViewState.setPhase(payload.phase(), payload.chargeRate()));
     }
 }

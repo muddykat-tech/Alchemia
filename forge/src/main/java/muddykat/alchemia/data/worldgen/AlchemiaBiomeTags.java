@@ -2,6 +2,7 @@ package muddykat.alchemia.data.worldgen;
 
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.items.helper.IngredientAlignment;
+import muddykat.alchemia.common.world.IngredientRange;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -21,6 +22,7 @@ public class AlchemiaBiomeTags {
     public static final TagKey<Biome> HAS_LAVA_ROOT = tag("has_lava_root");
     public static final TagKey<Biome> HAS_TERRARIA = tag("has_terraria");
     public static final TagKey<Biome> HAS_DREAMBEET = tag("has_dreambeet");
+    public static final TagKey<Biome> HAS_END_CRYSTAL = tag(IngredientRange.END_ISLANDS);
     public static final TagKey<Biome> HAS_GRASPING_ROOT = tag("has_grasping_root");
 
     public static TagKey<Biome> forAlignment(IngredientAlignment alignment) {

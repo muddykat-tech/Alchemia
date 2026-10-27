@@ -1,7 +1,7 @@
-// 26.1.2	2026-10-20T00:54:29.527579812	Tags for minecraft:item mod id alchemia
+// 26.1.2	2026-10-27T15:16:37.739623254	Tags for minecraft:item mod id alchemia
 7df70b2daba51dcfe7fc29a1ded021ee3ced2ee6 data/alchemia/tags/item/ancient_oak_logs.json
 5b1ce1ff1b65253784b24510df814ff9f730309a data/alchemia/tags/item/imbuements.json
-50b7f7c5ecac839336fc1ad4ebf547af3da592ee data/alchemia/tags/item/ingredients.json
+a873ac2500b9c310c41f727621b9abea4b9e52f2 data/alchemia/tags/item/ingredients.json
 2dc2398aaf41c7d8062e93d6be63043704615166 data/minecraft/tags/item/fence_gates.json
 2e842075d0e4599a59f7a92c2f45e1f18e0256e4 data/minecraft/tags/item/leaves.json
 7df70b2daba51dcfe7fc29a1ded021ee3ced2ee6 data/minecraft/tags/item/logs_that_burn.json

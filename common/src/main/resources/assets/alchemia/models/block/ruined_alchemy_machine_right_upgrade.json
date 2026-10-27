@@ -1,0 +1,20 @@
+{
+  "loader": "neoforge:obj",
+  "model": "alchemia:models/ruined_alchemy_machine_right_upgrade.obj",
+  "flip_v": true,
+  "automatic_culling": false,
+  "emissive_ambient": false,
+  "transform": {
+    "translation": [
+      1.5,
+      0.0,
+      0.5
+    ]
+  },
+  "textures": {
+    "alchemy_machine": "alchemia:block/alchemy/ruined_alchemy_machine",
+    "alchemy_machine_lit": "alchemia:block/alchemy/ruined_alchemy_machine_lit",
+    "particle": "minecraft:block/glass",
+    "moss": "alchemia:block/alchemy/ruined_alchemy_machine_moss"
+  }
+}

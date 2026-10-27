@@ -1,0 +1,20 @@
+{
+  "render_type": "minecraft:cutout",
+  "loader": "forge:obj",
+  "model": "alchemia:models/ruined_alchemy_machine_top_upgrade.obj",
+  "emissive_ambient": false,
+  "flip_v": true,
+  "automatic_culling": false,
+  "transform": {
+    "translation": [
+      0.5,
+      -1.0,
+      0.5
+    ]
+  },
+  "textures": {
+    "alchemy_machine": "alchemia:block/alchemy/ruined_alchemy_machine",
+    "particle": "minecraft:block/glass",
+    "moss": "alchemia:block/alchemy/ruined_alchemy_machine_moss"
+  }
+}

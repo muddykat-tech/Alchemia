@@ -50,7 +50,7 @@ A line starting with `@` places something on the page instead of text:
 
 | Directive | What it places |
 |---|---|
-| `@photo [size=..] [align=..] [angle=..] [title=..] name name ...` | A framed picture from `textures/gui/guide/primer/<name>.png`. With more than one name, small arrows flip between them in order. See below for the options. |
+| `@photo [size=..] [align=..] [angle=..] [filter=..] [title=..] name name ...` | A framed picture from `textures/gui/guide/primer/<name>.png`. With more than one name, small arrows flip between them in order. See below for the options. |
 | `@items <align> slot slot ...` | A row of up to 4 item slots. `<align>` is `left`, `center` or `right` and can be left out (centre). Text flows beside a `left` or `right` row. |
 | `@path [style=..] [align=..] [grind=true] <ingredient>` | An ingredient's path drawn on a framed chart, with the ingredient and its name on a banner across the top, such as `@path herb_mageberry`. Use its item registry name, with or without the `alchemia:` namespace. See below for the compact style. |
 | `@craft [style=compact] recipe recipe ...` | A crafting grid filled in from the game's own crafting recipes, named by recipe id (`minecraft:glass_bottle`). Name several to flip between them. Ingredients that accept several items cycle through them. |
@@ -71,6 +71,7 @@ doesn't fit 2×2 the whole group is drawn as the usual 3×3.
 | `size=` | `wide` (the default, 256×144), `small` (192×108), `square` (144×144) or `portrait` (108×144). The image file must be that size. |
 | `align=` | `left`, `center` (the default) or `right`. Text flows beside a `left` or `right` photo. |
 | `angle=` | A tilt in degrees, from `-15` to `15`, turning the photo about its centre. Meant for decoration. |
+| `filter=` | `none` (the default) leaves the image as-is; `inked` applies the recipe method ink shader; `inked_detailed` uses a 12-shade version of that ink filter. |
 | `title=` | A paper banner lettered in Alagard, laid over the top edge of the photo and tilting with it. It doesn't change the photo's size, and keeps one width for the whole series, sized to the longest title. Give one per picture, in order, separated by `\|`; quote it if it has spaces: `title="Water\|Honey Mead"`. A blank entry leaves that picture untitled. |
 
 ### Path options

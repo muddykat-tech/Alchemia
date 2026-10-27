@@ -3,393 +3,476 @@
   "criteria": {
     "flower_boombloom": {
       "conditions": {
-        "items": [
+        "location": [
           {
-            "items": "alchemia:flower_boombloom"
+            "block": "alchemia:flower_boombloom_seed",
+            "condition": "minecraft:block_state_property"
           }
         ]
       },
-      "trigger": "minecraft:inventory_changed"
+      "trigger": "minecraft:placed_block"
     },
     "flower_featherbloom": {
       "conditions": {
-        "items": [
+        "location": [
           {
-            "items": "alchemia:flower_featherbloom"
+            "block": "alchemia:flower_featherbloom_seed",
+            "condition": "minecraft:block_state_property"
           }
         ]
       },
-      "trigger": "minecraft:inventory_changed"
+      "trigger": "minecraft:placed_block"
     },
     "flower_firebell": {
       "conditions": {
-        "items": [
+        "location": [
           {
-            "items": "alchemia:flower_firebell"
+            "block": "alchemia:flower_firebell_seed",
+            "condition": "minecraft:block_state_property"
           }
         ]
       },
-      "trigger": "minecraft:inventory_changed"
+      "trigger": "minecraft:placed_block"
     },
     "flower_fluffbloom": {
       "conditions": {
-        "items": [
+        "location": [
           {
-            "items": "alchemia:flower_fluffbloom"
+            "block": "alchemia:flower_fluffbloom_seed",
+            "condition": "minecraft:block_state_property"
           }
         ]
       },
-      "trigger": "minecraft:inventory_changed"
+      "trigger": "minecraft:placed_block"
     },
     "flower_spellbloom": {
       "conditions": {
-        "items": [
+        "location": [
           {
-            "items": "alchemia:flower_spellbloom"
+            "block": "alchemia:flower_spellbloom_seed",
+            "condition": "minecraft:block_state_property"
           }
         ]
       },
-      "trigger": "minecraft:inventory_changed"
+      "trigger": "minecraft:placed_block"
     },
     "flower_waterbloom": {
       "conditions": {
-        "items": [
+        "location": [
           {
-            "items": "alchemia:flower_waterbloom"
+            "block": "alchemia:flower_waterbloom_seed",
+            "condition": "minecraft:block_state_property"
           }
         ]
       },
-      "trigger": "minecraft:inventory_changed"
+      "trigger": "minecraft:placed_block"
     },
     "flower_windbloom": {
       "conditions": {
-        "items": [
+        "location": [
           {
-            "items": "alchemia:flower_windbloom"
+            "block": "alchemia:flower_windbloom_seed",
+            "condition": "minecraft:block_state_property"
           }
         ]
       },
-      "trigger": "minecraft:inventory_changed"
+      "trigger": "minecraft:placed_block"
     },
     "herb_bloodthorn": {
       "conditions": {
-        "items": [
+        "location": [
           {
-            "items": "alchemia:herb_bloodthorn"
+            "block": "alchemia:herb_bloodthorn_seed",
+            "condition": "minecraft:block_state_property"
           }
         ]
       },
-      "trigger": "minecraft:inventory_changed"
+      "trigger": "minecraft:placed_block"
     },
     "herb_coldleaf": {
       "conditions": {
-        "items": [
+        "location": [
           {
-            "items": "alchemia:herb_coldleaf"
+            "block": "alchemia:herb_coldleaf_seed",
+            "condition": "minecraft:block_state_property"
           }
         ]
       },
-      "trigger": "minecraft:inventory_changed"
+      "trigger": "minecraft:placed_block"
     },
     "herb_dragon_pepper": {
       "conditions": {
-        "items": [
+        "location": [
           {
-            "items": "alchemia:herb_dragon_pepper"
+            "block": "alchemia:herb_dragon_pepper_seed",
+            "condition": "minecraft:block_state_property"
           }
         ]
       },
-      "trigger": "minecraft:inventory_changed"
+      "trigger": "minecraft:placed_block"
     },
     "herb_druids_rosemary": {
       "conditions": {
-        "items": [
+        "location": [
           {
-            "items": "alchemia:herb_druids_rosemary"
+            "block": "alchemia:herb_druids_rosemary_seed",
+            "condition": "minecraft:block_state_property"
           }
         ]
       },
-      "trigger": "minecraft:inventory_changed"
+      "trigger": "minecraft:placed_block"
     },
     "herb_evergreen_fern": {
       "conditions": {
-        "items": [
+        "location": [
           {
-            "items": "alchemia:herb_evergreen_fern"
+            "block": "alchemia:herb_evergreen_fern_seed",
+            "condition": "minecraft:block_state_property"
           }
         ]
       },
-      "trigger": "minecraft:inventory_changed"
+      "trigger": "minecraft:placed_block"
     },
     "herb_flameweed": {
       "conditions": {
-        "items": [
+        "location": [
           {
-            "items": "alchemia:herb_flameweed"
+            "block": "alchemia:herb_flameweed_seed",
+            "condition": "minecraft:block_state_property"
           }
         ]
       },
-      "trigger": "minecraft:inventory_changed"
+      "trigger": "minecraft:placed_block"
     },
     "herb_goldthorn": {
       "conditions": {
-        "items": [
+        "location": [
           {
-            "items": "alchemia:herb_goldthorn"
+            "block": "alchemia:herb_goldthorn_seed",
+            "condition": "minecraft:block_state_property"
           }
         ]
       },
-      "trigger": "minecraft:inventory_changed"
+      "trigger": "minecraft:placed_block"
     },
     "herb_goodberry": {
       "conditions": {
-        "items": [
+        "location": [
           {
-            "items": "alchemia:herb_goodberry"
+            "block": "alchemia:herb_goodberry_seed",
+            "condition": "minecraft:block_state_property"
           }
         ]
       },
-      "trigger": "minecraft:inventory_changed"
+      "trigger": "minecraft:placed_block"
+    },
+    "herb_hairy_banana": {
+      "conditions": {
+        "location": [
+          {
+            "block": "alchemia:herb_hairy_banana_seed",
+            "condition": "minecraft:block_state_property"
+          }
+        ]
+      },
+      "trigger": "minecraft:placed_block"
     },
     "herb_healers_heather": {
       "conditions": {
-        "items": [
+        "location": [
           {
-            "items": "alchemia:herb_healers_heather"
+            "block": "alchemia:herb_healers_heather_seed",
+            "condition": "minecraft:block_state_property"
           }
         ]
       },
-      "trigger": "minecraft:inventory_changed"
+      "trigger": "minecraft:placed_block"
     },
     "herb_icefruit": {
       "conditions": {
-        "items": [
+        "location": [
           {
-            "items": "alchemia:herb_icefruit"
+            "block": "alchemia:herb_icefruit_seed",
+            "condition": "minecraft:block_state_property"
           }
         ]
       },
-      "trigger": "minecraft:inventory_changed"
+      "trigger": "minecraft:placed_block"
     },
     "herb_lifeleaf": {
       "conditions": {
-        "items": [
+        "location": [
           {
-            "items": "alchemia:herb_lifeleaf"
+            "block": "alchemia:herb_lifeleaf_seed",
+            "condition": "minecraft:block_state_property"
           }
         ]
       },
-      "trigger": "minecraft:inventory_changed"
+      "trigger": "minecraft:placed_block"
     },
     "herb_mageberry": {
       "conditions": {
-        "items": [
+        "location": [
           {
-            "items": "alchemia:herb_mageberry"
+            "block": "alchemia:herb_mageberry_seed",
+            "condition": "minecraft:block_state_property"
           }
         ]
       },
-      "trigger": "minecraft:inventory_changed"
+      "trigger": "minecraft:placed_block"
     },
     "herb_tangleweed": {
       "conditions": {
-        "items": [
+        "location": [
           {
-            "items": "alchemia:herb_tangleweed"
+            "block": "alchemia:herb_tangleweed_seed",
+            "condition": "minecraft:block_state_property"
           }
         ]
       },
-      "trigger": "minecraft:inventory_changed"
+      "trigger": "minecraft:placed_block"
     },
     "herb_terrorbud": {
       "conditions": {
-        "items": [
+        "location": [
           {
-            "items": "alchemia:herb_terrorbud"
+            "block": "alchemia:herb_terrorbud_seed",
+            "condition": "minecraft:block_state_property"
           }
         ]
       },
-      "trigger": "minecraft:inventory_changed"
+      "trigger": "minecraft:placed_block"
     },
     "herb_thornstick": {
       "conditions": {
-        "items": [
+        "location": [
           {
-            "items": "alchemia:herb_thornstick"
+            "block": "alchemia:herb_thornstick_seed",
+            "condition": "minecraft:block_state_property"
           }
         ]
       },
-      "trigger": "minecraft:inventory_changed"
+      "trigger": "minecraft:placed_block"
     },
     "herb_thunder_thistle": {
       "conditions": {
-        "items": [
+        "location": [
           {
-            "items": "alchemia:herb_thunder_thistle"
+            "block": "alchemia:herb_thunder_thistle_seed",
+            "condition": "minecraft:block_state_property"
           }
         ]
       },
-      "trigger": "minecraft:inventory_changed"
+      "trigger": "minecraft:placed_block"
     },
     "herb_whirlweed": {
       "conditions": {
-        "items": [
+        "location": [
           {
-            "items": "alchemia:herb_whirlweed"
+            "block": "alchemia:herb_whirlweed_seed",
+            "condition": "minecraft:block_state_property"
           }
         ]
       },
-      "trigger": "minecraft:inventory_changed"
-    },
-    "mineral_arcane_crystal": {
-      "conditions": {
-        "items": [
-          {
-            "items": "alchemia:mineral_arcane_crystal"
-          }
-        ]
-      },
-      "trigger": "minecraft:inventory_changed"
-    },
-    "mineral_cloud_crystal": {
-      "conditions": {
-        "items": [
-          {
-            "items": "alchemia:mineral_cloud_crystal"
-          }
-        ]
-      },
-      "trigger": "minecraft:inventory_changed"
-    },
-    "mineral_earth_pyrite": {
-      "conditions": {
-        "items": [
-          {
-            "items": "alchemia:mineral_earth_pyrite"
-          }
-        ]
-      },
-      "trigger": "minecraft:inventory_changed"
-    },
-    "mineral_fable_bismuth": {
-      "conditions": {
-        "items": [
-          {
-            "items": "alchemia:mineral_fable_bismuth"
-          }
-        ]
-      },
-      "trigger": "minecraft:inventory_changed"
-    },
-    "mineral_fire_citrine": {
-      "conditions": {
-        "items": [
-          {
-            "items": "alchemia:mineral_fire_citrine"
-          }
-        ]
-      },
-      "trigger": "minecraft:inventory_changed"
-    },
-    "mineral_frost_sapphire": {
-      "conditions": {
-        "items": [
-          {
-            "items": "alchemia:mineral_frost_sapphire"
-          }
-        ]
-      },
-      "trigger": "minecraft:inventory_changed"
+      "trigger": "minecraft:placed_block"
     },
     "mushroom_magma_morel": {
       "conditions": {
-        "items": [
+        "location": [
           {
-            "items": "alchemia:mushroom_magma_morel"
+            "block": "alchemia:mushroom_magma_morel_seed",
+            "condition": "minecraft:block_state_property"
           }
         ]
       },
-      "trigger": "minecraft:inventory_changed"
+      "trigger": "minecraft:placed_block"
     },
     "mushroom_marshroom": {
       "conditions": {
-        "items": [
+        "location": [
           {
-            "items": "alchemia:mushroom_marshroom"
+            "block": "alchemia:mushroom_marshroom_seed",
+            "condition": "minecraft:block_state_property"
           }
         ]
       },
-      "trigger": "minecraft:inventory_changed"
+      "trigger": "minecraft:placed_block"
     },
     "mushroom_rainbow_cap": {
       "conditions": {
-        "items": [
+        "location": [
           {
-            "items": "alchemia:mushroom_rainbow_cap"
+            "block": "alchemia:mushroom_rainbow_cap_seed",
+            "condition": "minecraft:block_state_property"
           }
         ]
       },
-      "trigger": "minecraft:inventory_changed"
+      "trigger": "minecraft:placed_block"
     },
     "mushroom_sulphur_shelf": {
       "conditions": {
-        "items": [
+        "location": [
           {
-            "items": "alchemia:mushroom_sulphur_shelf"
+            "block": "alchemia:mushroom_sulphur_shelf_seed",
+            "condition": "minecraft:block_state_property"
           }
         ]
       },
-      "trigger": "minecraft:inventory_changed"
+      "trigger": "minecraft:placed_block"
+    },
+    "mushroom_sulphur_shelf_sulphur_shelf_infected_acacia_log": {
+      "conditions": {
+        "location": [
+          {
+            "block": "alchemia:sulphur_shelf_infected_acacia_log",
+            "condition": "minecraft:block_state_property"
+          }
+        ]
+      },
+      "trigger": "minecraft:placed_block"
+    },
+    "mushroom_sulphur_shelf_sulphur_shelf_infected_ancient_oak_log": {
+      "conditions": {
+        "location": [
+          {
+            "block": "alchemia:sulphur_shelf_infected_ancient_oak_log",
+            "condition": "minecraft:block_state_property"
+          }
+        ]
+      },
+      "trigger": "minecraft:placed_block"
+    },
+    "mushroom_sulphur_shelf_sulphur_shelf_infected_birch_log": {
+      "conditions": {
+        "location": [
+          {
+            "block": "alchemia:sulphur_shelf_infected_birch_log",
+            "condition": "minecraft:block_state_property"
+          }
+        ]
+      },
+      "trigger": "minecraft:placed_block"
+    },
+    "mushroom_sulphur_shelf_sulphur_shelf_infected_cherry_log": {
+      "conditions": {
+        "location": [
+          {
+            "block": "alchemia:sulphur_shelf_infected_cherry_log",
+            "condition": "minecraft:block_state_property"
+          }
+        ]
+      },
+      "trigger": "minecraft:placed_block"
+    },
+    "mushroom_sulphur_shelf_sulphur_shelf_infected_dark_oak_log": {
+      "conditions": {
+        "location": [
+          {
+            "block": "alchemia:sulphur_shelf_infected_dark_oak_log",
+            "condition": "minecraft:block_state_property"
+          }
+        ]
+      },
+      "trigger": "minecraft:placed_block"
+    },
+    "mushroom_sulphur_shelf_sulphur_shelf_infected_jungle_log": {
+      "conditions": {
+        "location": [
+          {
+            "block": "alchemia:sulphur_shelf_infected_jungle_log",
+            "condition": "minecraft:block_state_property"
+          }
+        ]
+      },
+      "trigger": "minecraft:placed_block"
+    },
+    "mushroom_sulphur_shelf_sulphur_shelf_infected_mangrove_log": {
+      "conditions": {
+        "location": [
+          {
+            "block": "alchemia:sulphur_shelf_infected_mangrove_log",
+            "condition": "minecraft:block_state_property"
+          }
+        ]
+      },
+      "trigger": "minecraft:placed_block"
+    },
+    "mushroom_sulphur_shelf_sulphur_shelf_infected_oak_log": {
+      "conditions": {
+        "location": [
+          {
+            "block": "alchemia:sulphur_shelf_infected_oak_log",
+            "condition": "minecraft:block_state_property"
+          }
+        ]
+      },
+      "trigger": "minecraft:placed_block"
+    },
+    "mushroom_sulphur_shelf_sulphur_shelf_infected_spruce_log": {
+      "conditions": {
+        "location": [
+          {
+            "block": "alchemia:sulphur_shelf_infected_spruce_log",
+            "condition": "minecraft:block_state_property"
+          }
+        ]
+      },
+      "trigger": "minecraft:placed_block"
     },
     "mushroom_witch_mushroom": {
       "conditions": {
-        "items": [
+        "location": [
           {
-            "items": "alchemia:mushroom_witch_mushroom"
+            "block": "alchemia:mushroom_witch_mushroom_seed",
+            "condition": "minecraft:block_state_property"
           }
         ]
       },
-      "trigger": "minecraft:inventory_changed"
+      "trigger": "minecraft:placed_block"
     },
     "root_dreambeet": {
       "conditions": {
-        "items": [
+        "location": [
           {
-            "items": "alchemia:root_dreambeet"
+            "block": "alchemia:root_dreambeet_seed",
+            "condition": "minecraft:block_state_property"
           }
         ]
       },
-      "trigger": "minecraft:inventory_changed"
+      "trigger": "minecraft:placed_block"
     },
     "root_grasping_root": {
       "conditions": {
-        "items": [
+        "location": [
           {
-            "items": "alchemia:root_grasping_root"
+            "block": "alchemia:root_grasping_root_seed",
+            "condition": "minecraft:block_state_property"
           }
         ]
       },
-      "trigger": "minecraft:inventory_changed"
+      "trigger": "minecraft:placed_block"
     },
     "root_lava_root": {
       "conditions": {
-        "items": [
+        "location": [
           {
-            "items": "alchemia:root_lava_root"
+            "block": "alchemia:root_lava_root_seed",
+            "condition": "minecraft:block_state_property"
           }
         ]
       },
-      "trigger": "minecraft:inventory_changed"
+      "trigger": "minecraft:placed_block"
     },
     "root_terraria": {
       "conditions": {
-        "items": [
+        "location": [
           {
-            "items": "alchemia:root_terraria"
+            "block": "alchemia:root_terraria_seed",
+            "condition": "minecraft:block_state_property"
           }
         ]
       },
-      "trigger": "minecraft:inventory_changed"
+      "trigger": "minecraft:placed_block"
     }
   },
   "display": {
@@ -479,6 +562,9 @@
       "herb_thornstick"
     ],
     [
+      "herb_hairy_banana"
+    ],
+    [
       "root_lava_root"
     ],
     [
@@ -494,7 +580,16 @@
       "mushroom_marshroom"
     ],
     [
-      "mushroom_sulphur_shelf"
+      "mushroom_sulphur_shelf",
+      "mushroom_sulphur_shelf_sulphur_shelf_infected_oak_log",
+      "mushroom_sulphur_shelf_sulphur_shelf_infected_spruce_log",
+      "mushroom_sulphur_shelf_sulphur_shelf_infected_birch_log",
+      "mushroom_sulphur_shelf_sulphur_shelf_infected_jungle_log",
+      "mushroom_sulphur_shelf_sulphur_shelf_infected_acacia_log",
+      "mushroom_sulphur_shelf_sulphur_shelf_infected_cherry_log",
+      "mushroom_sulphur_shelf_sulphur_shelf_infected_dark_oak_log",
+      "mushroom_sulphur_shelf_sulphur_shelf_infected_mangrove_log",
+      "mushroom_sulphur_shelf_sulphur_shelf_infected_ancient_oak_log"
     ],
     [
       "mushroom_witch_mushroom"
@@ -504,24 +599,6 @@
     ],
     [
       "mushroom_rainbow_cap"
-    ],
-    [
-      "mineral_cloud_crystal"
-    ],
-    [
-      "mineral_earth_pyrite"
-    ],
-    [
-      "mineral_frost_sapphire"
-    ],
-    [
-      "mineral_fire_citrine"
-    ],
-    [
-      "mineral_arcane_crystal"
-    ],
-    [
-      "mineral_fable_bismuth"
     ]
   ],
   "sends_telemetry_event": true

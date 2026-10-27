@@ -126,6 +126,12 @@ public class WorldEventHandler {
     }
 
     @SubscribeEvent
+    public static void findShack(TickEvent.LevelTickEvent event) {
+        if (event.phase != TickEvent.Phase.END || !(event.level instanceof ServerLevel level) || level.getGameTime() % 20 != 0) return;
+        for (ServerPlayer player : level.players()) muddykat.alchemia.common.guide.GuideMastery.checkShack(player);
+    }
+
+    @SubscribeEvent
     public static void dropBark(TickEvent.LevelTickEvent event) {
         if (event.phase != TickEvent.Phase.END || PENDING_STRIPS.isEmpty() || !(event.level instanceof ServerLevel level)) return;
         PENDING_STRIPS.removeIf(pending -> {

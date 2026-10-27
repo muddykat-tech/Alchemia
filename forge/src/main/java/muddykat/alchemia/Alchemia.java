@@ -45,20 +45,26 @@ public class Alchemia {
         LOGGER.info(MOD_NAME + " Initializing Configuration");
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Configuration.COMMON_CONFIG);
         ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, Configuration.SERVER_CONFIG);
+        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, Configuration.CLIENT_CONFIG);
 
         AlchemiaRegistry.initialize();
         AlchemiaRegistry.register(modEventBus);
+        modEventBus.addListener(muddykat.alchemia.registration.registers.CreativeTabRegistry::hideHollow);
 
         LOGGER.info(MOD_NAME + " Setting up Networking");
         modEventBus.addListener((FMLCommonSetupEvent event) -> event.enqueueWork(() -> {
             NetworkHandler.register();
             IngredientTypeRegistry.register();
         }));
+        modEventBus.addListener(muddykat.alchemia.common.effect.WildConversion::register);
+        modEventBus.addListener(muddykat.alchemia.common.effect.WildGreening::register);
 
         LOGGER.info(MOD_NAME + " Registering Event Handlers");
         MinecraftForge.EVENT_BUS.register(WorldEventHandler.class);
+        MinecraftForge.EVENT_BUS.register(muddykat.alchemia.common.world.structure.ShackOvergrowth.class);
         MinecraftForge.EVENT_BUS.register(muddykat.alchemia.common.PhilosopherStoneHandler.class);
         MinecraftForge.EVENT_BUS.register(muddykat.alchemia.common.guide.GuideNews.class);
+        MinecraftForge.EVENT_BUS.register(muddykat.alchemia.common.guide.PrimerSync.class);
         MinecraftForge.EVENT_BUS.register(muddykat.alchemia.common.crafting.GreatWorkSetup.class);
         MinecraftForge.EVENT_BUS.register(this);
 
@@ -77,6 +83,7 @@ public class Alchemia {
             Random rand = new Random(player.serverLevel().getSeed());
             long map_seed = rand.nextLong();
             LOGGER.info("Player Joined - Sending Brew Bases and Potion Map Seed");
+            NetworkHandler.sendToPlayer(new muddykat.alchemia.common.network.packets.PacketEffects(muddykat.alchemia.common.potion.AlchemiaEffects.definitions()), player);
             NetworkHandler.sendToPlayer(new PacketBrewBases(BrewBases.definitions()), player);
             NetworkHandler.sendToPlayer(new PacketImbuements(muddykat.alchemia.common.potion.Imbuements.definitions()), player);
             NetworkHandler.sendToPlayer(new PacketPotionRecipe(map_seed), player);

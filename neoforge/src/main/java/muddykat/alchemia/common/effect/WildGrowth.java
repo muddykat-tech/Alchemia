@@ -1,6 +1,7 @@
 package muddykat.alchemia.common.effect;
 
 import muddykat.alchemia.common.blocks.BlockIngredientWild;
+import muddykat.alchemia.common.blocks.helper.GrowthClimate;
 import muddykat.alchemia.registration.registers.ParticleTypeRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -155,7 +156,7 @@ public final class WildGrowth {
     private static void ripen(ServerLevel level, BlockPos pos, int strength, RandomSource random) {
         BlockState state = level.getBlockState(pos);
         if (wilden(level, pos, state)) state = level.getBlockState(pos);
-        if (!(state.getBlock() instanceof CropBlock crop) || upper(state)) return;
+        if (!(state.getBlock() instanceof CropBlock crop) || upper(state) || !GrowthClimate.allows(state, level, pos)) return;
         if (crop.isMaxAge(state)) {
             if (random.nextFloat() < BONUS_HARVEST + BONUS_HARVEST_PER_LEVEL * strength) bonus(level, pos, state);
             return;
@@ -200,8 +201,11 @@ public final class WildGrowth {
     }
 
     public static void overflow(ServerLevel level, Vec3 at, int strength, RandomSource random) {
+        overflow(level, at, strength, 2 + strength, random);
+    }
+
+    public static void overflow(ServerLevel level, Vec3 at, int strength, int radius, RandomSource random) {
         BlockPos centre = BlockPos.containing(at);
-        int radius = 2 + strength;
         float convertChance = SPLASH_CONVERT + SPLASH_CONVERT_PER_LEVEL * strength;
         List<int[]> columns = new ArrayList<>();
         for (int dx = -radius; dx <= radius; dx++) {
@@ -286,7 +290,7 @@ public final class WildGrowth {
             level.sendParticles(ParticleTypes.HAPPY_VILLAGER, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 3, 0.35, 0.35, 0.35, 0.0);
             return;
         }
-        if (upper(state)) return;
+        if (upper(state) || !GrowthClimate.allows(state, level, pos)) return;
         boolean mature = random.nextFloat() < MATURE + MATURE_PER_LEVEL * strength;
         IntegerProperty age = age(state);
         if (mature && age != null && !state.hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF)) {

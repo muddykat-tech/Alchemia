@@ -29,6 +29,10 @@ public enum MachineOwner implements StringRepresentable {
         return this == CORE ? "alchemy_machine_core" : "alchemy_machine_" + id + "_upgrade";
     }
 
+    public String ruinedName() {
+        return "ruined_" + registryName();
+    }
+
     public static MachineOwner of(UpgradeSide side) {
         return switch (side) {
             case RIGHT -> RIGHT;

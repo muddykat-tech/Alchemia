@@ -185,7 +185,8 @@ public final class WorldEffects {
     }
 
     private static List<? extends String> parsedFrom;
-    private static Map<PotionEnum, Rules> rules = Map.of();
+    private static int parsedGeneration = -1;
+    private static Map<AlchemiaEffect, Rules> rules = Map.of();
 
     private WorldEffects() {
     }
@@ -209,28 +210,20 @@ public final class WorldEffects {
         return Component.translatableWithFallback("tag.worldgen.biome." + id.getNamespace() + "." + path.replace('/', '.'), plain);
     }
 
-    private static Map<PotionEnum, Rules> rules() {
+    private static Map<AlchemiaEffect, Rules> rules() {
         List<? extends String> lines = Configuration.worldEffects();
-        if (lines != parsedFrom) {
+        int generation = AlchemiaEffects.generation();
+        if (lines != parsedFrom || generation != parsedGeneration) {
             rules = parse(lines);
             parsedFrom = lines;
+            parsedGeneration = generation;
         }
         return rules;
     }
 
-    private static PotionEnum effectNamed(String name) {
-        if (name.indexOf(':') >= 0) {
-            ResourceLocation id = ResourceLocation.tryParse(name);
-            for (PotionEnum recipe : PotionEnum.values()) {
-                if (id != null && recipe.getEffect().unwrapKey().map(key -> key.location().equals(id)).orElse(false)) return recipe;
-            }
-            return null;
-        }
-
-        for (PotionEnum recipe : PotionEnum.values()) {
-            if (recipe.name().equalsIgnoreCase(name)) return recipe;
-        }
-        return null;
+    private static @Nullable AlchemiaEffect effectNamed(String name) {
+        if (name.indexOf(':') >= 0) return AlchemiaEffects.byEffectId(ResourceLocation.tryParse(name));
+        return AlchemiaEffects.byId(name);
     }
 
     private static Condition condition(String text) {
@@ -276,9 +269,9 @@ public final class WorldEffects {
         }
     }
 
-    private static Map<PotionEnum, Rules> parse(List<? extends String> lines) {
-        Map<PotionEnum, Requirement> wakes = new EnumMap<>(PotionEnum.class);
-        Map<PotionEnum, TreeMap<Integer, Requirement>> tiers = new EnumMap<>(PotionEnum.class);
+    private static Map<AlchemiaEffect, Rules> parse(List<? extends String> lines) {
+        Map<AlchemiaEffect, Requirement> wakes = new java.util.TreeMap<>(AlchemiaEffects.ORDER);
+        Map<AlchemiaEffect, TreeMap<Integer, Requirement>> tiers = new java.util.TreeMap<>(AlchemiaEffects.ORDER);
 
         for (String line : lines) {
             int split = line.indexOf('=');
@@ -300,7 +293,7 @@ public final class WorldEffects {
                 key = key.substring(0, mark).trim();
             }
 
-            PotionEnum recipe = effectNamed(key);
+            AlchemiaEffect recipe = effectNamed(key);
             if (recipe == null) {
                 Alchemia.LOGGER.warn("Ignoring world effect '{}': unknown effect", line);
                 continue;
@@ -312,7 +305,7 @@ public final class WorldEffects {
 
                 Condition condition = condition(part.trim());
                 if (condition == null) {
-                    Alchemia.LOGGER.warn("Ignoring condition '{}' for world effect {}", part.trim(), recipe.name());
+                    Alchemia.LOGGER.warn("Ignoring condition '{}' for world effect {}", part.trim(), recipe.id());
                     continue;
                 }
                 conditions.add(condition);
@@ -327,8 +320,8 @@ public final class WorldEffects {
             }
         }
 
-        Map<PotionEnum, Rules> parsed = new EnumMap<>(PotionEnum.class);
-        for (PotionEnum recipe : PotionEnum.values()) {
+        Map<AlchemiaEffect, Rules> parsed = new java.util.TreeMap<>(AlchemiaEffects.ORDER);
+        for (AlchemiaEffect recipe : AlchemiaEffects.values()) {
             Requirement wake = wakes.get(recipe);
             TreeMap<Integer, Requirement> levels = tiers.getOrDefault(recipe, new TreeMap<>());
             if (wake != null || !levels.isEmpty()) parsed.put(recipe, new Rules(wake, levels));
@@ -336,33 +329,33 @@ public final class WorldEffects {
         return parsed;
     }
 
-    public static Rules rules(PotionEnum recipe) {
+    public static Rules rules(AlchemiaEffect recipe) {
         return recipe == null ? null : rules().get(recipe);
     }
 
-    public static boolean conditional(PotionEnum recipe) {
+    public static boolean conditional(AlchemiaEffect recipe) {
         return rules(recipe) != null;
     }
 
-    public static Requirement requirement(PotionEnum recipe) {
+    public static Requirement requirement(AlchemiaEffect recipe) {
         Rules found = rules(recipe);
         return found == null ? null : found.wake();
     }
 
-    public static boolean dormant(PotionEnum recipe, Level level, BlockPos pos) {
+    public static boolean dormant(AlchemiaEffect recipe, Level level, BlockPos pos) {
         return dormant(recipe, level, pos, Imbued.NONE);
     }
 
-    public static boolean dormant(PotionEnum recipe, Level level, BlockPos pos, Imbued attuned) {
+    public static boolean dormant(AlchemiaEffect recipe, Level level, BlockPos pos, Imbued attuned) {
         Requirement requirement = requirement(recipe);
         return requirement != null && level != null && !requirement.holds(level, pos, attuned);
     }
 
-    public static int levelCap(PotionEnum recipe, Level level, BlockPos pos) {
+    public static int levelCap(AlchemiaEffect recipe, Level level, BlockPos pos) {
         return levelCap(recipe, level, pos, Imbued.NONE);
     }
 
-    public static int levelCap(PotionEnum recipe, Level level, BlockPos pos, Imbued attuned) {
+    public static int levelCap(AlchemiaEffect recipe, Level level, BlockPos pos, Imbued attuned) {
         Rules found = rules(recipe);
         return found == null || level == null ? Integer.MAX_VALUE : found.cap(level, pos, attuned);
     }
@@ -370,11 +363,11 @@ public final class WorldEffects {
     private static final List<Rule> SHIFT_PRIORITY = List.of(Rule.FULL_MOON, Rule.NEW_MOON, Rule.MOONLIGHT,
             Rule.THUNDER, Rule.RAIN, Rule.CLEAR, Rule.NIGHT, Rule.DAY);
 
-    public static Set<Condition> holding(PotionEnum recipe, Level level, BlockPos pos) {
+    public static Set<Condition> holding(AlchemiaEffect recipe, Level level, BlockPos pos) {
         return holding(recipe, level, pos, Imbued.NONE);
     }
 
-    public static Set<Condition> holding(PotionEnum recipe, Level level, BlockPos pos, Imbued attuned) {
+    public static Set<Condition> holding(AlchemiaEffect recipe, Level level, BlockPos pos, Imbued attuned) {
         Set<Condition> holding = new HashSet<>();
         Rules found = rules(recipe);
         if (found == null || level == null) return holding;
@@ -404,7 +397,7 @@ public final class WorldEffects {
         return flipped.isEmpty() ? null : flipped.iterator().next();
     }
 
-    public static Component levelHint(PotionEnum recipe, int tier) {
+    public static Component levelHint(AlchemiaEffect recipe, int tier) {
         Rules found = rules(recipe);
         Requirement requirement = found == null ? null : found.levels().get(tier);
         if (requirement == null) return null;
@@ -412,7 +405,7 @@ public final class WorldEffects {
                 requirement.hint());
     }
 
-    public static List<Component> levelHints(PotionEnum recipe) {
+    public static List<Component> levelHints(AlchemiaEffect recipe) {
         Rules found = rules(recipe);
         List<Component> hints = new ArrayList<>();
         if (found == null) return hints;
@@ -437,19 +430,19 @@ public final class WorldEffects {
         return notes;
     }
 
-    private static String tierMark(PotionEnum recipe, int tier) {
-        return recipe.name() + LEVEL_MARK + tier;
+    private static String tierMark(AlchemiaEffect recipe, int tier) {
+        return recipe.id() + LEVEL_MARK + tier;
     }
 
-    public static boolean wakeVisible(Set<String> notes, PotionEnum recipe) {
-        return recipe != null && requirement(recipe) != null && notes.contains(recipe.name());
+    public static boolean wakeVisible(Set<String> notes, AlchemiaEffect recipe) {
+        return recipe != null && requirement(recipe) != null && notes.contains(recipe.id());
     }
 
-    public static boolean tierVisible(Set<String> notes, PotionEnum recipe, int tier) {
+    public static boolean tierVisible(Set<String> notes, AlchemiaEffect recipe, int tier) {
         return recipe != null && notes.contains(tierMark(recipe, tier));
     }
 
-    public static boolean anyVisible(Set<String> notes, PotionEnum recipe) {
+    public static boolean anyVisible(Set<String> notes, AlchemiaEffect recipe) {
         if (wakeVisible(notes, recipe)) return true;
 
         Rules found = rules(recipe);
@@ -460,7 +453,7 @@ public final class WorldEffects {
         return false;
     }
 
-    public static List<Component> guideLines(Set<String> notes, PotionEnum recipe) {
+    public static List<Component> guideLines(Set<String> notes, AlchemiaEffect recipe) {
         List<Component> lines = new ArrayList<>();
         Rules found = rules(recipe);
         if (found == null) return lines;
@@ -497,21 +490,21 @@ public final class WorldEffects {
 
     public static Set<String> allMarks() {
         Set<String> marks = new HashSet<>();
-        for (Map.Entry<PotionEnum, Rules> entry : rules().entrySet()) {
-            if (entry.getValue().wake() != null) marks.add(entry.getKey().name());
+        for (Map.Entry<AlchemiaEffect, Rules> entry : rules().entrySet()) {
+            if (entry.getValue().wake() != null) marks.add(entry.getKey().id());
             for (int tier : entry.getValue().levels().keySet()) marks.add(tierMark(entry.getKey(), tier));
         }
         return marks;
     }
 
-    public static @Nullable PotionEnum recipeOfMark(String mark) {
+    public static @Nullable AlchemiaEffect recipeOfMark(String mark) {
         int split = mark.lastIndexOf(LEVEL_MARK);
         return requirementFor(mark) == null ? null : RecipeDiscovery.byName(split < 0 ? mark : mark.substring(0, split));
     }
 
     private static @Nullable Requirement requirementFor(String mark) {
         int split = mark.lastIndexOf(LEVEL_MARK);
-        PotionEnum recipe = RecipeDiscovery.byName(split < 0 ? mark : mark.substring(0, split));
+        AlchemiaEffect recipe = RecipeDiscovery.byName(split < 0 ? mark : mark.substring(0, split));
         Rules found = rules(recipe);
         if (found == null) return null;
         if (split < 0) return found.wake();
@@ -523,20 +516,20 @@ public final class WorldEffects {
         }
     }
 
-    public static boolean note(Player player, PotionEnum recipe) {
+    public static boolean note(Player player, AlchemiaEffect recipe) {
         return player != null && note(RecipeDiscovery.guidesOf(player), recipe);
     }
 
-    public static boolean note(Iterable<ItemStack> guides, PotionEnum recipe) {
+    public static boolean note(Iterable<ItemStack> guides, AlchemiaEffect recipe) {
         if (requirement(recipe) == null) return false;
-        return addNotes(guides, List.of(recipe.name()));
+        return addNotes(guides, List.of(recipe.id()));
     }
 
-    public static boolean reveal(Player player, PotionEnum recipe, int brewedLevel) {
+    public static boolean reveal(Player player, AlchemiaEffect recipe, int brewedLevel) {
         return player != null && reveal(RecipeDiscovery.guidesOf(player), recipe, brewedLevel);
     }
 
-    public static boolean reveal(Iterable<ItemStack> guides, PotionEnum recipe, int brewedLevel) {
+    public static boolean reveal(Iterable<ItemStack> guides, AlchemiaEffect recipe, int brewedLevel) {
         Rules found = rules(recipe);
         if (found == null) return false;
 

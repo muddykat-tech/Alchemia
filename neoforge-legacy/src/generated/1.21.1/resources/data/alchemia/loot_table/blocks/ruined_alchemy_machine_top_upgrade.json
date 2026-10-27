@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "alchemia:ruined_alchemy_machine_top_upgrade"
+        }
+      ],
+      "functions": [
+        {
+          "block": "alchemia:ruined_alchemy_machine_top_upgrade",
+          "function": "minecraft:copy_state",
+          "properties": [
+            "repair"
+          ]
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "alchemia:blocks/ruined_alchemy_machine_top_upgrade"
+}

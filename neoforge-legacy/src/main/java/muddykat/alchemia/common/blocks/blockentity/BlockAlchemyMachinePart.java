@@ -2,6 +2,7 @@ package muddykat.alchemia.common.blocks.blockentity;
 
 import muddykat.alchemia.common.blocks.helper.AlchemyMachineParts;
 import muddykat.alchemia.common.blocks.helper.MachineOwner;
+import muddykat.alchemia.common.blocks.helper.MachineRepair;
 import muddykat.alchemia.registration.registers.BlockRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -52,7 +53,8 @@ public class BlockAlchemyMachinePart extends Block {
 
     @Override
     public boolean canBeReplaced(BlockState state, BlockPlaceContext context) {
-        return AlchemyMachineParts.isMachineItem(context.getItemInHand()) || super.canBeReplaced(state, context);
+        return AlchemyMachineParts.isMachineItem(context.getItemInHand()) || MachineRepair.isRuinedItem(context.getItemInHand())
+                || super.canBeReplaced(state, context);
     }
 
     @Override
@@ -79,8 +81,12 @@ public class BlockAlchemyMachinePart extends Block {
     }
 
     private static boolean isOwner(BlockState ownerState, MachineOwner owner) {
-        var holder = BlockRegistry.BLOCK_REGISTRY.get(owner.registryName());
-        return holder != null && ownerState.is(holder.get());
+        return is(ownerState, owner.registryName()) || is(ownerState, owner.ruinedName());
+    }
+
+    private static boolean is(BlockState state, String id) {
+        var holder = BlockRegistry.BLOCK_REGISTRY.get(id);
+        return holder != null && state.is(holder.get());
     }
 
     @Override

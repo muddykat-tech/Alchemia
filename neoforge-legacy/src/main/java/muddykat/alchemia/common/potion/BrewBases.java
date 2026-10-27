@@ -24,11 +24,13 @@ public final class BrewBases {
 
     private static final java.util.Set<String> WATER_ONLY = java.util.Set.of(
             "Water_Breathing", "Conduit_Power", "Dolphins_Grace", "Breath_Of_The_Nautilus", "Oozing",
-            "Levitation", "Dig_Speed", "Darkness", "Fire_Protection", "Slow_Falling");
+            "Levitation", "Dig_Speed", "Darkness", "Fire_Protection", "Slow_Falling",
+            "Returning", "Treasure_Vision", "Dangersense");
 
     private static final java.util.Set<String> HONEY_ONLY = java.util.Set.of(
             "Hunger", "Unluck", "Bad_Omen", "Raid_Omen", "Trial_Omen",
-            "Hero_Of_The_Village", "Weaving", "Infested", "Wind_Charged", "Jump");
+            "Hero_Of_The_Village", "Weaving", "Infested", "Wind_Charged", "Jump",
+            "Teleportation", "Attraction", "Flames", "Thorns");
 
     private BrewBases() {
     }
@@ -41,8 +43,7 @@ public final class BrewBases {
     }
 
     public static List<String> effectsExcept(java.util.Set<String> excluded) {
-        return java.util.Arrays.stream(PotionEnum.values())
-                .map(Enum::name)
+        return AlchemiaEffects.ids().stream()
                 .filter(name -> !excluded.contains(name))
                 .collect(Collectors.toList());
     }
@@ -62,10 +63,6 @@ public final class BrewBases {
                 id("minecraft:honey_bottle"), Optional.of(effectsExcept(WATER_ONLY)), BrewBase.DeadSpace.FIELD);
 
         return List.of(water, honey);
-    }
-
-    public static List<String> allEffectNames() {
-        return java.util.Arrays.stream(PotionEnum.values()).map(Enum::name).collect(Collectors.toList());
     }
 
     public static synchronized void install(List<BrewBase> bases) {

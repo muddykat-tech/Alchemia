@@ -2,6 +2,12 @@ package muddykat.alchemia.data.generators;
 
 import muddykat.alchemia.Alchemia;
 import muddykat.alchemia.common.items.helper.IngredientType;
+import muddykat.alchemia.common.blocks.helper.MachineOwner;
+import muddykat.alchemia.common.blocks.helper.MachineRepair;
+import muddykat.alchemia.common.guide.GuideMastery;
+import muddykat.alchemia.common.items.ItemIngredientSeed;
+import muddykat.alchemia.common.blocks.BlockInfectedLog;
+import muddykat.alchemia.registration.registers.BlockRegistry;
 import muddykat.alchemia.common.items.helper.Ingredients;
 import muddykat.alchemia.data.AlchemiaItemTags;
 import muddykat.alchemia.registration.registers.ItemRegistry;
@@ -88,10 +94,21 @@ public class AlchemiaAdvancementProvider implements ForgeAdvancementProvider.Adv
                 .parent(pestle)
                 .display(everything[0], title("herbalist"), description("herbalist"), null,
                         FrameType.CHALLENGE, true, true, false);
-        for (Item item : everything) {
-            herbalist.addCriterion(key(item), InventoryChangeTrigger.TriggerInstance.hasItems(item));
+        List<List<String>> planted = new ArrayList<>();
+        for (var holder : ItemRegistry.ITEM_REGISTRY.values()) {
+            if (!(holder.get() instanceof ItemIngredientSeed seed)) continue;
+            String name = seed.getIngredient().getRegistryName();
+            List<String> ways = new ArrayList<>(List.of(name));
+            herbalist.addCriterion(name, planted(seed.getBlock()));
+            for (var block : BlockRegistry.BLOCK_REGISTRY.values()) {
+                if (!(block.get() instanceof BlockInfectedLog log) || log.getFungus() != seed.getIngredient()) continue;
+                String infected = name + "_" + net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(log).getPath();
+                herbalist.addCriterion(infected, planted(log));
+                ways.add(infected);
+            }
+            planted.add(ways);
         }
-        herbalist.requirements(RequirementsStrategy.AND).save(output, id("herbalist"));
+        herbalist.requirements(planted.stream().map(ways -> ways.toArray(String[]::new)).toArray(String[][]::new)).save(output, id("herbalist"));
 
         Item tablet = ItemRegistry.getItemFromRegistry("alchemy_tablet").asItem();
         Item notes = ItemRegistry.getItemFromRegistry("alchemist_notes").asItem();
@@ -99,6 +116,11 @@ public class AlchemiaAdvancementProvider implements ForgeAdvancementProvider.Adv
         awarded(output, book, net.minecraft.world.item.Items.GLOWSTONE_DUST, "all_effects", FrameType.GOAL);
         awarded(output, book, notes, "all_secrets", FrameType.GOAL);
         awarded(output, book, rosemary, "all_ingredients", FrameType.GOAL);
+        Advancement restored = awarded(output, book, net.minecraft.world.item.Items.WRITABLE_BOOK, "forgotten_shack", FrameType.GOAL);
+        for (MachineOwner owner : MachineRepair.ORDER) {
+            restored = awarded(output, restored, ItemRegistry.getItemFromRegistry(owner.registryName()),
+                    GuideMastery.restoredName(owner), owner == MachineOwner.TOP ? FrameType.GOAL : FrameType.TASK);
+        }
         Advancement work = awarded(output, book, tablet, "all_stages", FrameType.GOAL);
         awarded(output, work, guide, "complete_guide", FrameType.CHALLENGE);
     }
@@ -128,6 +150,10 @@ public class AlchemiaAdvancementProvider implements ForgeAdvancementProvider.Adv
             }
         }
         return items.toArray(Item[]::new);
+    }
+
+    private static net.minecraft.advancements.critereon.ItemUsedOnLocationTrigger.TriggerInstance planted(net.minecraft.world.level.block.Block block) {
+        return net.minecraft.advancements.critereon.ItemUsedOnLocationTrigger.TriggerInstance.placedBlock(block);
     }
 
     private static Item[] allIngredients() {

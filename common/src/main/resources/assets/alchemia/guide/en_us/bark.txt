@@ -1,4 +1,6 @@
 Bark
 
 @photo bark
-TODO: Ancient Oak bark
+Bark can be harvested from local trees as a makeshift imbuement for some of the more picky potions.
+
+Just strip a log in the local biome and use the bark that drops as imbuement material.

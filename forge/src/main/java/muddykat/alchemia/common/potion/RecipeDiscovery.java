@@ -10,7 +10,7 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.EnumSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -20,17 +20,17 @@ public class RecipeDiscovery {
         return StackData.DISCOVERED_RECIPES.getOrDefault(guide, List.of());
     }
 
-    public static Set<PotionEnum> knownTo(ItemStack guide) {
-        Set<PotionEnum> known = EnumSet.noneOf(PotionEnum.class);
+    public static Set<AlchemiaEffect> knownTo(ItemStack guide) {
+        Set<AlchemiaEffect> known = new LinkedHashSet<>();
         for (String name : stored(guide)) {
-            PotionEnum recipe = byName(name);
+            AlchemiaEffect recipe = byName(name);
             if (recipe != null) known.add(recipe);
         }
         return known;
     }
 
-    public static Set<PotionEnum> knownTo(Player player) {
-        Set<PotionEnum> known = EnumSet.noneOf(PotionEnum.class);
+    public static Set<AlchemiaEffect> knownTo(Player player) {
+        Set<AlchemiaEffect> known = new LinkedHashSet<>();
         for (ItemStack stack : player.getInventory().items) {
             if (stack.getItem() instanceof ItemAlchemiaGuide) known.addAll(knownTo(stack));
         }
@@ -44,8 +44,8 @@ public class RecipeDiscovery {
     public static int record(Iterable<ItemStack> guides, Collection<MobEffectInstance> effects) {
         List<String> brewed = new ArrayList<>();
         for (MobEffectInstance instance : effects) {
-            PotionEnum recipe = byEffect(instance.getEffect());
-            if (recipe != null) brewed.add(recipe.name());
+            AlchemiaEffect recipe = byEffect(instance.getEffect());
+            if (recipe != null) brewed.add(recipe.id());
         }
         return learn(guides, brewed);
     }
@@ -58,7 +58,8 @@ public class RecipeDiscovery {
             List<String> known = new ArrayList<>(stored(stack));
             int before = known.size();
             for (String name : names) {
-                if (byName(name) != null && !known.contains(name)) known.add(name);
+                AlchemiaEffect recipe = byName(name);
+                if (recipe != null && !known.contains(recipe.id())) known.add(recipe.id());
             }
             if (known.size() == before) continue;
 
@@ -78,21 +79,15 @@ public class RecipeDiscovery {
         return guides;
     }
 
-    public static PotionEnum byName(String name) {
-        for (PotionEnum recipe : PotionEnum.values()) {
-            if (recipe.name().equals(name)) return recipe;
-        }
-        return null;
+    public static AlchemiaEffect byName(String name) {
+        return AlchemiaEffects.byId(name);
     }
 
-    public static PotionEnum byEffect(MobEffect effect) {
-        for (PotionEnum recipe : PotionEnum.values()) {
-            if (recipe.getEffect().equals(effect)) return recipe;
-        }
-        return null;
+    public static AlchemiaEffect byEffect(MobEffect effect) {
+        return AlchemiaEffects.byEffect(effect);
     }
 
     public static int total() {
-        return PotionEnum.values().length;
+        return AlchemiaEffects.count();
     }
 }

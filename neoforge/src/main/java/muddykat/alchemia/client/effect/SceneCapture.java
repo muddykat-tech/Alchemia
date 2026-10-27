@@ -1,19 +1,26 @@
 package muddykat.alchemia.client.effect;
 
-#if MC_VER >= 26300
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.pipeline.TextureTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
+#if MC_VER >= 26300
 import com.mojang.renderpearl.api.GpuFormat;
 import com.mojang.renderpearl.api.textures.FilterMode;
 import com.mojang.renderpearl.api.textures.GpuTextureView;
 import com.mojang.renderpearl.api.textures.GpuSampler;
+#else
+#if MC_VER >= 26200
+import com.mojang.blaze3d.GpuFormat;
+#endif
+import com.mojang.blaze3d.textures.FilterMode;
+import com.mojang.blaze3d.textures.GpuSampler;
+import com.mojang.blaze3d.textures.GpuTextureView;
+#endif
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
-#endif
 import muddykat.alchemia.Alchemia;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
@@ -61,6 +68,7 @@ public final class SceneCapture {
     private static final long[] USED = new long[SLOTS];
     private static final View[] VIEWS = new View[SLOTS];
     private static @Nullable View liveView;
+    private static @Nullable View camera;
     private static int demand;
     private static long frame;
     private static long liveFrame = Long.MIN_VALUE / 2;
@@ -70,15 +78,15 @@ public final class SceneCapture {
     }
 
     public static boolean supported() {
-#if MC_VER >= 26300
         return true;
-#else
-        return false;
-#endif
     }
 
     public static void request() {
         demand = DEMAND_FRAMES;
+    }
+
+    public static @Nullable View camera() {
+        return camera;
     }
 
     public static @Nullable View view(int slot) {
@@ -105,7 +113,6 @@ public final class SceneCapture {
     }
 
     public static int freeze(Object owner) {
-#if MC_VER >= 26300
         if (liveView == null || LIVE.target == null || frame - liveFrame > FRESH_FRAMES) return -1;
         int slot = slotOf(owner);
         if (slot < 0) {
@@ -116,17 +123,22 @@ public final class SceneCapture {
             }
         }
         FROZEN[slot].ensure(LIVE.target.width, LIVE.target.height);
-        FROZEN[slot].target.copyColorFrom(LIVE.target);
+        copy(LIVE.target, FROZEN[slot].target);
         OWNERS[slot] = owner;
         VIEWS[slot] = liveView;
         USED[slot] = ++clock;
         return slot;
+    }
+
+    private static void copy(RenderTarget from, TextureTarget to) {
+#if MC_VER >= 26300
+        to.copyColorFrom(from);
 #else
-        return -1;
+        RenderSystem.getDevice().createCommandEncoder().copyTextureToTexture(from.getColorTexture(), to.getColorTexture(), 0, 0, 0, 0, 0,
+                to.width, to.height);
 #endif
     }
 
-#if MC_VER >= 26300
     public static @Nullable GpuTextureView textureView(int slot) {
         Slot frozen = FROZEN[slot];
         return frozen.target == null ? null : frozen.target.getColorTextureView();
@@ -157,7 +169,13 @@ public final class SceneCapture {
         private void ensure(int width, int height) {
             if (target != null && target.width == width && target.height == height) return;
             if (target == null) {
+#if MC_VER >= 26300
                 target = new TextureTarget("Alchemia " + label, width, height, GpuFormat.RGBA8_UNORM, null);
+#elif MC_VER >= 26200
+                target = new TextureTarget("Alchemia " + label, width, height, false, GpuFormat.RGBA8_UNORM);
+#else
+                target = new TextureTarget("Alchemia " + label, width, height, false);
+#endif
             } else {
                 target.resize(width, height);
             }
@@ -182,23 +200,27 @@ public final class SceneCapture {
             Minecraft.getInstance().getTextureManager().register(BEHIND_ID, BEHIND);
             behindRegistered = true;
         }
-        BEHIND.target.copyColorFrom(main);
+        copy(main, BEHIND.target);
         return true;
     }
 
     @SubscribeEvent(priority = EventPriority.HIGH)
     public static void onAfterLevel(RenderLevelStageEvent.AfterLevel event) {
         frame++;
+        camera = new View(new Matrix4f(event.getLevelRenderState().cameraRenderState.projectionMatrix),
+                new Matrix4f(event.getModelViewMatrix()), event.getLevelRenderState().cameraRenderState.pos);
         if (demand <= 0) return;
         demand--;
         Minecraft minecraft = Minecraft.getInstance();
+#if MC_VER >= 26200
         RenderTarget main = minecraft.gameRenderer.mainRenderTarget();
+#else
+        RenderTarget main = minecraft.getMainRenderTarget();
+#endif
         if (main.getColorTexture() == null) return;
         LIVE.ensure(main.width, main.height);
-        LIVE.target.copyColorFrom(main);
+        copy(main, LIVE.target);
         liveFrame = frame;
-        liveView = new View(new Matrix4f(event.getLevelRenderState().cameraRenderState.projectionMatrix),
-                new Matrix4f(event.getModelViewMatrix()), event.getLevelRenderState().cameraRenderState.pos);
+        liveView = camera;
     }
-#endif
 }

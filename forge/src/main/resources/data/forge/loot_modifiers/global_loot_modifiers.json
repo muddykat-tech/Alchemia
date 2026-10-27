@@ -2,6 +2,12 @@
   "replace": false,
   "entries": [
     "alchemia:buried_tablets",
-    "alchemia:buried_tablets_rare"
+    "alchemia:buried_tablets_rare",
+    "alchemia:dangersense_potions",
+    "alchemia:recall_potions",
+    "alchemia:recall_potions_rare",
+    "alchemia:teleportation_potions_rare",
+    "alchemia:treasure_vision_potions",
+    "alchemia:treasure_vision_potions_rare"
   ]
 }

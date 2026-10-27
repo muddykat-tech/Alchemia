@@ -8,4 +8,10 @@ There are five main ingredient types, herbs, roots, flowers, mushrooms and miner
 @page
 They're found throughout the world, each ingredient has its own preference for biome and substrate, all ingredients once harvested can be cultivated.
 
+
 @craft style=compact alchemia:firebell_seeds_from_ingredient alchemia:rainbow_cap_seeds_from_ingredient alchemia:druids_rosemary_seeds_from_ingredient alchemia:dreambeet_seeds_from_ingredient
+@page
+
+Each ingredient has its own unique path, and ingredients that you've found are listed in [[ingredients|the Ingredients chapter]].
+
+@path herb_mageberry

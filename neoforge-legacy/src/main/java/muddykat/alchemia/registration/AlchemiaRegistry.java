@@ -19,6 +19,10 @@ public class AlchemiaRegistry {
         ItemRegistry.ITEMS.register(modEventBus);
         DataComponentRegistry.DATA_COMPONENTS.register(modEventBus);
         BiomeFeatureRegistry.FEATURES.register(modEventBus);
+        StructureRegistry.STRUCTURE_TYPES.register(modEventBus);
+        MobEffectRegistry.MOB_EFFECTS.register(modEventBus);
+        EntityTypeRegistry.ENTITY_TYPES.register(modEventBus);
+        StructureRegistry.STRUCTURE_PIECES.register(modEventBus);
         PlacementModifierRegistry.PLACEMENT_MODIFIERS.register(modEventBus);
         BlockEntityTypeRegistry.TILES.register(modEventBus);
         MenuTypeRegistry.MENU_TYPES.register(modEventBus);
@@ -29,6 +33,7 @@ public class AlchemiaRegistry {
         LootModifierRegistry.LOOT_MODIFIERS.register(modEventBus);
         PotionRegistry.POTIONS.register(modEventBus);
         RecipeSerializerRegistry.RECIPE_SERIALIZERS.register(modEventBus);
+        AttachmentRegistry.ATTACHMENT_TYPES.register(modEventBus);
         Alchemia.LOGGER.info(MOD_NAME + " Registration Complete");
     }
 }

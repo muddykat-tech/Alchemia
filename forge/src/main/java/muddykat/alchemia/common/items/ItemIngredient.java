@@ -229,7 +229,7 @@ public class ItemIngredient extends Item {
 
         double taken = PathGeometry.length(previewPath(getPotency(stack), trimOf(stack), rotationOf(stack)));
         return Optional.of(new IngredientPathTooltip(full,
-                Math.min(taken, PathGeometry.length(full)), shape.teleports(), label));
+                Math.min(taken, PathGeometry.length(full)), shape.teleports(), label, crushOf(stack)));
     }
 
     public static Component describeDrift(int driftX, int driftY) {

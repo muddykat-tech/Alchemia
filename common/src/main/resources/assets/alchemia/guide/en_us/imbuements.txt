@@ -1,4 +1,6 @@
 Imbuements
 
-@photo size=portrait align=right angle=6 imbuements
-TODO go over how some potions have conditions, that can be filled either via environment or using an Imbuement, essentially an item form that environment.
+@photo size=portrait align=right angle=6 imbuements_1 imbuements_2 imbuements_3 imbuements_4 imbuements_5 imbuements_6
+An imbuement is for the more advanced potions, some potions require specific environments, often being tiresome to brew in these locations.
+
+You can simulate it with some ingredients, Kelp is used often as it simulates being near oceans.

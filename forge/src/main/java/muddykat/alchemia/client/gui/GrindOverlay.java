@@ -1,12 +1,9 @@
 package muddykat.alchemia.client.gui;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.Util;
 import muddykat.alchemia.common.items.ItemIngredient;
-import muddykat.alchemia.common.potion.BrewBases;
-import muddykat.alchemia.common.potion.PotionMap;
 import muddykat.alchemia.common.potion.VanillaIngredients;
+import muddykat.alchemia.common.potion.PotionMap;
+import muddykat.alchemia.common.potion.BrewBases;
 import muddykat.alchemia.common.items.ItemMortarPestle;
 import muddykat.alchemia.common.items.ItemPathTool;
 import muddykat.alchemia.common.items.helper.IngredientPath;
@@ -17,7 +14,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
+import net.minecraft.Util;
+import muddykat.alchemia.client.effect.ARGB;
 import net.minecraft.world.item.ItemStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 
 import java.util.List;
 
@@ -70,9 +70,7 @@ public class GrindOverlay {
         return ARGB.color((int) (255 * amount), rgb);
     }
 
-    public static void render(net.minecraftforge.client.gui.overlay.ForgeGui gui, GuiGraphics graphics,
-                              float partialTick, int screenWidth, int screenHeight) {
-        RenderSystem.enableBlend();
+    public static void render(net.minecraftforge.client.gui.overlay.ForgeGui gui, GuiGraphics graphics, float partialTick, int screenWidth, int screenHeight) {
         long now = Util.getMillis();
         float step = lastFrame == 0L ? 0.0F : (now - lastFrame) / 1000.0F;
         lastFrame = now;
@@ -193,7 +191,7 @@ public class GrindOverlay {
 
     private static void drawLure(GuiGraphics graphics, float fade) {
         Minecraft minecraft = Minecraft.getInstance();
-        Component progress = Component.translatable("alchemia.tooltip.grind", cachedCrush, Ingredients.MAX_CRUSH_UNITS);
+        Component progress = Component.translatable("alchemia.tooltip.grind", Ingredients.crushPercent(cachedCrush));
         Component pull = Component.translatable("alchemia.gui.queue.lure.strength",
                 String.format(java.util.Locale.ROOT, "%.1f", VanillaIngredients.grindScale(cachedCrush)));
 
@@ -203,7 +201,7 @@ public class GrindOverlay {
         int panelX = (graphics.guiWidth() - panelW) / 2;
         int panelY = graphics.guiHeight() * TOP_MARGIN_PERCENT / 100;
 
-        AlchemiaSprites.GRIND_PANEL.blit(graphics, panelX, panelY, panelW, panelH, shade(0xFFFFFF, fade));
+        GuiDraw.sprite(graphics, AlchemiaSprites.GRIND_PANEL, panelX, panelY, panelW, panelH, shade(0xFFFFFF, fade));
 
         int y = panelY + PADDING;
         for (Component line : List.of(cachedName, progress, pull)) {
@@ -229,7 +227,7 @@ public class GrindOverlay {
 
         Component progress = cachedProgressKey != null
                 ? Component.translatable(cachedProgressKey, cachedProgressValue, cachedUsesLeft)
-                : Component.translatable("alchemia.tooltip.grind", cachedCrush, Ingredients.MAX_CRUSH_UNITS);
+                : Component.translatable("alchemia.tooltip.grind", Ingredients.crushPercent(cachedCrush));
 
         int textW = Math.max(minecraft.font.width(cachedName), minecraft.font.width(progress));
         int panelW = Math.max(shapeWidth, textW) + PADDING * 2;
@@ -238,7 +236,7 @@ public class GrindOverlay {
         int panelX = (graphics.guiWidth() - panelW) / 2;
         int panelY = graphics.guiHeight() * TOP_MARGIN_PERCENT / 100;
 
-        AlchemiaSprites.GRIND_PANEL.blit(graphics, panelX, panelY, panelW, panelH, shade(0xFFFFFF, fade));
+        GuiDraw.sprite(graphics, AlchemiaSprites.GRIND_PANEL, panelX, panelY, panelW, panelH, shade(0xFFFFFF, fade));
 
         graphics.drawString(minecraft.font, cachedName, panelX + (panelW - minecraft.font.width(cachedName)) / 2,
                 panelY + PADDING, shade(LABEL_INK_RGB, fade), false);
@@ -250,7 +248,7 @@ public class GrindOverlay {
 
         PoseStack pose = graphics.pose();
         pose.pushPose();
-        pose.translate(originX, originY, 0.0);
+        pose.translate((float) originX, (float) originY, 0.0F);
 
         PathRenderer.outline(graphics, remaining, THICKNESS, shade(PATH_POTENTIAL, fade), teleport, shapeWalked);
         PathRenderer.dashes(graphics, taken, THICKNESS, shade(PATH_TAKEN, fade), teleport);

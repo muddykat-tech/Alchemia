@@ -52,6 +52,7 @@ public class ClientSetup {
     @SubscribeEvent
     public static void onRegisterPipelines(net.neoforged.neoforge.client.event.RegisterRenderPipelinesEvent event) {
         event.registerPipeline(muddykat.alchemia.client.gui.GuideInk.PIPELINE);
+        event.registerPipeline(muddykat.alchemia.client.gui.GuideInk.DETAILED_PIPELINE);
 #if MC_VER >= 26300
         event.registerPipeline(muddykat.alchemia.client.effect.PortalShader.PIPELINE);
         event.registerPipeline(muddykat.alchemia.client.effect.SenseShader.PIPELINE);
@@ -96,6 +97,7 @@ public class ClientSetup {
     @SubscribeEvent
     public static void onRegisterGuiLayers(RegisterGuiLayersEvent event) {
         event.registerAboveAll(Identifier.fromNamespaceAndPath(Alchemia.MODID, "grind_path"), GrindOverlay::render);
+        event.registerAboveAll(Identifier.fromNamespaceAndPath(Alchemia.MODID, "repair_hint"), muddykat.alchemia.client.gui.RepairHint::render);
         event.registerAboveAll(Identifier.fromNamespaceAndPath(Alchemia.MODID, "dangersense"), muddykat.alchemia.client.effect.Dangersense::renderVignette);
     }
 

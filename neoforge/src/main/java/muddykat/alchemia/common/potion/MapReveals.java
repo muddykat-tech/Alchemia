@@ -13,6 +13,9 @@ public final class MapReveals {
 
     public static final double CELL = PotionMap.CELL;
     public static final double RADIUS = 8 * PotionMap.CELL;
+    public static final int PAD = (int) Math.ceil(RADIUS / CELL);
+    public static final double ORIGIN = -PAD * CELL;
+    public static final double START_RADIUS = 11 * PotionMap.CELL;
 
     private static final Map<PotionMap, Integer> CHARTABLE = new java.util.WeakHashMap<>();
 
@@ -20,7 +23,7 @@ public final class MapReveals {
     }
 
     public static int columns(PotionMap map) {
-        return (int) Math.ceil(map.getMaxAlignment() / CELL);
+        return (int) Math.ceil(map.getMaxAlignment() / CELL) + 2 * PAD;
     }
 
     public static long[] empty(PotionMap map) {
@@ -43,19 +46,28 @@ public final class MapReveals {
     }
 
     public static boolean mark(long[] bits, PotionMap map, PathPoint at) {
+        return mark(bits, map, at, RADIUS);
+    }
+
+    public static boolean markStart(long[] bits, PotionMap map) {
+        double middle = map.getMiddlePosition();
+        return mark(bits, map, new PathPoint(middle, middle), START_RADIUS);
+    }
+
+    public static boolean mark(long[] bits, PotionMap map, PathPoint at, double radius) {
         int columns = columns(map);
-        int reach = (int) Math.ceil(RADIUS / CELL);
-        int centreColumn = (int) Math.floor(at.x() / CELL);
-        int centreRow = (int) Math.floor(at.y() / CELL);
+        int reach = (int) Math.ceil(radius / CELL);
+        int centreColumn = (int) Math.floor((at.x() - ORIGIN) / CELL);
+        int centreRow = (int) Math.floor((at.y() - ORIGIN) / CELL);
         boolean changed = false;
 
         for (int row = centreRow - reach; row <= centreRow + reach; row++) {
             if (row < 0 || row >= columns) continue;
             for (int column = centreColumn - reach; column <= centreColumn + reach; column++) {
                 if (column < 0 || column >= columns) continue;
-                double dx = (column + 0.5) * CELL - at.x();
-                double dy = (row + 0.5) * CELL - at.y();
-                if (dx * dx + dy * dy > RADIUS * RADIUS) continue;
+                double dx = centre(column) - at.x();
+                double dy = centre(row) - at.y();
+                if (dx * dx + dy * dy > radius * radius) continue;
 
                 int index = row * columns + column;
                 long bit = 1L << (index & 63);
@@ -71,9 +83,22 @@ public final class MapReveals {
         boolean changed = false;
         for (ItemStack guide : guides) {
             long[] bits = bits(guide, base, map);
-            if (!mark(bits, map, at)) continue;
+            if (!mark(bits, map, at, RADIUS)) continue;
             store(guide, base, map, bits);
             changed = true;
+        }
+        return changed;
+    }
+
+    public static boolean revealEffect(Iterable<ItemStack> guides, AlchemiaEffect recipe) {
+        if (!PotionMap.isReady()) return false;
+
+        boolean changed = false;
+        for (BrewBase base : BrewBases.values()) {
+            PotionMap map = PotionMap.get(base);
+            if (map == null || !map.base().id().equals(base.id())) continue;
+            PathPoint at = map.positionOf(recipe);
+            if (at != null && reveal(guides, base, map, at)) changed = true;
         }
         return changed;
     }
@@ -120,10 +145,23 @@ public final class MapReveals {
         int found = 0;
         for (int row = 0; row < columns; row++) {
             for (int column = 0; column < columns; column++) {
-                if (revealed(bits, columns, column, row) && map.inBounds((column + 0.5) * CELL, (row + 0.5) * CELL)) found++;
+                if (revealed(bits, columns, column, row) && map.inBounds(centre(column), centre(row))) found++;
             }
         }
         return Math.min(1.0, (double) found / total);
+    }
+
+    public static double explored(ItemStack guide) {
+        if (!PotionMap.isReady()) return 0.0;
+        double total = 0.0;
+        int maps = 0;
+        for (BrewBase base : BrewBases.values()) {
+            PotionMap map = PotionMap.get(base);
+            if (map == null || !map.base().id().equals(base.id())) continue;
+            total += fraction(bits(guide, base, map), map);
+            maps++;
+        }
+        return maps == 0 ? 0.0 : total / maps;
     }
 
     private static int chartable(PotionMap map) {
@@ -135,12 +173,16 @@ public final class MapReveals {
             int total = 0;
             for (int row = 0; row < columns; row++) {
                 for (int column = 0; column < columns; column++) {
-                    if (map.inBounds((column + 0.5) * CELL, (row + 0.5) * CELL)) total++;
+                    if (map.inBounds(centre(column), centre(row))) total++;
                 }
             }
             CHARTABLE.put(map, total);
             return total;
         }
+    }
+
+    private static double centre(int cell) {
+        return ORIGIN + (cell + 0.5) * CELL;
     }
 
     private static void store(ItemStack guide, BrewBase base, PotionMap map, long[] bits) {

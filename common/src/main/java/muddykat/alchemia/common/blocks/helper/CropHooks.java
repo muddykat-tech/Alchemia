@@ -12,7 +12,7 @@ public final class CropHooks {
     }
 
     public static boolean canGrow(ServerLevel level, BlockPos pos, BlockState state, boolean chance) {
-#if NEOFORGE
+#if MC_VER >= 12100
         return net.neoforged.neoforge.common.CommonHooks.canCropGrow(level, pos, state, chance);
 #else
         return net.minecraftforge.common.ForgeHooks.onCropsGrowPre(level, pos, state, chance);
@@ -20,7 +20,7 @@ public final class CropHooks {
     }
 
     public static void grown(ServerLevel level, BlockPos pos, BlockState state) {
-#if NEOFORGE
+#if MC_VER >= 12100
         net.neoforged.neoforge.common.CommonHooks.fireCropGrowPost(level, pos, state);
 #else
         net.minecraftforge.common.ForgeHooks.onCropsGrowPost(level, pos, state);

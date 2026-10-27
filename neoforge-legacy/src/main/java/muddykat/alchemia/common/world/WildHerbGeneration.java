@@ -97,6 +97,13 @@ public class WildHerbGeneration {
     public static final ResourceKey<PlacedFeature> PEAK_CLUSTER =
             ResourceKey.create(Registries.PLACED_FEATURE, ResourceLocation.fromNamespaceAndPath(Alchemia.MODID, PEAK_CLUSTER_NAME));
 
+    public static final String END_CRYSTAL_NAME = "end_arcane_crystal";
+    public static final int END_CRYSTAL_RARITY = 64;
+    public static final ResourceKey<ConfiguredFeature<?, ?>> END_CRYSTAL_CONFIGURED =
+            ResourceKey.create(Registries.CONFIGURED_FEATURE, ResourceLocation.fromNamespaceAndPath(Alchemia.MODID, END_CRYSTAL_NAME));
+    public static final ResourceKey<PlacedFeature> END_CRYSTAL =
+            ResourceKey.create(Registries.PLACED_FEATURE, ResourceLocation.fromNamespaceAndPath(Alchemia.MODID, END_CRYSTAL_NAME));
+
     static {
         for (Ingredients ingredient : Ingredients.values()) {
             if (!generates(ingredient)) continue;
@@ -109,7 +116,7 @@ public class WildHerbGeneration {
             Map<GeodeVariant, ResourceKey<ConfiguredFeature<?, ?>>> configured = new EnumMap<>(GeodeVariant.class);
             Map<GeodeVariant, ResourceKey<PlacedFeature>> placed = new EnumMap<>(GeodeVariant.class);
 
-            for (GeodeVariant variant : GeodeVariant.values()) {
+            for (GeodeVariant variant : GeodeVariant.PER_MINERAL) {
                 ResourceLocation id = ResourceLocation.fromNamespaceAndPath(Alchemia.MODID, name + variant.suffix());
                 configured.put(variant, ResourceKey.create(Registries.CONFIGURED_FEATURE, id));
                 placed.put(variant, ResourceKey.create(Registries.PLACED_FEATURE, id));
@@ -154,7 +161,7 @@ public class WildHerbGeneration {
             IngredientHabitat habitat = IngredientHabitat.of(ingredient);
 
             if (habitat == IngredientHabitat.GEODE) {
-                for (GeodeVariant variant : GeodeVariant.values()) {
+                for (GeodeVariant variant : GeodeVariant.PER_MINERAL) {
                     context.register(GEODE_CONFIGURED.get(ingredient).get(variant), variant.isVanillaShaped()
                             ? new ConfiguredFeature<>(Feature.GEODE, crystalGeodeConfig(ingredient, blocks))
                             : new ConfiguredFeature<>(BiomeFeatureRegistry.CRYSTAL_GEODE.get(),
@@ -209,6 +216,8 @@ public class WildHerbGeneration {
         context.register(PEAK_CLUSTER_CONFIGURED, new ConfiguredFeature<>(Feature.SIMPLE_BLOCK,
                 new SimpleBlockConfiguration(BlockStateProvider.simple(
                         BlockRegistry.getGeodeCluster(Ingredients.Cloud_Crystal, BlockRegistry.BudSize.CLUSTER)))));
+        context.register(END_CRYSTAL_CONFIGURED, new ConfiguredFeature<>(BiomeFeatureRegistry.CRYSTAL_GEODE.get(),
+                new CrystalGeodeConfiguration(Ingredients.Arcane_Crystal, GeodeVariant.UNDERSIDE)));
     }
 
     public static void bootstrapPlacedFeatures(BootstrapContext<PlacedFeature> context) {
@@ -222,7 +231,7 @@ public class WildHerbGeneration {
             int chance = ingredient.getPatchChance();
 
             if (habitat == IngredientHabitat.GEODE) {
-                for (GeodeVariant variant : GeodeVariant.values()) {
+                for (GeodeVariant variant : GeodeVariant.PER_MINERAL) {
                     context.register(GEODE_PLACED.get(ingredient).get(variant), new PlacedFeature(
                             configured.getOrThrow(GEODE_CONFIGURED.get(ingredient).get(variant)),
                             geodePlacement(ingredient, variant)));
@@ -264,6 +273,7 @@ public class WildHerbGeneration {
                         BlockPredicate.ONLY_IN_AIR_PREDICATE,
                         BlockPredicate.solid(BLOCK_BELOW))),
                 BiomeFilter.biome())));
+        context.register(END_CRYSTAL, new PlacedFeature(configured.getOrThrow(END_CRYSTAL_CONFIGURED), endPlacement()));
     }
 
     private static List<PlacementModifier> geodePlacement(Ingredients ingredient, GeodeVariant variant) {
@@ -282,7 +292,13 @@ public class WildHerbGeneration {
                     buried(STANDARD_BURIAL), BiomeFilter.biome());
             case SURFACE -> List.of(rarity(chance * SURFACE_RARITY), InSquarePlacement.spread(),
                     PlacementUtils.HEIGHTMAP_TOP_SOLID, BiomeFilter.biome());
+            case UNDERSIDE -> endPlacement();
         };
+    }
+
+    private static List<PlacementModifier> endPlacement() {
+        return List.of(RarityFilter.onAverageOnceEvery(END_CRYSTAL_RARITY), InSquarePlacement.spread(),
+                PlacementUtils.HEIGHTMAP, BiomeFilter.biome());
     }
 
     private static PlacementModifier rarity(int chance) {

@@ -1,6 +1,9 @@
 Recording
 
 @unlock advancement alchemia:cauldron
-@photo recording
 @items right alchemia:alchemia_guide
-TODO explain how brews are written into the guide, and link [[recipes|the Recipes chapter]] and explain how to prepare one for auto brewing.
+So long as you have a guide on you, anytime you bottle a potion, it will record this into your guide. You can see these [[recipes|the Recipes chapter]].
+
+To recreate a potion with a recipe you already have, you select the recipe in the book.
+@page
+Then with an empty hand and all tools and ingredients in your inventory, shift right-click a neutral cauldron, it will automatically brew the potion again using the exact steps when the potion was made.

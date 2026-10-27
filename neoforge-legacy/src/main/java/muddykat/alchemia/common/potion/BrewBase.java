@@ -209,9 +209,9 @@ public final class BrewBase {
         return item == null ? ItemStack.EMPTY : new ItemStack(item);
     }
 
-    public boolean allows(@Nullable PotionEnum effect) {
+    public boolean allows(@Nullable AlchemiaEffect effect) {
         if (effect == null || allowedEffects == null) return true;
-        return allowedEffects.contains(effect.name().toLowerCase(Locale.ROOT));
+        return allowedEffects.contains(effect.id().toLowerCase(Locale.ROOT)) || effect.listsBase(id);
     }
 
     public @Nullable Fill fillFor(ItemStack stack) {

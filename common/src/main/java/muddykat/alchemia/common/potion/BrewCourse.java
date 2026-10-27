@@ -242,11 +242,7 @@ public final class BrewCourse {
 
     public List<PotionMap.RouteLeg> legs(PotionMap map) {
         if (routedOn != map) {
-#if MC_VER >= 26100
             routed = map.route(originX, originY, entries, anchors, anchorFrom, headSkip);
-#else
-            routed = map.route(originX, originY, entries, anchors, anchorFrom);
-#endif
             routedOn = map;
         }
         return routed;

@@ -40,6 +40,13 @@ public class ItemIngredientSpores extends ItemIngredientSeed {
             level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(context.getPlayer(), state));
 
             Player player = context.getPlayer();
+            if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+#if MC_VER >= 26200
+                net.minecraft.advancements.triggers.CriteriaTriggers.PLACED_BLOCK.trigger(serverPlayer, pos, context.getItemInHand());
+#else
+                net.minecraft.advancements.CriteriaTriggers.PLACED_BLOCK.trigger(serverPlayer, pos, context.getItemInHand());
+#endif
+            }
             if (player == null || !player.getAbilities().instabuild) context.getItemInHand().shrink(1);
         }
 

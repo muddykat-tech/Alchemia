@@ -24,6 +24,15 @@ public class FlamesEffect extends TriggerMobEffect {
     }
 
     @Override
+    public void struck(ServerLevel level, LivingEntity mob, int amplifier) {
+    }
+
+    @Override
+    public void arrowLanded(ServerLevel level, Vec3 at, @Nullable Entity owner, int amplifier) {
+        FlameBurst.arrowBurst(level, at, owner, amplifier + 1);
+    }
+
+    @Override
     public void shattered(ServerLevel level, Vec3 at, @Nullable Entity owner, int amplifier, boolean lingering) {
         FlameBurst.burst(level, at, owner, amplifier + 1, lingering);
     }

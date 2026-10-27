@@ -1,6 +1,7 @@
 package muddykat.alchemia.common.blocks;
 
 import com.mojang.serialization.MapCodec;
+import muddykat.alchemia.common.blocks.helper.GrowthClimate;
 import muddykat.alchemia.common.items.helper.IngredientAlignment;
 import muddykat.alchemia.common.blocks.AncientOak;
 import muddykat.alchemia.common.items.helper.IngredientType;
@@ -78,12 +79,12 @@ public class BlockIngredient extends CropBlock {
 #if MC_VER >= 26300
     @Override
     public boolean isValidBonemealTarget(LevelReader level, BlockPos pos, BlockState state, net.minecraft.world.level.block.BonemealSource source) {
-        return !isMaxAge(state);
+        return !isMaxAge(state) && GrowthClimate.allows(ingredientData, level, pos);
     }
 #else
     @Override
     public boolean isValidBonemealTarget(LevelReader level, BlockPos pos, BlockState state) {
-        return !isMaxAge(state);
+        return !isMaxAge(state) && GrowthClimate.allows(ingredientData, level, pos);
     }
 #endif
 
@@ -238,6 +239,7 @@ public class BlockIngredient extends CropBlock {
 
     @Override
     protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        if (!GrowthClimate.allows(ingredientData, level, pos)) return;
         growStep(state, level, pos, random);
 
         BlockState now = level.getBlockState(pos);

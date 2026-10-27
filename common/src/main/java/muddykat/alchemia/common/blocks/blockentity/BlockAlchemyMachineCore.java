@@ -3,6 +3,7 @@ package muddykat.alchemia.common.blocks.blockentity;
 import com.mojang.serialization.MapCodec;
 import muddykat.alchemia.common.blocks.helper.AlchemyMachineParts;
 import muddykat.alchemia.common.blocks.helper.MachineOwner;
+import muddykat.alchemia.common.blocks.helper.MachineRepair;
 import muddykat.alchemia.common.blocks.tileentity.TileEntityAlchemyMachineCore;
 import muddykat.alchemia.registration.registers.BlockEntityTypeRegistry;
 import net.minecraft.core.BlockPos;
@@ -107,6 +108,10 @@ public class BlockAlchemyMachineCore extends EntityBlockGeneric {
 
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, net.minecraft.world.phys.BlockHitResult hitResult) {
+        if (MachineRepair.ruinedSide(stack) != null) {
+            return MachineRepair.attach(stack, level, pos, state.getValue(FACING), player, hand) == MachineRepair.Outcome.SUCCESS
+                    ? InteractionResult.SUCCESS : InteractionResult.PASS;
+        }
         if (AlchemyMachineParts.upgradeSide(stack) != null) {
             InteractionResult placed = AlchemyMachineParts.placeUpgrade(level, pos, state.getValue(FACING), stack, player, hand);
             return placed.consumesAction() ? placed : openMenu(level, pos, player);

@@ -1,0 +1,8 @@
+{
+  "type": "alchemia:alchemical_potion",
+  "effect": "alchemia:treasure_vision",
+  "loot_tables": [
+    "minecraft:chests/abandoned_mineshaft"
+  ],
+  "chance": 0.03
+}

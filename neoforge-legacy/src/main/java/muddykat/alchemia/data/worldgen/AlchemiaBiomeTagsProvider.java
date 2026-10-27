@@ -73,6 +73,11 @@ public class AlchemiaBiomeTagsProvider extends BiomeTagsProvider {
         tag(AlchemiaBiomeTags.HAS_MAGMA_MOREL)
                 .addTag(BiomeTags.IS_OVERWORLD)
                 .addTag(BiomeTags.IS_NETHER);
+
+        tag(AlchemiaBiomeTags.HAS_END_CRYSTAL)
+                .add(Biomes.END_HIGHLANDS)
+                .add(Biomes.END_MIDLANDS)
+                .add(Biomes.END_BARRENS);
     }
 
     private void rootTag(TagKey<Biome> tag, TagKey<Biome> alignment) {

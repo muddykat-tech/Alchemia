@@ -1,4 +1,5 @@
 Brewing
 
-@photo brewing
-TODO explain how brewing potions works via the brew button
+@photo angle=1 size=square brewing brewing_2 brewing_3 brewing_4
+
+After navigating to an effect area, you can press the heat button to bring the brew to a boil. This will bind the effect to the potion.

@@ -10,6 +10,7 @@ import muddykat.alchemia.common.items.helper.IngredientPathTooltip;
 import muddykat.alchemia.common.items.helper.PathGeometry;
 import muddykat.alchemia.common.items.helper.PathPoint;
 import muddykat.alchemia.common.potion.BrewBases;
+import muddykat.alchemia.common.potion.AlchemiaEffect;
 import muddykat.alchemia.common.potion.PotionMap;
 import muddykat.alchemia.common.potion.VanillaIngredients;
 import muddykat.alchemia.common.utility.TextUtils;
@@ -36,9 +37,12 @@ public class VanillaIngredientTooltip {
 
         event.getToolTip().add(TextUtils.brewingSource());
 
-        event.getToolTip().add(Component.translatable(
-                drift.lure() ? "alchemia.tooltip.lure" : "alchemia.tooltip.bearing",
-                drift.target().getEffect().getDisplayName()).withStyle(ChatFormatting.DARK_GRAY));
+        AlchemiaEffect target = drift.target();
+        if (target != null) {
+            event.getToolTip().add(Component.translatable(
+                    drift.lure() ? "alchemia.tooltip.lure" : "alchemia.tooltip.bearing",
+                    target.displayName()).withStyle(ChatFormatting.DARK_GRAY));
+        }
 
         int crush = ItemIngredient.crushOf(event.getItemStack());
         if (crush < Ingredients.MAX_CRUSH_UNITS) {
@@ -85,7 +89,7 @@ public class VanillaIngredientTooltip {
         if (!GuideAccess.reading()) return;
 
         VanillaIngredients.Drift drift = VanillaIngredients.driftOf(event.getItemStack());
-        if (drift == null || drift.lure() || !PotionMap.isReady()) return;
+        if (drift == null || drift.lure() || drift.target() == null || !PotionMap.isReady()) return;
 
         PotionMap map = PotionMap.get(BrewBases.defaultBase());
         List<PathPoint> offsets = map.fixedDriftOffsets(drift.target(), Ingredients.MAX_CRUSH_UNITS);
@@ -93,7 +97,8 @@ public class VanillaIngredientTooltip {
 
         double reached = PathGeometry.length(map.fixedDriftOffsets(drift.target(), ItemIngredient.crushOf(event.getItemStack())));
         event.getTooltipElements().add(Either.right(new IngredientPathTooltip(
-                offsets, reached, false, Component.translatable("alchemia.tooltip.label.path"))));
+                offsets, reached, false, Component.translatable("alchemia.tooltip.label.path"),
+                ItemIngredient.crushOf(event.getItemStack()))));
     }
 
     @SubscribeEvent

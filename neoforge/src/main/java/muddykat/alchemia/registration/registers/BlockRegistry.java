@@ -9,12 +9,15 @@ import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyCauldron;
 import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyMachineCore;
 import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyMachinePart;
 import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyMachineUpgrade;
+import muddykat.alchemia.common.blocks.blockentity.BlockRuinedMachine;
 import muddykat.alchemia.common.blocks.blockentity.BlockPlacedPotions;
 import muddykat.alchemia.common.blocks.blockentity.BlockPlacedGuide;
 import muddykat.alchemia.common.blocks.blockentity.BlockResearchDesk;
+import muddykat.alchemia.common.blocks.helper.MachineOwner;
 import muddykat.alchemia.common.blocks.helper.UpgradeSide;
 import muddykat.alchemia.common.items.BlockItemAlchemyMachineUpgrade;
 import muddykat.alchemia.common.items.BlockItemGeneric;
+import muddykat.alchemia.common.items.BlockItemRuinedMachine;
 import muddykat.alchemia.common.items.helper.IngredientType;
 import muddykat.alchemia.common.items.helper.Ingredients;
 import net.minecraft.world.level.block.AmethystClusterBlock;
@@ -88,6 +91,12 @@ public class BlockRegistry {
 
         registerBlock(BlockAlchemyMachinePart.ID, BlockAlchemyMachinePart::new,
                 () -> BlockBehaviour.Properties.ofFullCopy(Blocks.CAULDRON).noOcclusion().noLootTable());
+
+        for (MachineOwner owner : MachineOwner.values()) {
+            DeferredBlock<Block> ruined = registerBlock(owner.ruinedName(), properties -> new BlockRuinedMachine(owner, properties),
+                    () -> BlockBehaviour.Properties.ofFullCopy(Blocks.CAULDRON).noOcclusion());
+            ItemRegistry.registerItem(owner.ruinedName(), properties -> new BlockItemRuinedMachine(ruined.get(), properties));
+        }
     }
 
     public static void createPlacedPotionsBlock() {

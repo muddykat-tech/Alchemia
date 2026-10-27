@@ -19,7 +19,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public class NetworkHandler {
-    private static final String PROTOCOL_VERSION = "1.6";
+    private static final String PROTOCOL_VERSION = "1.7";
 
     public static void register(final RegisterPayloadHandlersEvent event) {
         event.registrar(PROTOCOL_VERSION)

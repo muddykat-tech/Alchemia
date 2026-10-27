@@ -20,6 +20,8 @@ public class AlchemiaRegistry {
         DataComponentRegistry.DATA_COMPONENTS.register(modEventBus);
         BiomeFeatureRegistry.FEATURES.register(modEventBus);
         PlacementModifierRegistry.PLACEMENT_MODIFIERS.register(modEventBus);
+        StructureRegistry.STRUCTURE_TYPES.register(modEventBus);
+        StructureRegistry.STRUCTURE_PIECES.register(modEventBus);
         BlockEntityTypeRegistry.TILES.register(modEventBus);
         MenuTypeRegistry.MENU_TYPES.register(modEventBus);
         ParticleTypeRegistry.PARTICLE_TYPES.register(modEventBus);

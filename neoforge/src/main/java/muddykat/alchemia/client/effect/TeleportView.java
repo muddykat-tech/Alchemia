@@ -5,6 +5,7 @@ import com.mojang.renderpearl.api.pipeline.RenderPipeline;
 import com.mojang.renderpearl.api.textures.GpuTextureView;
 #else
 import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.textures.GpuTextureView;
 #endif
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -70,6 +71,7 @@ public final class TeleportView {
     private static int seenRevision = -1;
     private static float phaseTicks;
     private static float chargeTicks;
+    private static float chargeRate = 1.0F;
     private static float breakTicks;
     private static float revealTicks;
     private static int waitTicks;
@@ -113,7 +115,7 @@ public final class TeleportView {
         if (phase < 0) return;
 
         phaseTicks += 1.0F;
-        if (phase == TeleportViewState.CHARGE) chargeTicks += 1.0F;
+        if (phase == TeleportViewState.CHARGE) chargeTicks += chargeRate;
         if (phase == TeleportViewState.OPEN || phase == TeleportViewState.HOLD) breakTicks += 1.0F;
         if (phase == TeleportViewState.REVEAL) {
             if (!broke) {
@@ -156,6 +158,7 @@ public final class TeleportView {
                 pattern = new FracturePattern(seed, SPOKES, RINGS, 1.0F, CORE);
                 broke = false;
                 chargeTicks = 0.0F;
+                chargeRate = TeleportViewState.chargeRate();
                 breakTicks = 0.0F;
                 sounded = 0;
             }
@@ -206,10 +209,6 @@ public final class TeleportView {
         RealityBreak.Frame frame = RealityBreak.frame(current, plane(width, height, screen.severity()), screen, seed, mapping);
         ScreenRectangle bounds = new ScreenRectangle(0, 0, width, height);
         PoseStack.Pose pose = new PoseStack().last();
-        boolean shaded = false;
-
-#if MC_VER >= 26300
-        shaded = true;
         if (frame.holes()) {
             graphics.nextStratum();
             graphics.submitGuiElementRenderState(new Layer(PortalShader.GUI_PIPELINE, PortalShader.guiStars(), bounds,
@@ -221,12 +220,9 @@ public final class TeleportView {
             graphics.submitGuiElementRenderState(new Layer(RenderPipelines.GUI_TEXTURED, TextureSetup.singleTexture(view, SceneCapture.sampler()),
                     bounds, buffer -> frame.shards(pose, buffer, true)));
         }
-#endif
 
-        boolean flatVoid = !shaded;
         graphics.nextStratum();
         graphics.submitGuiElementRenderState(new Layer(RenderPipelines.GUI, TextureSetup.noTexture(), bounds, buffer -> {
-            if (flatVoid && frame.holes()) frame.voids(pose, buffer, false);
             if (frame.flights()) frame.shards(pose, buffer, false);
             frame.lines(pose, buffer);
         }));
@@ -270,7 +266,7 @@ public final class TeleportView {
     }
 
     private static Screen choreography(float partial) {
-        float charge = phase == TeleportViewState.CHARGE ? chargeTicks + partial : chargeTicks;
+        float charge = phase == TeleportViewState.CHARGE ? chargeTicks + partial * chargeRate : chargeTicks;
         float broken = phase == TeleportViewState.OPEN || phase == TeleportViewState.HOLD ? breakTicks + partial : breakTicks;
         float reveal = revealing ? revealTicks + partial : 0.0F;
         return new Screen(phase, charge, broken, broke, revealing, reveal, phaseTicks + partial, seed);

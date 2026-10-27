@@ -45,4 +45,18 @@ gradle.ext.allTargets = file('props').listFiles()
 
 include gradle.ext.loaderModule
 
+def ideMc = (localProps.getProperty('mc') ?: settings.ext.has('default_mc') ? settings.default_mc : '26.1.2').toString()
+def ideProps = new Properties()
+def idePropsFile = file("props/${ideMc}.properties")
+if (idePropsFile.exists()) {
+    idePropsFile.withInputStream { ideProps.load(it) }
+    def symbols = [
+            MC_VER: ideProps.getProperty('mc_ordinal'),
+    ]
+    def text = "# Generated from local.properties (mc=${ideMc}) for the Manifold IntelliJ plugin; javac -A args override it.\n" +
+            symbols.collect { k, v -> "${k}=${v}" }.join('\n') + '\n'
+    def buildProps = file('build.properties')
+    if (!buildProps.exists() || buildProps.text != text) buildProps.text = text
+}
+
 println "> Alchemia target: Minecraft ${activeMc} (${mcProps.getProperty('loader')}), Java ${mcProps.getProperty('java_version')}"

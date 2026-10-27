@@ -1,4 +1,7 @@
 Modifiers
 
 @unlock advancement alchemia:cauldron
-TODO explain what modifiers are in general, i.e lures, imbuements, bark? and general modifiers like redstone and so forth
+@items align=left minecraft:glowstone_dust|minecraft:gunpowder|minecraft:redstone|minecraft:dragon_breath
+Modifiers are ingredients that affect your brew, but don't create a path themselves.
+
+The traditional and well known modifiers can change how a potion behave, like Dragon's breath which makes potions linger around although a bit of gunpowder is needed to prime the reaction.

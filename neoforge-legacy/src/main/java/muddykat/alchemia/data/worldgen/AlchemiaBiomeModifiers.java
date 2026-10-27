@@ -38,6 +38,7 @@ public class AlchemiaBiomeModifiers {
         BIOME_OVERRIDES.put(Ingredients.Flameweed, BiomeTags.IS_OCEAN);
         BIOME_OVERRIDES.put(Ingredients.Tangleweed, BiomeTags.IS_OCEAN);
         BIOME_OVERRIDES.put(Ingredients.Druids_Rosemary, BiomeTags.IS_JUNGLE);
+        BIOME_OVERRIDES.put(Ingredients.Hairy_Banana, BiomeTags.IS_JUNGLE);
         BIOME_OVERRIDES.put(Ingredients.Thornstick, Tags.Biomes.IS_DESERT);
         BIOME_OVERRIDES.put(Ingredients.Marshroom, Tags.Biomes.IS_SWAMP);
         BIOME_OVERRIDES.put(Ingredients.Firebell, BiomeTags.IS_FOREST);
@@ -116,6 +117,11 @@ public class AlchemiaBiomeModifiers {
                 biomes.getOrThrow(Tags.Biomes.IS_MOUNTAIN_PEAK),
                 HolderSet.direct(features.getOrThrow(WildHerbGeneration.PEAK_CLUSTER)),
                 GenerationStep.Decoration.VEGETAL_DECORATION));
+
+        context.register(modifierKey(WildHerbGeneration.END_CRYSTAL_NAME), new BiomeModifiers.AddFeaturesBiomeModifier(
+                biomes.getOrThrow(AlchemiaBiomeTags.HAS_END_CRYSTAL),
+                HolderSet.direct(features.getOrThrow(WildHerbGeneration.END_CRYSTAL)),
+                GenerationStep.Decoration.UNDERGROUND_DECORATION));
     }
 
     private static ResourceKey<BiomeModifier> modifierKey(String name) {

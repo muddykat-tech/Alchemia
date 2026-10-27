@@ -1,4 +1,4 @@
-// 1.20.1	2026-10-20T07:28:27.52033853	Item Models: alchemia
+// 1.20.1	2026-10-27T23:30:51.009929531	Item Models: alchemia
 28b9b4e2f92789a9f60e6521ec2f8f9757076f3f assets/alchemia/models/item/albedo.json
 7b518fef33f758f8eeac1489e030a0702de496eb assets/alchemia/models/item/albedo_worn_1.json
 8583ae84ba0c1eff5a288b4b8a684817609492cb assets/alchemia/models/item/albedo_worn_2.json
@@ -106,6 +106,9 @@ b8cc5872460cbc1e8e3b23d392a1fea79ed7813e assets/alchemia/models/item/herb_goldth
 8f3e740b4d5560c10691900901cceb5fb1210d7b assets/alchemia/models/item/herb_goodberry.json
 979b7ca93f8cf72240ca0c93d6c242f0466349c2 assets/alchemia/models/item/herb_goodberry_crushed.json
 4f0c4f6174be35ae12dd1a27f3cf455bca4b132b assets/alchemia/models/item/herb_goodberry_seed.json
+40cbcf06baf43fc8fa8ce09a5fbf96b4a2d4c345 assets/alchemia/models/item/herb_hairy_banana.json
+ff539602294c140ddfc9875881336479cec285cf assets/alchemia/models/item/herb_hairy_banana_crushed.json
+24159aa6468e0c9e2b6c8388e074eb8891c52a54 assets/alchemia/models/item/herb_hairy_banana_seed.json
 dc97f828309d17e507b199cc53ec8bf93c49aef3 assets/alchemia/models/item/herb_healers_heather.json
 1519db524d1c46ecfa0ef501e032921a70973eb8 assets/alchemia/models/item/herb_healers_heather_crushed.json
 5c443627eb94e0bca1a74c150b417fd729474727 assets/alchemia/models/item/herb_healers_heather_seed.json
@@ -182,6 +185,10 @@ e87760c3139b4f9f9f31fe4810c6512c362c353a assets/alchemia/models/item/root_lava_r
 5596b880cf14c3d30e93ec80ed8d0703957f36f5 assets/alchemia/models/item/root_terraria_crushed.json
 1f67c55010c4d7d6bb7dcc81d6cafb5a524890ec assets/alchemia/models/item/root_terraria_seed.json
 3ba7d2f22f7688ae2625c981a62f4b9bbe9034e6 assets/alchemia/models/item/rubedo.json
+69fefc5a4b6ecd3610328c7f9c067b11cb7e3942 assets/alchemia/models/item/ruined_alchemy_machine_core.json
+9812b8857a87434ac642b3edb3b3d35852c4502c assets/alchemia/models/item/ruined_alchemy_machine_left_upgrade.json
+1aa224b075d3de2835e9e7e5c6386ca33d372e59 assets/alchemia/models/item/ruined_alchemy_machine_right_upgrade.json
+d6f9248b83a2a4b2ec3f195a8ed5283347d25254 assets/alchemia/models/item/ruined_alchemy_machine_top_upgrade.json
 7b7077d978fa11a3c8bdd04022df097d6481e3a0 assets/alchemia/models/item/square_phial.json
 b9cb28d683c34a4850c5a131073432a7e2d7693d assets/alchemia/models/item/square_phial_potion.json
 ec45604b52b9197fbea7c99fc510ccd7aa10353e assets/alchemia/models/item/stripped_ancient_oak_log.json

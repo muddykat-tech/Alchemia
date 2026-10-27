@@ -1,5 +1,7 @@
 package muddykat.alchemia.common.network.packets;
 
+import muddykat.alchemia.common.utility.StackData;
+
 import muddykat.alchemia.common.utility.Handover;
 import muddykat.alchemia.common.guide.GuideResearch;
 import muddykat.alchemia.common.guide.GuideSource;
@@ -34,6 +36,7 @@ public record PacketGuideAction(GuideSource source, Action action, String argume
 
     public static final int MAX_ARGUMENT = 512;
     public static final int MAX_NOTE = 256;
+    public static final int MAX_BOOKMARK = 128;
     public static final char NAME_SEPARATOR = '\n';
 
     public static String renaming(String id, String name) {
@@ -51,7 +54,8 @@ public record PacketGuideAction(GuideSource source, Action action, String argume
         RENAME,
         NOTE,
         NOTE_INGREDIENT,
-        SUMMON_FLASK;
+        SUMMON_FLASK,
+        BOOKMARK;
 
         static Action byId(int id) {
             Action[] all = values();
@@ -123,6 +127,15 @@ public record PacketGuideAction(GuideSource source, Action action, String argume
             case SUMMON_FLASK -> {
                 summonFlask(player, guide, argument);
                 yield false;
+            }
+            case BOOKMARK -> {
+                if (argument.length() > MAX_BOOKMARK) yield false;
+                if (argument.isEmpty()) {
+                    StackData.GUIDE_BOOKMARK.remove(guide);
+                } else {
+                    StackData.GUIDE_BOOKMARK.set(guide, argument);
+                }
+                yield true;
             }
             case LEARN_EFFECT -> GuideResearch.linksEffect(guide, argument)
                     && RecipeDiscovery.learn(List.of(guide), List.of(argument)) > 0;

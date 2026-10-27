@@ -1,6 +1,7 @@
 Effects
 
 @unlock advancement alchemia:cauldron
-@photo size=square align=left effects
-When the potion icon for your potion reaches nearby an effects area of influence, you can heat the cauldron.
-With enough heat, the effect will bind to the brew, if it's a new effect you'll discover what it is so long as you have a guide with you.
+@photo size=square angle=-1 align=left effects
+When the potion icon for your potion reaches a nearby effect, it's shown on the scroll at the bottom.
+
+Once an effect has been brewed, it will be visible on the map provided you have the guide that recorded this information.

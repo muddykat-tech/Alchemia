@@ -289,6 +289,28 @@ public class PathRenderer {
         }
     }
 
+    public static void polyline(GuiGraphics graphics, List<PathPoint> points, double thickness, int argb) {
+        if (points.size() < 2) return;
+
+        int weight = Math.max(1, (int) Math.round(thickness * SUPERSAMPLE));
+        Runs runs = new Runs(graphics);
+        pushScaled(graphics);
+
+        for (int index = 1; index < points.size(); index++) {
+            PathPoint from = points.get(index - 1);
+            PathPoint to = points.get(index);
+            double dx = (to.x() - from.x()) * SUPERSAMPLE;
+            double dy = (to.y() - from.y()) * SUPERSAMPLE;
+            int steps = Math.max(1, (int) Math.ceil(Math.sqrt(dx * dx + dy * dy)));
+            for (int step = index == 1 ? 0 : 1; step <= steps; step++) {
+                runs.stamp(from.x() * SUPERSAMPLE + dx * step / steps, from.y() * SUPERSAMPLE + dy * step / steps, weight, argb);
+            }
+        }
+
+        runs.flush();
+        popScaled(graphics);
+    }
+
     public static void line(GuiGraphics graphics, double x0, double y0, double x1, double y1,
                             double thickness, int argb, boolean dotted) {
         double dx = (x1 - x0) * SUPERSAMPLE;

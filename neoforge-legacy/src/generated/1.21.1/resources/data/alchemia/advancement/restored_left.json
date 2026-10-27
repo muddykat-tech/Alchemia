@@ -1,0 +1,26 @@
+{
+  "parent": "alchemia:restored_right",
+  "criteria": {
+    "unlocked": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.alchemia.restored_left.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "alchemia:alchemy_machine_left_upgrade"
+    },
+    "title": {
+      "translate": "advancements.alchemia.restored_left.title"
+    }
+  },
+  "requirements": [
+    [
+      "unlocked"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

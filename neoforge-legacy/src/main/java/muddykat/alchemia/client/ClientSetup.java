@@ -92,6 +92,7 @@ public class ClientSetup {
     @SubscribeEvent
     public static void onRegisterTooltipComponents(RegisterClientTooltipComponentFactoriesEvent event) {
         event.register(IngredientPathTooltip.class, ClientIngredientPathTooltip::new);
+        event.register(muddykat.alchemia.client.gui.InkTooltip.class, muddykat.alchemia.client.gui.ClientInkTooltip::new);
         GuideAccess.bindReader(() -> GuideAccess.carriedBy(Minecraft.getInstance().player)
                 || muddykat.alchemia.client.gui.AlchemicalScreen.readingAtDesk());
     }
@@ -99,17 +100,23 @@ public class ClientSetup {
     @SubscribeEvent
     public static void onRegisterShaders(net.neoforged.neoforge.client.event.RegisterShadersEvent event) throws java.io.IOException {
         muddykat.alchemia.client.gui.GuideInk.register(event);
+        muddykat.alchemia.client.effect.PortalShader.register(event);
     }
 
     @SubscribeEvent
     public static void onRegisterGuiLayers(net.neoforged.neoforge.client.event.RegisterGuiLayersEvent event) {
         event.registerAboveAll(ResourceLocation.fromNamespaceAndPath(Alchemia.MODID, "grind_path"), GrindOverlay::render);
+        event.registerAboveAll(ResourceLocation.fromNamespaceAndPath(Alchemia.MODID, "repair_hint"), muddykat.alchemia.client.gui.RepairHint::render);
+        event.registerAboveAll(ResourceLocation.fromNamespaceAndPath(Alchemia.MODID, "dangersense"), muddykat.alchemia.client.effect.Dangersense::renderVignette);
     }
 
     @SubscribeEvent
     public static void onRegisterParticles(RegisterParticleProvidersEvent event) {
         event.registerSpriteSet(ParticleTypeRegistry.BREW_BUBBLE.get(), BrewBubbleParticle.Provider::new);
         event.registerSpriteSet(ParticleTypeRegistry.ANCIENT_OAK_LEAF.get(), AncientOakLeafParticle.Provider::new);
+        event.registerSpriteSet(ParticleTypeRegistry.NAPALM_FLAME.get(), muddykat.alchemia.client.particle.NapalmFlameParticle.Provider::new);
+        event.registerSpriteSet(ParticleTypeRegistry.WILD_LEAF.get(), muddykat.alchemia.client.particle.WildLeafParticle.Free::new);
+        event.registerSpriteSet(ParticleTypeRegistry.WILD_SWIRL.get(), muddykat.alchemia.client.particle.WildLeafParticle.Swirl::new);
     }
 
     @SubscribeEvent
@@ -129,5 +136,15 @@ public class ClientSetup {
         event.registerBlockEntityRenderer(BlockEntityTypeRegistry.ALCHEMICAL_CAULDRON.get(), AlchemicalCauldronRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityTypeRegistry.ALCHEMY_MACHINE_UPGRADE.get(), AlchemyMachineUpgradeRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityTypeRegistry.PLACED_POTIONS.get(), PlacedPotionsRenderer::new);
+        event.registerEntityRenderer(muddykat.alchemia.registration.registers.EntityTypeRegistry.RETURN_PORTAL.get(),
+                muddykat.alchemia.client.effect.ReturnPortalRenderer::new);
+        event.registerEntityRenderer(muddykat.alchemia.registration.registers.EntityTypeRegistry.FLAME_CLOUD.get(),
+                muddykat.alchemia.client.effect.FlameCloudRenderer::new);
+        event.registerEntityRenderer(muddykat.alchemia.registration.registers.EntityTypeRegistry.TELEPORT_FIELD.get(),
+                muddykat.alchemia.client.effect.TeleportFieldRenderer::new);
+        event.registerEntityRenderer(muddykat.alchemia.registration.registers.EntityTypeRegistry.RIFT.get(),
+                muddykat.alchemia.client.effect.RiftRenderer::new);
+        event.registerEntityRenderer(muddykat.alchemia.registration.registers.EntityTypeRegistry.GROWTH_FIELD.get(),
+                net.minecraft.client.renderer.entity.NoopRenderer::new);
     }
 }

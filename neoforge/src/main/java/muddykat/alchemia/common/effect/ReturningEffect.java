@@ -20,6 +20,17 @@ public class ReturningEffect extends TriggerMobEffect {
     }
 
     @Override
+    public void struck(ServerLevel level, LivingEntity mob, int amplifier) {
+    }
+
+    @Override
+    public void arrowLanded(ServerLevel level, Vec3 at, @Nullable Entity owner, int amplifier) {
+        if (owner instanceof ServerPlayer player && player.level() == level) {
+            ReturnPortals.open(player, FlameBurst.ground(level, at), amplifier + 1, true);
+        }
+    }
+
+    @Override
     public void shattered(ServerLevel level, Vec3 at, @Nullable Entity owner, int amplifier, boolean lingering) {
         if (owner instanceof ServerPlayer player && player.level() == level) ReturnPortals.open(player, at, amplifier + 1, true);
     }

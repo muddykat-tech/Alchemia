@@ -1,6 +1,9 @@
 {
   "type": "forge:add_features",
   "biomes": "#minecraft:is_jungle",
-  "features": "alchemia:patch_wild_druids_rosemary",
+  "features": [
+    "alchemia:patch_wild_druids_rosemary",
+    "alchemia:patch_wild_hairy_banana"
+  ],
   "step": "vegetal_decoration"
 }

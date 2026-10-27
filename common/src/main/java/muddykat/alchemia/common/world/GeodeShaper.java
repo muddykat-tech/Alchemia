@@ -64,6 +64,27 @@ public final class GeodeShaper {
     private static final int MOUTH_RIM = 3;
     private static final float SURFACE_VINES = 0.6F;
 
+    private static final int UNDERSIDE_DEPTH = 64;
+    private static final int UNDERSIDE_THICKNESS = 12;
+    private static final int UNDERSIDE_RADIUS = 3;
+    private static final int UNDERSIDE_RADIUS_VARY = 2;
+    private static final double UNDERSIDE_WOBBLE = 0.9;
+    private static final float UNDERSIDE_BUDDING = 0.2F;
+    private static final int UNDERSIDE_SPIKES = 2;
+    private static final int UNDERSIDE_SPIKES_VARY = 3;
+    private static final int UNDERSIDE_DRIPS = 2;
+    private static final int UNDERSIDE_DRIPS_VARY = 3;
+    private static final int UNDERSIDE_DRIP_REACH = 4;
+    private static final int UNDERSIDE_DRIP_SCAN = 20;
+    private static final int UNDERSIDE_CLUSTERS = 80;
+    private static final int UNDERSIDE_TELLS = 1;
+    private static final int UNDERSIDE_TELLS_VARY = 3;
+    private static final int UNDERSIDE_TELL_REACH = 2;
+
+    private static final Cavern UNDERSIDE_SPIKE = new Cavern(
+            0.0, 0.0, 0, 1, 0.0, 0.0, 0, 0,
+            0, 1, 3, 4, 1.0, 0.8, 0);
+
     private GeodeShaper() {
     }
 
@@ -76,6 +97,7 @@ public final class GeodeShaper {
             case GIANT -> cavern(level, random, origin, palette, GIANT);
             case SUPERMASSIVE -> cavern(level, random, origin, palette, SUPERMASSIVE);
             case SURFACE -> surface(level, random, origin, palette);
+            case UNDERSIDE -> underside(level, random, origin, endPalette(palette));
             case STANDARD -> false;
         };
     }
@@ -106,6 +128,11 @@ public final class GeodeShaper {
                 Blocks.CALCITE.defaultBlockState(),
                 nether ? Blocks.BASALT.defaultBlockState() : Blocks.SMOOTH_BASALT.defaultBlockState(),
                 budding.getClusterStates());
+    }
+
+    private static Palette endPalette(Palette palette) {
+        return new Palette(palette.inner(), palette.budding(), Blocks.OBSIDIAN.defaultBlockState(),
+                Blocks.END_STONE.defaultBlockState(), palette.clusters());
     }
 
     private record Wobble(double amplitude, double phaseX, double phaseZ, double phaseDiagonal, double phaseY) {
@@ -498,6 +525,94 @@ public final class GeodeShaper {
                         .setValue(VineBlock.PROPERTY_BY_DIRECTION.get(facing), true), FLAGS);
                 break;
             }
+        }
+    }
+
+    private static boolean underside(WorldGenLevel level, RandomSource random, BlockPos origin, Palette palette) {
+        BlockPos top = origin.below();
+        if (!level.getBlockState(top).is(Blocks.END_STONE)) return false;
+
+        BlockPos.MutableBlockPos pos = top.mutable();
+        int bottom = Integer.MIN_VALUE;
+        for (int depth = 1; depth <= UNDERSIDE_DEPTH; depth++) {
+            pos.move(Direction.DOWN);
+            if (level.getBlockState(pos).isAir()) {
+                bottom = pos.getY() + 1;
+                break;
+            }
+        }
+        if (bottom == Integer.MIN_VALUE || top.getY() - bottom + 1 < UNDERSIDE_THICKNESS) return false;
+
+        int radius = UNDERSIDE_RADIUS + random.nextInt(UNDERSIDE_RADIUS_VARY);
+        BlockPos centre = new BlockPos(top.getX(), bottom + radius - 1, top.getZ());
+        int reach = radius + (int) Math.ceil(SHELL + UNDERSIDE_WOBBLE);
+        Wobble wobble = wobbleOf(random, UNDERSIDE_WOBBLE);
+
+        for (int dx = -reach; dx <= reach; dx++) {
+            for (int dy = -reach; dy <= reach; dy++) {
+                for (int dz = -reach; dz <= reach; dz++) {
+                    double gap = Math.sqrt(dx * dx + dy * dy + dz * dz) - radius - wobble.at(dx, dy, dz);
+                    if (gap > MIDDLE) continue;
+
+                    pos.set(centre.getX() + dx, centre.getY() + dy, centre.getZ() + dz);
+                    if (!level.getBlockState(pos).is(Blocks.END_STONE)) continue;
+
+                    if (gap <= 0.0) level.setBlock(pos, AIR, FLAGS);
+                    else if (gap <= SKIN) level.setBlock(pos, palette.lining(random, UNDERSIDE_BUDDING), FLAGS);
+                    else level.setBlock(pos, palette.middle(), FLAGS);
+                }
+            }
+        }
+
+        int spikes = UNDERSIDE_SPIKES + random.nextInt(UNDERSIDE_SPIKES_VARY);
+        for (int i = 0; i < spikes; i++) {
+            int span = radius - 1;
+            BlockPos from = centre.offset(random.nextInt(span * 2 + 1) - span, 0, random.nextInt(span * 2 + 1) - span);
+            BlockPos anchor = anchorOf(level, from, false);
+            if (anchor != null) spike(level, random, anchor, false, palette, UNDERSIDE_SPIKE);
+        }
+
+        int drips = UNDERSIDE_DRIPS + random.nextInt(UNDERSIDE_DRIPS_VARY);
+        for (int i = 0; i < drips; i++) {
+            double angle = random.nextDouble() * Math.PI * 2;
+            double out = radius + 1 + random.nextInt(UNDERSIDE_DRIP_REACH);
+            BlockPos anchor = dripAnchor(level, centre.offset((int) Math.round(Math.cos(angle) * out), radius,
+                    (int) Math.round(Math.sin(angle) * out)));
+            if (anchor == null) continue;
+
+            level.setBlock(anchor.above(), palette.lining(random, UNDERSIDE_BUDDING), FLAGS);
+            spike(level, random, anchor, false, palette, UNDERSIDE_SPIKE);
+        }
+
+        scatterClusters(level, random, centre, radius + 1, UNDERSIDE_CLUSTERS, palette);
+        tells(level, random, top, palette);
+        return true;
+    }
+
+    private static BlockPos dripAnchor(WorldGenLevel level, BlockPos from) {
+        BlockPos.MutableBlockPos cursor = from.mutable();
+        for (int i = 0; i < UNDERSIDE_DRIP_SCAN; i++) {
+            BlockPos below = cursor.below();
+            if (level.getBlockState(cursor).is(Blocks.END_STONE) && level.getBlockState(below).isAir()) return below;
+            cursor.move(Direction.DOWN);
+        }
+        return null;
+    }
+
+    private static void tells(WorldGenLevel level, RandomSource random, BlockPos top, Palette palette) {
+        int tells = UNDERSIDE_TELLS + random.nextInt(UNDERSIDE_TELLS_VARY);
+        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+
+        for (int i = 0; i < tells; i++) {
+            int x = top.getX() + random.nextInt(UNDERSIDE_TELL_REACH * 2 + 1) - UNDERSIDE_TELL_REACH;
+            int z = top.getZ() + random.nextInt(UNDERSIDE_TELL_REACH * 2 + 1) - UNDERSIDE_TELL_REACH;
+            int y = level.getHeight(Heightmap.Types.WORLD_SURFACE_WG, x, z) - 1;
+
+            pos.set(x, y, z);
+            if (!level.getBlockState(pos).is(Blocks.END_STONE) || !level.getBlockState(pos.above()).isAir()) continue;
+
+            level.setBlock(pos, palette.inner(), FLAGS);
+            setCluster(level, pos.above(), palette.clusters().get(random.nextInt(Math.min(2, palette.clusters().size()))), Direction.UP);
         }
     }
 }

@@ -17,6 +17,8 @@ import muddykat.alchemia.common.blocks.BlockMineralGeneric;
 import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyCauldron;
 import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyMachineCore;
 import muddykat.alchemia.common.blocks.blockentity.BlockAlchemyMachineUpgrade;
+import muddykat.alchemia.common.blocks.blockentity.BlockRuinedMachine;
+import muddykat.alchemia.common.blocks.helper.MachineRepair;
 import muddykat.alchemia.registration.registers.BlockRegistry;
 import muddykat.alchemia.registration.registers.ItemRegistry;
 #if MC_VER >= 26200
@@ -34,6 +36,7 @@ import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
+import net.minecraft.world.level.storage.loot.functions.CopyBlockState;
 import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
 import net.minecraft.world.level.storage.loot.predicates.ExplosionCondition;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
@@ -102,6 +105,9 @@ public class BlockLoot extends BlockLootSubProvider {
                 add(block, LootTable.lootTable().withPool(singleItem(Blocks.CAULDRON)).withPool(singleItem(Blocks.CAMPFIRE)));
             } else if (block instanceof BlockAlchemyMachineCore || block instanceof BlockAlchemyMachineUpgrade) {
                 add(block, LootTable.lootTable().withPool(singleItem(block)));
+            } else if (block instanceof BlockRuinedMachine) {
+                add(block, LootTable.lootTable().withPool(singleItem(block)
+                        .apply(CopyBlockState.copyState(block).copy(MachineRepair.REPAIR))));
             } else if (block instanceof BlockResearchDesk) {
                 dropSelf(block);
             } else if (block instanceof BlockMineralBuddingGeneric) {
@@ -146,6 +152,7 @@ public class BlockLoot extends BlockLootSubProvider {
             if (block instanceof BlockIngredient || block instanceof BlockAlchemyCauldron
                     || block instanceof BlockTangleBranch || block instanceof BlockKelpStalk || block instanceof BlockInfectedLog
                     || block instanceof BlockAlchemyMachineCore || block instanceof BlockAlchemyMachineUpgrade
+                    || block instanceof BlockRuinedMachine
                     || block instanceof BlockMineralGeneric || block instanceof BlockMineralBuddingGeneric
                     || block instanceof BlockMineralClusterGeneric || block instanceof BlockResearchDesk) {
                 blocks.add(block);

@@ -1,9 +1,5 @@
 Grinding
 
-@items left alchemia:mortar_and_pestle
-Each ingredient can be ground using a Mortar and Pestle, this increases it's potency and as a result, it's path.
-
+You can create a mortar and pestle to crush an ingredient to lengthen its path
 @craft style=compact alchemia:mortar_and_pestle
-@page
-@path align=left grind=true herb_dragon_pepper
-Each ingredient has its own path.
+@path grind=true herb_flameweed

@@ -16,6 +16,7 @@ import java.util.Set;
 public final class GuidePrimer {
 
     public static final Identifier BUBBLE = Identifier.fromNamespaceAndPath(Alchemia.MODID, "cauldron");
+    public static final Identifier SHACK = Identifier.fromNamespaceAndPath(Alchemia.MODID, "forgotten_shack");
 
     public static final int PHOTO_W = 128;
     public static final int PHOTO_H = 72;
@@ -39,11 +40,10 @@ public final class GuidePrimer {
             new Chapter("cauldron", List.of("cauldron", "facing")),
             new Chapter("bases", List.of("bases", "filling")),
             new Chapter("screen", List.of("screen")),
-            new Chapter("ingredients", List.of("ingredients", "map", "grinding")),
-            new Chapter("effects", List.of("effects", "dead_space")),
-            new Chapter("brewing", List.of("brewing")),
+            new Chapter("ingredients", List.of("ingredients", "grinding")),
+            new Chapter("effects", List.of("map", "effects", "brewing", "whirlpools", "dead_space")),
             new Chapter("bottling", List.of("bottling", "glasses")),
-            new Chapter("modifiers", List.of("modifiers", "lures", "imbuements", "bark", "finishing")),
+            new Chapter("modifiers", List.of("modifiers", "lures", "imbuements", "bark")),
             new Chapter("recording", List.of("recording", "desk")),
             new Chapter("beyond", List.of("beyond")));
 

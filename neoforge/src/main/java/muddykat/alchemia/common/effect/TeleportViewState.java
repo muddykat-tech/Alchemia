@@ -9,6 +9,7 @@ public final class TeleportViewState {
     public static final int OPEN_TICKS = 12;
 
     private static volatile int phase = -1;
+    private static volatile float chargeRate = 1.0F;
     private static volatile int revision;
 
     private TeleportViewState() {
@@ -22,8 +23,13 @@ public final class TeleportViewState {
         return revision;
     }
 
-    public static void setPhase(int phase) {
+    public static float chargeRate() {
+        return chargeRate;
+    }
+
+    public static void setPhase(int phase, float chargeRate) {
         TeleportViewState.phase = phase;
+        TeleportViewState.chargeRate = chargeRate;
         revision++;
     }
 }

@@ -1,8 +1,10 @@
 package muddykat.alchemia.common.items;
 
+import muddykat.alchemia.common.config.Configuration;
 import muddykat.alchemia.common.guide.GuideShelf;
 import muddykat.alchemia.common.potion.AlchemiaEffect;
 import muddykat.alchemia.common.potion.AlchemiaEffects;
+import muddykat.alchemia.common.potion.MapReveals;
 import muddykat.alchemia.common.potion.WorldEffects;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -54,6 +56,7 @@ public class ItemAlchemistNotes extends Item {
         }
 
         WorldEffects.note(shelf, secret);
+        if (Configuration.fogOfWar()) MapReveals.revealEffect(shelf, secret);
         shelf.settle(at);
 
         level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.BOOK_PAGE_TURN, SoundSource.PLAYERS, 1.0F, 0.8F);

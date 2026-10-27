@@ -6,7 +6,11 @@ import muddykat.alchemia.common.items.helper.Ingredients;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+#if MC_VER >= 26100
 import org.jspecify.annotations.Nullable;
+#else
+import javax.annotation.Nullable;
+#endif
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

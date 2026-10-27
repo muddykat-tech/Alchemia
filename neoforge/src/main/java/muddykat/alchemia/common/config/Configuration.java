@@ -19,6 +19,9 @@ public class Configuration {
     public static final HashMap<Ingredients, ModConfigSpec.IntValue> INGREDIENT_CONFIG = new HashMap<>();
     public static final ModConfigSpec.IntValue MAX_POTENCY;
     public static final ModConfigSpec.BooleanValue GREAT_WORK_SEEDED;
+    public static final ModConfigSpec.BooleanValue LOCK_MACHINE_RECIPES;
+    public static final ModConfigSpec.BooleanValue REQUIRE_MACHINE_REPAIR;
+    public static final ModConfigSpec.BooleanValue FOG_OF_WAR;
     public static final ModConfigSpec.ConfigValue<List<? extends String>> WORLD_EFFECTS;
     public static final List<String> DEFAULT_WORLD_EFFECTS = List.of(
             "Dolphins_Grace = rain",
@@ -125,6 +128,14 @@ public class Configuration {
                         "Generated recipes are saved with the world the first time it starts, so later changes",
                         "to brew bases, potency or world effects do not move them.")
                 .define("seeded", true);
+        LOCK_MACHINE_RECIPES = serverBuilder
+                .comment("Keep each Alchemy Machine part's recipe hidden and uncraftable until a guide the player can read",
+                        "has learned the Great Work stage that first needs that part. Turn off to always show them.")
+                .define("lock_machine_recipes", true);
+        REQUIRE_MACHINE_REPAIR = serverBuilder
+                .comment("A player must restore a ruined Alchemy Machine part, found in Forgotten Alchemy Shack cellars,",
+                        "before they can craft that part themselves.")
+                .define("require_machine_repair", true);
         serverBuilder.pop();
 
         serverBuilder.comment("Effects that only wake under certain conditions in the world around the cauldron.",
@@ -202,6 +213,12 @@ public class Configuration {
                         "The rim uses the cutoff above and the centre is raised by this much,",
                         "so patches thicken the further a brew travels. 0 spreads them evenly.")
                 .defineInRange("field_centre_calm", 0.25D, 0.0D, 2.0D);
+        FOG_OF_WAR = serverBuilder
+                .comment("Hide the potion map behind fog until a brew has passed close by.",
+                        "What a brew uncovers is written into the guides on the player's shelf and shared",
+                        "between them, so charted ground stays clear on later brews.",
+                        "Off shows the whole map and stops recording what has been charted.")
+                .define("fog_of_war", true);
         serverBuilder.pop();
 
         serverBuilder.comment("What the sense potions reveal. Each entry is a block or entity id (minecraft:tnt) or a tag (#c:ores).",
@@ -255,8 +272,20 @@ public class Configuration {
         return SERVER_CONFIG.isLoaded() ? WORLD_EFFECTS.get() : DEFAULT_WORLD_EFFECTS;
     }
 
+    public static boolean lockMachineRecipes() {
+        return !SERVER_CONFIG.isLoaded() || LOCK_MACHINE_RECIPES.get();
+    }
+
+    public static boolean requireMachineRepair() {
+        return !SERVER_CONFIG.isLoaded() || REQUIRE_MACHINE_REPAIR.get();
+    }
+
     public static boolean greatWorkSeeded() {
         return !SERVER_CONFIG.isLoaded() || GREAT_WORK_SEEDED.get();
+    }
+
+    public static boolean fogOfWar() {
+        return !SERVER_CONFIG.isLoaded() || FOG_OF_WAR.get();
     }
 
     public static int maxPotency() {

@@ -4,9 +4,17 @@
   "package": "muddykat.alchemia.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "PotionBrewingMixin"
+    "PotionBrewingMixin",
+    "TippedArrowNameMixin",
+    "CraftingMenuMixin"
   ],
   "injectors": {
     "defaultRequire": 1
-  }
+  },
+  "client": [
+    "LivingEntityRendererMixin",
+    "EntityRendererMixin",
+    "MinecraftGlowMixin",
+    "EntityTeamColorMixin"
+  ]
 }

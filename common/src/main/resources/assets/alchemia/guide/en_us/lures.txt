@@ -1,6 +1,9 @@
 Lures
 
 @photo lure_1 lure_2 lure_3
-todo explain what lures are
+Creature Parts often have an inclination to seek out a specific effect, a good example of this is the ghast tear and regeneration.
 @page
-and expand on what queueing a lure does to the existing paths. Testing pagination so this should be on a new page now.
+On their own they're quite useless, but if added to an unmixed but prepared cauldron, they'll shift the existing path towards regeneration.
+
+
+There are many creature parts that lure to different effects, you'll need to experiment to find them, however.

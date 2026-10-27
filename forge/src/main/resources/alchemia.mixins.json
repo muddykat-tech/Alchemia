@@ -5,9 +5,17 @@
   "compatibilityLevel": "JAVA_17",
   "refmap": "alchemia.refmap.json",
   "mixins": [
-    "PotionBrewingMixin"
+    "PotionBrewingMixin",
+    "TippedArrowNameMixin",
+    "CraftingMenuMixin"
   ],
   "injectors": {
     "defaultRequire": 1
-  }
+  },
+  "client": [
+    "LivingEntityRendererMixin",
+    "EntityRendererMixin",
+    "MinecraftGlowMixin",
+    "EntityTeamColorMixin"
+  ]
 }

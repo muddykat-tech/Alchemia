@@ -1,0 +1,6 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "#alchemia:has_end_crystal",
+  "features": "alchemia:end_arcane_crystal",
+  "step": "underground_decoration"
+}
